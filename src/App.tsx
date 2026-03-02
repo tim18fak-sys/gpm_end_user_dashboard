@@ -22,6 +22,9 @@ import Analytics from './pages/Analytics'
 import NotificationCenter from './pages/NotificationCenter'; //Import NotificationCenter
 import AlertCenter from './pages/AlertCenter'
 import CaseAnalytics from './pages/CaseAnalytics';
+import Kyc from './pages/kyc/Kyc'
+import PendingKycReview from './pages/kyc/PendingKycReview'
+import RejectedKyc from './pages/kyc/RejectedKyc'
 
 function App() {
 
@@ -146,6 +149,22 @@ function App() {
           // </RouteGuard>
         } />
 
+{/* kyc route */}
+        <Route path='kyc'>
+          {/* index, submitting your kyc, NONE */}
+          <Route index  element={
+            <Kyc/>
+          }/>
+          {/* PENDING-review */}
+          <Route path='pending-review' element={
+            <PendingKycReview/>
+          }/>
+          {/* REJECTED */}
+          <Route path='rejected-kyc-review' element={
+            <RejectedKyc/>
+          }/>
+          {/*  */}
+        </Route>
 
         {/* Default redirect */}
         <Route path="/" element={
