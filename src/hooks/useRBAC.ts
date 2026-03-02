@@ -1,39 +1,31 @@
 
-import { useAuthStore } from '../store/authStore'
+import { useAuthStore, LeadStatusEnum } from '../store/authStore'
 
 export const useRBAC = () => {
   const { user } = useAuthStore()
 
-  const hasRole = (role: string): boolean => {
-    return user?.role?.includes(role) || false
+  const hasStatus = (status: LeadStatusEnum): boolean => {
+    return user?.status === status
   }
 
-  const hasPrivilege = (privilege: string): boolean => {
-    return user?.privileges?.includes(privilege) || false
+  const hasAnyStatus = (statuses: LeadStatusEnum[]): boolean => {
+    return statuses.some(status => hasStatus(status))
   }
 
-  const hasAnyRole = (roles: string[]): boolean => {
-    return roles.some(role => hasRole(role))
+  const isQualified = (): boolean => {
+    return user?.status === LeadStatusEnum.QUALIFIED || user?.status === LeadStatusEnum.CONVERTED
   }
 
-  const hasAnyPrivilege = (privileges: string[]): boolean => {
-    return privileges.some(privilege => hasPrivilege(privilege))
-  }
-
-  const canAccess = (requiredRoles?: string[], requiredPrivileges?: string[]): boolean => {
+  const canAccess = (requiredStatuses?: LeadStatusEnum[]): boolean => {
     if (!user) return false
-    
-    const roleCheck = !requiredRoles || hasAnyRole(requiredRoles)
-    const privilegeCheck = !requiredPrivileges || hasAnyPrivilege(requiredPrivileges)
-    
-    return roleCheck && privilegeCheck
+    if (!requiredStatuses) return true
+    return hasAnyStatus(requiredStatuses)
   }
 
   return {
-    hasRole,
-    hasPrivilege,
-    hasAnyRole,
-    hasAnyPrivilege,
+    hasStatus,
+    hasAnyStatus,
+    isQualified,
     canAccess,
     user
   }

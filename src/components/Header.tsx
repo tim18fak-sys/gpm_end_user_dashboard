@@ -1,7 +1,7 @@
 import { Fragment } from 'react'
 import { Menu, Transition } from '@headlessui/react'
 import { Bars3Icon, ChevronDownIcon } from '@heroicons/react/24/outline'
-import { useAuthStore } from '../store/authStore'
+import { useAuthStore, LeadStatusEnum } from '../store/authStore'
 import { authAPI } from '@/services/api';
 import toast from 'react-hot-toast';
 
@@ -13,7 +13,6 @@ interface HeaderProps {
 
 export default function Header({ sidebarOpen, setSidebarOpen, setMobileSidebarOpen }: HeaderProps) {
   const { user } = useAuthStore()
-  // const navigate = useNavigate();
   const handleLogout=async ()=> {
     toast.loading('Logging out in progress',)
     authAPI.logout().then(() => {
@@ -36,7 +35,6 @@ export default function Header({ sidebarOpen, setSidebarOpen, setMobileSidebarOp
         <Bars3Icon className="h-6 w-6" aria-hidden="true" />
       </button>
 
-      {/* Desktop sidebar toggle */}
       <button
         type="button"
         className="hidden lg:block -m-2.5 p-2.5 text-secondary-700 dark:text-secondary-300 hover:text-secondary-900 dark:hover:text-white transition-colors duration-200"
@@ -60,35 +58,23 @@ export default function Header({ sidebarOpen, setSidebarOpen, setMobileSidebarOp
             <Menu.Button className="-m-1.5 flex items-center p-1.5 hover:bg-secondary-50 dark:hover:bg-secondary-800 rounded-lg transition-colors duration-200">
               <span className="sr-only">Open user menu</span>
               <div className="relative">
-                {user?.profile_picture_url ? (
-                  <img
-                    className="h-8 w-8 rounded-full bg-secondary-50 dark:bg-secondary-700 ring-2 ring-primary-500/20 object-cover"
-                    src={user.profile_picture_url}
-                    alt={`${user.first_name} ${user.last_name}` || 'User'}
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none'
-                      e.currentTarget.nextElementSibling!.style.display = 'flex'
-                    }}
-                  />
-                ) : null}
                 <div 
-                  className={`h-8 w-8 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 ring-2 ring-primary-500/20 flex items-center justify-center text-white text-sm font-medium ${user?.profile_picture_url ? 'hidden' : 'flex'}`}
-                  style={{ display: user?.profile_picture_url ? 'none' : 'flex' }}
+                  className="h-8 w-8 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 ring-2 ring-primary-500/20 flex items-center justify-center text-white text-sm font-medium"
                 >
-                  {`${user?.first_name?.charAt(0) || ''}${user?.last_name?.charAt(0) || ''}`.toUpperCase() || 'A'}
+                  {user?.name?.charAt(0)?.toUpperCase() || 'A'}
                 </div>
-                {user?.status === 'active' && (
+                {user?.status === LeadStatusEnum.QUALIFIED && (
                   <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-white dark:border-secondary-900 rounded-full"></div>
                 )}
               </div>
               <span className="hidden lg:flex lg:items-center">
                 <div className="ml-4">
                   <span className="text-sm font-semibold leading-6 text-secondary-900 dark:text-white" aria-hidden="true">
-                    {`${user.first_name} ${user.last_name}` || 'Admin User'}
+                    {user.name || 'User'}
                   </span>
-                  {user?.role && (
-                    <span className="block text-xs text-secondary-500 dark:text-secondary-400">
-                      {user.role.replace('_', ' ')}
+                  {user?.status && (
+                    <span className="block text-xs text-secondary-500 dark:text-secondary-400 capitalize">
+                      {user.status.replace('_', ' ')}
                     </span>
                   )}
                 </div>
@@ -106,77 +92,48 @@ export default function Header({ sidebarOpen, setSidebarOpen, setMobileSidebarOp
               leaveTo="transform opacity-0 scale-95"
             >
               <Menu.Items className="absolute right-0 z-10 mt-2.5 w-72 origin-top-right rounded-xl bg-white dark:bg-secondary-800 shadow-xl ring-1 ring-secondary-900/5 dark:ring-secondary-700 focus:outline-none border border-secondary-200 dark:border-secondary-700">
-                {/* User Profile Header */}
                 <div className="px-4 py-3 border-b border-secondary-100 dark:border-secondary-700">
                   <div className="flex items-center space-x-3">
                     <div className="relative">
-                      {user?.profile_picture_url ? (
-                        <img
-                          className="h-10 w-10 rounded-full object-cover"
-                          src={user.profile_picture_url}
-                          alt={`${user.first_name} ${user.last_name}` || 'User'}
-                          onError={(e) => {
-                            e.currentTarget.style.display = 'none'
-                            e.currentTarget.nextElementSibling!.style.display = 'flex'
-                          }}
-                        />
-                      ) : null}
                       <div 
-                        className={`h-10 w-10 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center text-white text-lg font-medium ${user?.profile_picture_url ? 'hidden' : 'flex'}`}
-                        style={{ display: user?.profile_picture_url ? 'none' : 'flex' }}
+                        className="h-10 w-10 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center text-white text-lg font-medium"
                       >
-                        {`${user?.first_name?.charAt(0) || ''}${user?.last_name?.charAt(0) || ''}`.toUpperCase() || 'A'}
+                        {user?.name?.charAt(0)?.toUpperCase() || 'A'}
                       </div>
-                      {user?.status === 'active' && (
+                      {user?.status === LeadStatusEnum.QUALIFIED && (
                         <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-white dark:border-secondary-800 rounded-full"></div>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-secondary-900 dark:text-white truncate">
-                        {`${user.first_name} ${user.last_name}`|| 'Admin User'}
+                        {user.name || 'User'}
                       </p>
                       <p className="text-xs text-secondary-500 dark:text-secondary-400 truncate">
                         {user?.email || 'No email provided'}
                       </p>
-                      {user?.role && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800 dark:bg-primary-900/20 dark:text-primary-300 mt-1">
-                          {user.role.replace('_', ' ')}
+                      {user?.status && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800 dark:bg-primary-900/20 dark:text-primary-300 mt-1 capitalize">
+                          {user.status.replace('_', ' ')}
                         </span>
                       )}
                     </div>
                   </div>
-                  {user?.bio && (
-                    <p className="text-xs text-secondary-600 dark:text-secondary-400 mt-2 line-clamp-2">
-                      {user.bio}
-                    </p>
-                  )}
-                  {user?.phone && (
+                  {user?.phoneNumber && (
                     <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-1">
-                      📞 {user.phone}
+                      {user.phoneNumber}
                     </p>
                   )}
                 </div>
 
-                {/* User Privileges */}
-                {user?.privileges && user.privileges.length > 0 && (
+                {user?.interestedDevice?.deviceCategoryName && (
                   <div className="px-4 py-2 border-b border-secondary-100 dark:border-secondary-700">
-                    <p className="text-xs font-medium text-secondary-700 dark:text-secondary-300 mb-1">Privileges:</p>
-                    <div className="flex flex-wrap gap-1">
-                      {user.privileges.slice(0, 3).map((privilege, index) => (
-                        <span key={index} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-secondary-100 text-secondary-700 dark:bg-secondary-700 dark:text-secondary-300">
-                          {privilege.replace('_', ' ')}
-                        </span>
-                      ))}
-                      {user.privileges.length > 3 && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-secondary-200 text-secondary-600 dark:bg-secondary-600 dark:text-secondary-400">
-                          +{user.privileges.length - 3} more
-                        </span>
-                      )}
-                    </div>
+                    <p className="text-xs font-medium text-secondary-700 dark:text-secondary-300 mb-1">Interested Device:</p>
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-secondary-100 text-secondary-700 dark:bg-secondary-700 dark:text-secondary-300">
+                      {user.interestedDevice.deviceCategoryName}
+                    </span>
                   </div>
                 )}
 
-                {/* Menu Items */}
                 <div className="py-1">
                   <Menu.Item>
                     {({ active }) => (

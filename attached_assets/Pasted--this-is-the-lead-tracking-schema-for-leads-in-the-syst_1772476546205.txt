@@ -1,0 +1,130 @@
+// this is the lead tracking schema for leads in the system
+import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
+import { HydratedDocument, Types, Schema as mongooseSchema } from "mongoose";
+
+// this should be a sub schema in the lead document.
+
+export enum LeadFinancingOptionEnum {
+    OUTRIGHT_PURCHASE='outright_purchase',
+    FINANCING_OPTION='financing_option',
+    DEFAULT='default'
+}
+export enum LeadKycVerificationStatusEnum {
+    PENDING='PENDING',
+    COMPLETED='COMPLETED',
+    REJECTED='REJECTED',
+    NONE='NONE'
+}
+interface LeadProcessTimelineInterface {
+    leadProcessId:string
+    name:string
+    fulfilledAt:Date
+    // this is to know if the process been screened by the sales agent or admin qualify for this process, if so, then their score is added to the lead score
+    isQualifiedProcess:boolean,
+    // if the lead fails, then the agent who is screening  or qualifying the lead will give a reason for the failure
+    failedReason?:string
+
+}
+
+@Schema({
+   _id:false,
+   id:false
+})
+export class LeadTracking {
+    // this is the lead config id
+    @Prop({ required: true, type:mongooseSchema.Types.ObjectId })
+    leadConfigId: Types.ObjectId;
+
+    @Prop({default:0})
+    currentLeadScore:number
+    // this is to know if the lead is ready to be converted to customer. After they have paid and placed an order.
+    @Prop({default:false})
+    isReadyForConversion:boolean
+    // this is the timeline for each of the process associated with each of leadConfigId
+    @Prop({default:[], type:Array<LeadProcessTimelineInterface>})
+    leadProcessTimeline:LeadProcessTimelineInterface[]
+
+    @Prop({default:false})
+    isScreened:boolean
+    @Prop({required:false, default:null, type:Date})
+    screenedAt:Date|null
+
+    // // this is to know if the lead has their dashboard created, so that the agent can't mark a lead has unscreened any more.
+    // // it would also be used to filter leads when the cron job is running to ensure that a lead does not have multiple dashboard created for them.
+    // @Prop({default: false})
+    // hasLeadDashboardCreated:boolean
+
+    @Prop({required:false, default:null, type:Date})
+    // this is for when the lead scores more than the minimum required to be marked has qualified
+    qualifiedAt:Date|null
+    @Prop({default:false})
+    qualificationJobFailed:boolean
+    @Prop({default:'' })
+    qualificationJobFailedReason:string
+    // this is to know if the lead has submitted KYC documents
+    @Prop({default:false})
+    hasSubmittedKYCDocuments:boolean
+    // kyc verification status
+    @Prop({enum:LeadKycVerificationStatusEnum, default:LeadKycVerificationStatusEnum.NONE})
+    kycVerificationStatus:LeadKycVerificationStatusEnum
+    // this is to know if the lead what an outright purchase or financing option
+    @Prop({default:LeadFinancingOptionEnum.DEFAULT, enum:LeadFinancingOptionEnum})
+    prefersFinancingOption:LeadFinancingOptionEnum
+
+    // NOTE: then a lead is screened, the system will run by 1am to check if the lead meets the minimium score to be marked has qualified. Once marked has qualified, the admin will assign the qualified lead to a sales agent to contact the lead. A Notification is given
+}
+
+@Schema({
+    _id:false,
+    id:false
+})
+export class LeadInterestedDevice {
+    @Prop({
+        type:mongooseSchema.Types.ObjectId
+    })
+    deviceCategoryId:Types.ObjectId
+    // this is the id and name of the device category using extended referrence pattern
+    @Prop({})
+    deviceCategoryName:string
+}
+
+export class LeadOfferMedia {
+    @Prop({})
+    mediaUrl:string
+    @Prop({type:mongooseSchema.Types.ObjectId, ref:'File'})
+    fileId:Types.ObjectId
+}
+
+// the flow, when the lead logins for the first time, they will be taken to their dashboard, where a modal will pop up to ask them to select if they want outright purchase or financing option. Based on their selection, that is if they select financing option, they will be taken to a page to fill their KYC documents. Once they submit the KYC documents, the leadTracking.hasSubmittedKYCDocuments is marked has true. If they select outright purchase, they will be taken to their dashboard to see the offers available to them based on their leadConfigMetaData and interestedDevice.
+
+// this is the sub document for the onboarding flow when the lead loggs in for the first time.
+@Schema({
+    _id:false,
+    id:false
+})
+export class LeadOnBoardingDashboardFlow {
+    @Prop({default:false})
+    hasGottenWelcomeModal:boolean
+    @Prop({default:false})
+    hasViewedSelectedDeviceOffersModal:boolean
+    @Prop({default:false})
+
+    hasViewedFinancingOptionModal:boolean
+    @Prop({default:false})
+    hasSelectedFinancingOption:boolean
+    @Prop({enum:LeadFinancingOptionEnum, default:LeadFinancingOptionEnum.DEFAULT})
+    prefersFinancingOption:LeadFinancingOptionEnum
+
+    // all this values will be completed internally by the system based on the lead actions
+    @Prop({default:false})
+    hasPlacedOrderForDeviceForOutrightPurchase:boolean
+    // this is for the the other finanicing option flow
+    @Prop({default:false})
+    hasSubmittedKYCDocumentsForFinancingOption:boolean
+    @Prop({default:false})
+    hasPlacedOrderForDeviceForFinancingOption:boolean
+    
+}
+
+
+// each lead will have a separate kyc document that will be linked to the kyc config, and the lead config id.

@@ -73,12 +73,9 @@ export const authAPI = {
 }
 
 interface UpdateProfile {
-  first_name?: string
-  last_name?: string
+  name?: string
   email?: string
-  bio?: string
-  phone?: string
-  profile_picture_url?: string
+  phoneNumber?: string
   current_password?: string
   new_password?: string
 }

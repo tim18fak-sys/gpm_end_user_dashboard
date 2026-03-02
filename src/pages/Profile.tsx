@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { Formik, Form, Field, ErrorMessage } from 'formik'
 import * as Yup from 'yup'
 import toast from 'react-hot-toast'
-import { useAuthStore } from '../store/authStore'
+import { useAuthStore, LeadStatusEnum } from '../store/authStore'
 import { api, ProfileManagementAPI } from '../services/api'
 import {  
   PencilIcon, 
@@ -15,11 +15,9 @@ import {
 import ProfileImageUpload from '@/components/smart_components/SingleImageUpload'
 
 const profileSchema = Yup.object({
-  first_name: Yup.string().required('First name is required'),
-  last_name: Yup.string().required('Last name is required'),
+  name: Yup.string().required('Name is required'),
   email: Yup.string().email('Invalid email').required('Email is required'),
-  bio: Yup.string().max(500, 'Bio must be less than 500 characters'),
-  phone: Yup.string(),
+  phoneNumber: Yup.string().required('Phone number is required'),
 })
 
 const passwordSchema = Yup.object({
@@ -43,18 +41,15 @@ export default function Profile() {
   const [isLoadingProfile, setIsLoadingProfile] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  // Function to invalidate and refresh profile data
   const invalidateAndRefreshProfile = async () => {
     try {
       const userInfo = await ProfileManagementAPI.getUserInfo()
       setUser(userInfo)
     } catch (error: any) {
       console.error('Failed to refresh profile data:', error)
-      // Don't show error toast here to avoid duplicate error messages
     }
   }
 
-  // Fetch fresh user data on component mount
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
@@ -72,15 +67,12 @@ export default function Profile() {
     fetchUserProfile()
   }, [setUser])
 
-  // this is to update the profile information of the user only
   const handleProfileUpdate = async (values: any) => {
     try {
       const updateData = {
-        first_name: values.first_name,
-        last_name: values.last_name,
+        name: values.name,
         email: values.email,
-        bio: values.bio,
-        phone: values.phone,
+        phoneNumber: values.phoneNumber,
       }
 
       const updatedUser = await ProfileManagementAPI.updateProfile(updateData)
@@ -88,14 +80,12 @@ export default function Profile() {
       setIsEditing(false)
       toast.success('Profile updated successfully!')
       
-      // Invalidate and refetch user profile to ensure consistency
       await invalidateAndRefreshProfile()
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Failed to update profile')
     }
   }
 
-  // this is to change the user password
   const handlePasswordChange = async (values: any) => {
     try {
       await ProfileManagementAPI.updateProfile({
@@ -105,7 +95,6 @@ export default function Profile() {
       setIsChangingPassword(false)
       toast.success('Password updated successfully!')
       
-      // Invalidate and refetch user profile to ensure consistency
       await invalidateAndRefreshProfile()
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Failed to update password')
@@ -133,41 +122,34 @@ export default function Profile() {
       </div>
 
       <div className="space-y-6">
-        {/* Profile Header */}
         <div className="bg-white dark:bg-secondary-800 rounded-lg shadow-sm border border-secondary-200 dark:border-secondary-700">
           <div className="px-6 py-8">
             <div className="flex items-center space-x-6">
               <div className="relative">
                 <div className="h-24 w-24 rounded-full overflow-hidden bg-secondary-100 dark:bg-secondary-700 flex items-center justify-center">
-                  {user?.profile_picture_url ? (
-                    <img
-                      src={user?.profile_picture_url}
-                      alt="Profile"
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <span className="text-2xl font-medium text-secondary-600 dark:text-secondary-300">
-                      {user?.first_name && user?.last_name ? user.first_name[0].toUpperCase() + user.last_name[0].toUpperCase() : 'US'}
-                    </span>
-                  )}
+                  <span className="text-2xl font-medium text-secondary-600 dark:text-secondary-300">
+                    {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+                  </span>
                 </div>
                 <ProfileImageUpload axiosInstance={api} uploadUrl={'/v1/super-admin/upload/single'} profileUrl={'v1/profile-management/super-admin/profile-image'} resourceType={'image'}/>
               </div>
               <div className="flex-1">
                 <h2 className="text-xl font-semibold text-secondary-900 dark:text-white">
-                  {user?.first_name || 'User'}
+                  {user?.name || 'User'}
                 </h2>
                 <p className="text-secondary-600 dark:text-secondary-300">{user?.email}</p>
                 <div className="mt-2 flex items-center space-x-4">
-                  <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                    user?.status === 'active'
+                  <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full capitalize ${
+                    user?.status === LeadStatusEnum.QUALIFIED || user?.status === LeadStatusEnum.CONVERTED
                       ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                      : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                      : user?.status === LeadStatusEnum.UNQUALIFIED
+                      ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                      : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
                   }`}>
-                    {user?.status}
+                    {user?.status?.replace('_', ' ')}
                   </span>
                   <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-primary-100 text-primary-800 dark:bg-primary-900 dark:text-primary-200 capitalize">
-                    {user?.role?.replace('_', ' ')}
+                    {user?.leadSourceType?.replace('_', ' ')}
                   </span>
                 </div>
               </div>
@@ -182,7 +164,6 @@ export default function Profile() {
           </div>
         </div>
 
-        {/* Profile Information */}
         <div className="bg-white dark:bg-secondary-800 rounded-lg shadow-sm border border-secondary-200 dark:border-secondary-700">
           <div className="px-6 py-6">
             <h3 className="text-lg font-medium text-secondary-900 dark:text-white mb-6">
@@ -192,11 +173,9 @@ export default function Profile() {
             {isEditing ? (
               <Formik
                 initialValues={{
-                  first_name: user?.first_name || '',
-                  last_name: user?.last_name || '',
+                  name: user?.name || '',
                   email: user?.email || '',
-                  bio: user?.bio || '',
-                  phone: user?.phone || '',
+                  phoneNumber: user?.phoneNumber || '',
                 }}
                 validationSchema={profileSchema}
                 onSubmit={handleProfileUpdate}
@@ -206,26 +185,14 @@ export default function Profile() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
                         <label className="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">
-                          First Name
+                          Name
                         </label>
                         <Field
-                          name="first_name"
+                          name="name"
                           type="text"
                           className="w-full px-3 py-2 border border-secondary-300 dark:border-secondary-600 rounded-lg bg-white dark:bg-secondary-700 text-secondary-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                         />
-                        <ErrorMessage name="first_name" component="div" className="mt-1 text-sm text-red-600" />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">
-                          Last Name
-                        </label>
-                        <Field
-                          name="last_name"
-                          type="text"
-                          className="w-full px-3 py-2 border border-secondary-300 dark:border-secondary-600 rounded-lg bg-white dark:bg-secondary-700 text-secondary-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                        />
-                        <ErrorMessage name="last_name" component="div" className="mt-1 text-sm text-red-600" />
+                        <ErrorMessage name="name" component="div" className="mt-1 text-sm text-red-600" />
                       </div>
 
                       <div>
@@ -245,26 +212,12 @@ export default function Profile() {
                           Phone Number
                         </label>
                         <Field
-                          name="phone"
+                          name="phoneNumber"
                           type="tel"
                           className="w-full px-3 py-2 border border-secondary-300 dark:border-secondary-600 rounded-lg bg-white dark:bg-secondary-700 text-secondary-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                         />
-                        <ErrorMessage name="phone" component="div" className="mt-1 text-sm text-red-600" />
+                        <ErrorMessage name="phoneNumber" component="div" className="mt-1 text-sm text-red-600" />
                       </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">
-                        Bio
-                      </label>
-                      <Field
-                        as="textarea"
-                        name="bio"
-                        rows="4"
-                        className="w-full px-3 py-2 border border-secondary-300 dark:border-secondary-600 rounded-lg bg-white dark:bg-secondary-700 text-secondary-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                        placeholder="Tell us about yourself..."
-                      />
-                      <ErrorMessage name="bio" component="div" className="mt-1 text-sm text-red-600" />
                     </div>
 
                     <div className="flex space-x-3">
@@ -293,9 +246,9 @@ export default function Profile() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-secondary-500 dark:text-secondary-400 mb-1">
-                      Full Name
+                      Name
                     </label>
-                    <p className="text-secondary-900 dark:text-white">{user?.first_name || 'Not provided'}</p>
+                    <p className="text-secondary-900 dark:text-white">{user?.name || 'Not provided'}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-secondary-500 dark:text-secondary-400 mb-1">
@@ -307,53 +260,34 @@ export default function Profile() {
                     <label className="block text-sm font-medium text-secondary-500 dark:text-secondary-400 mb-1">
                       Phone Number
                     </label>
-                    <p className="text-secondary-900 dark:text-white">{user?.phone || 'Not provided'}</p>
+                    <p className="text-secondary-900 dark:text-white">{user?.phoneNumber || 'Not provided'}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-secondary-500 dark:text-secondary-400 mb-1">
-                      Role
+                      Status
                     </label>
-                    <p className="text-secondary-900 dark:text-white capitalize">{user?.role?.replace('_', ' ')}</p>
+                    <p className="text-secondary-900 dark:text-white capitalize">{user?.status?.replace('_', ' ')}</p>
                   </div>
+                  <div>
+                    <label className="block text-sm font-medium text-secondary-500 dark:text-secondary-400 mb-1">
+                      Lead Source
+                    </label>
+                    <p className="text-secondary-900 dark:text-white capitalize">{user?.leadSourceType?.replace('_', ' ')}</p>
+                  </div>
+                  {user?.interestedDevice?.deviceCategoryName && (
+                    <div>
+                      <label className="block text-sm font-medium text-secondary-500 dark:text-secondary-400 mb-1">
+                        Interested Device
+                      </label>
+                      <p className="text-secondary-900 dark:text-white">{user.interestedDevice.deviceCategoryName}</p>
+                    </div>
+                  )}
                 </div>
-                {user?.bio && (
-                  <div>
-                    <label className="block text-sm font-medium text-secondary-500 dark:text-secondary-400 mb-1">
-                      Bio
-                    </label>
-                    <p className="text-secondary-900 dark:text-white">{user.bio}</p>
-                  </div>
-                )}
               </div>
             )}
           </div>
         </div>
 
-        {/* Privileges */}
-        {user?.privileges && user.privileges.length > 0 && (
-          <div className="bg-white dark:bg-secondary-800 rounded-lg shadow-sm border border-secondary-200 dark:border-secondary-700">
-            <div className="px-6 py-6">
-              <h3 className="text-lg font-medium text-secondary-900 dark:text-white mb-4">
-                Privileges ({user.privileges.length})
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {user.privileges.map((privilege, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center p-3 bg-secondary-50 dark:bg-secondary-700 rounded-lg"
-                  >
-                    <div className="h-2 w-2 bg-primary-500 rounded-full mr-3"></div>
-                    <span className="text-sm text-secondary-900 dark:text-white capitalize">
-                      {privilege.replace(/_/g, ' ')}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Password Change */}
         <div className="bg-white dark:bg-secondary-800 rounded-lg shadow-sm border border-secondary-200 dark:border-secondary-700">
           <div className="px-6 py-6">
             <div className="flex justify-between items-center mb-6">

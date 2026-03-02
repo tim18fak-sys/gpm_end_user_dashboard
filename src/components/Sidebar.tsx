@@ -10,12 +10,11 @@ import {
   ExclamationTriangleIcon
 } from '@heroicons/react/24/outline'
 import { cn } from '@/lib/utils'
-import { useAuthStore } from '../store/authStore'
+import { useAuthStore, LeadStatusEnum } from '../store/authStore'
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: HomeIcon },
   { name: 'University Management', href: '/university', icon: AcademicCapIcon },
-  // { name: 'SHC Committee', href: '/shc-committee', icon: UserGroupIcon },
   { name: 'Staff Management', href: '/staff', icon: UsersIcon },
   {name:"Notification", href:'/notifications',icon: BellIcon },
   {name:"Alerts", href:'/alerts',icon: ExclamationTriangleIcon },
@@ -29,7 +28,6 @@ interface SidebarProps {
   setMobileSidebarOpen: (open: boolean) => void
 }
 
-// Animation variants
 const sidebarVariants = {
   open: {
     x: 0,
@@ -112,7 +110,6 @@ export default function Sidebar({ sidebarOpen,  mobileSidebarOpen, setMobileSide
     }
   }
 
-  // Initialize dark mode on component mount
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add('dark')
@@ -127,7 +124,6 @@ export default function Sidebar({ sidebarOpen,  mobileSidebarOpen, setMobileSide
       initial="hidden"
       animate="visible"
     >
-      {/* Logo Section */}
       <motion.div 
         className="flex h-20 shrink-0 items-center justify-center"
         variants={logoVariants}
@@ -147,14 +143,12 @@ export default function Sidebar({ sidebarOpen,  mobileSidebarOpen, setMobileSide
               alt="Logo"
               className="h-8 w-8 object-contain filter brightness-0 invert"
               onError={(e) => {
-                // Fallback to text logo if image fails
                 e.currentTarget.style.display = 'none'
                 e.currentTarget.nextElementSibling!.textContent = 'A'
               }}
             />
             <span className="text-white font-bold text-lg hidden">A</span>
 
-            {/* Glowing effect */}
             <motion.div
               className="absolute inset-0 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-2xl"
               animate={{
@@ -186,7 +180,6 @@ export default function Sidebar({ sidebarOpen,  mobileSidebarOpen, setMobileSide
         </div>
       </motion.div>
 
-      {/* User Profile Section */}
       <AnimatePresence>
         {user && (sidebarOpen || isMobile) && (
           <motion.div 
@@ -196,7 +189,6 @@ export default function Sidebar({ sidebarOpen,  mobileSidebarOpen, setMobileSide
             animate="visible"
             exit="hidden"
           >
-            {/* Background pattern */}
             <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
 
             <div className="relative flex items-center space-x-3">
@@ -205,26 +197,13 @@ export default function Sidebar({ sidebarOpen,  mobileSidebarOpen, setMobileSide
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                {user?.profile_picture_url ? (
-                  <motion.img
-                    className="h-12 w-12 rounded-full object-cover border-2 border-white dark:border-gray-700 shadow-lg"
-                    src={user.profile_picture_url}
-                    alt={user.first_name || 'User'}
-                    layoutId={`user-avatar-${user._id}`}
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none'
-                      e.currentTarget.nextElementSibling!.style.display = 'flex'
-                    }}
-                  />
-                ) : null}
                 <motion.div 
-                  className={`h-12 w-12 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 border-2 border-white dark:border-gray-700 shadow-lg flex items-center justify-center text-white text-lg font-medium ${user?.profile_picture_url ? 'hidden' : 'flex'}`}
-                  style={{ display: user?.profile_picture_url ? 'none' : 'flex' }}
+                  className="h-12 w-12 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 border-2 border-white dark:border-gray-700 shadow-lg flex items-center justify-center text-white text-lg font-medium"
                   layoutId={`user-avatar-${user._id}`}
                 >
-                  {`${user?.first_name?.charAt(0) || ''}${user?.last_name?.charAt(0) || ''}`.toUpperCase() || 'A'}
+                  {user?.name?.charAt(0)?.toUpperCase() || 'A'}
                 </motion.div>
-                {user.status === 'active' && (
+                {user.status === LeadStatusEnum.QUALIFIED && (
                   <motion.div 
                     className="absolute -bottom-1 -right-1 h-4 w-4 bg-green-500 rounded-full border-2 border-white dark:border-gray-700 shadow-sm"
                     animate={{ scale: [1, 1.2, 1] }}
@@ -235,16 +214,16 @@ export default function Sidebar({ sidebarOpen,  mobileSidebarOpen, setMobileSide
 
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
-                  {user.first_name} {user.last_name}
+                  {user.name}
                 </p>
                 <p className="text-xs text-gray-600 dark:text-gray-400 truncate">
                   {user.email}
                 </p>
                 <motion.span 
-                  className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-200 mt-1"
+                  className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-200 mt-1 capitalize"
                   whileHover={{ scale: 1.05 }}
                 >
-                  {user.role?.includes('super_admin') ? 'Super Admin' : user.role?.replace('_', ' ')}
+                  {user.status?.replace('_', ' ')}
                 </motion.span>
               </div>
             </div>
@@ -253,7 +232,6 @@ export default function Sidebar({ sidebarOpen,  mobileSidebarOpen, setMobileSide
       </AnimatePresence>
 
 
-      {/* Navigation */}
       <nav className="flex flex-1 flex-col">
         <ul role="list" className="flex flex-1 flex-col gap-y-8">
           <li>
@@ -306,7 +284,6 @@ export default function Sidebar({ sidebarOpen,  mobileSidebarOpen, setMobileSide
                       )}
                     </AnimatePresence>
 
-                    {/* Active indicator */}
                     {location.pathname === item.href && (
                       <motion.div
                         className="absolute left-0 top-0 bottom-0 w-1 bg-white rounded-r-full"
@@ -320,7 +297,6 @@ export default function Sidebar({ sidebarOpen,  mobileSidebarOpen, setMobileSide
             </ul>
           </li>
 
-          {/* Dark Mode Toggle */}
           <motion.li 
             className="mt-auto"
             initial={{ opacity: 0, y: 20 }}
@@ -369,7 +345,6 @@ export default function Sidebar({ sidebarOpen,  mobileSidebarOpen, setMobileSide
 
   return (
     <>
-      {/* Mobile sidebar */}
       <AnimatePresence>
         {mobileSidebarOpen && (
           <Transition.Root show={mobileSidebarOpen} as={Fragment}>
@@ -428,7 +403,6 @@ export default function Sidebar({ sidebarOpen,  mobileSidebarOpen, setMobileSide
         )}
       </AnimatePresence>
 
-      {/* Desktop sidebar */}
       <motion.div
         className={cn(
           "hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:flex-col transition-all duration-300 ease-in-out",

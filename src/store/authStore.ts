@@ -2,17 +2,137 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
+export enum LeadStatusEnum {
+  NEW = 'new',
+  CONTACTED = 'contacted',
+  QUALIFIED = 'qualified',
+  CONVERTED = 'converted',
+  UNQUALIFIED = 'unqualified'
+}
+
+export enum LeadSourceEnum {
+  WEBSITE = 'website',
+  REFERRAL = 'referral',
+  SOCIAL_MEDIA = 'social_media',
+  COLD_CALL = 'cold_call',
+  EVENT = 'event',
+  FIELD_AGENT = 'agent'
+}
+
+export enum LeadFinancingOptionEnum {
+  OUTRIGHT_PURCHASE = 'outright_purchase',
+  FINANCING_OPTION = 'financing_option',
+  DEFAULT = 'default'
+}
+
+export enum LeadKycVerificationStatusEnum {
+  PENDING = 'PENDING',
+  COMPLETED = 'COMPLETED',
+  REJECTED = 'REJECTED',
+  NONE = 'NONE'
+}
+
+export interface LeadObjectionInterface {
+  reason: string
+  details?: string
+  isResolved: boolean
+  proposedSolution?: string
+  resolvedDate?: Date
+}
+
+export interface LeadProcessTimelineInterface {
+  leadProcessId: string
+  name: string
+  fulfilledAt: Date
+  isQualifiedProcess: boolean
+  failedReason?: string
+}
+
+export interface LeadTracking {
+  leadConfigId: string
+  currentLeadScore: number
+  isReadyForConversion: boolean
+  leadProcessTimeline: LeadProcessTimelineInterface[]
+  isScreened: boolean
+  screenedAt: Date | null
+  qualifiedAt: Date | null
+  qualificationJobFailed: boolean
+  qualificationJobFailedReason: string
+  hasSubmittedKYCDocuments: boolean
+  kycVerificationStatus: LeadKycVerificationStatusEnum
+  prefersFinancingOption: LeadFinancingOptionEnum
+}
+
+export interface LeadInterestedDevice {
+  deviceCategoryId: string
+  deviceCategoryName: string
+}
+
+export interface LeadOfferMedia {
+  mediaUrl: string
+  fileId: string
+}
+
+export interface LeadOnBoardingDashboardFlow {
+  hasGottenWelcomeModal: boolean
+  hasViewedSelectedDeviceOffersModal: boolean
+  hasViewedFinancingOptionModal: boolean
+  hasSelectedFinancingOption: boolean
+  prefersFinancingOption: LeadFinancingOptionEnum
+  hasPlacedOrderForDeviceForOutrightPurchase: boolean
+  hasSubmittedKYCDocumentsForFinancingOption: boolean
+  hasPlacedOrderForDeviceForFinancingOption: boolean
+}
+
 export interface User {
   _id: string
-  first_name: string,
-  last_name:string
+  name: string
   email: string
-  status: 'active' | 'deactivated'
-  role: string
-  privileges: string[]
-  profile_picture_url?: string
-  bio?: string
-  phone?: string
+  phoneNumber: string
+  leadBoardingFlow: LeadOnBoardingDashboardFlow
+  status: LeadStatusEnum
+  leadTracking?: LeadTracking
+  leadSourceId: string
+  leadSourceType: LeadSourceEnum
+  assignedSalesAgentId: string | null
+  assignedScreeningAgentId: string | null
+  assignedSalesAgentAt?: Date
+  hubId?: string
+  interestedDevice: LeadInterestedDevice
+  objections?: LeadObjectionInterface[]
+  offerMedia: LeadOfferMedia
+  leadConfigMetaData: Record<string, any>
+}
+
+const defaultUser: User = {
+  _id: '',
+  name: '',
+  email: '',
+  phoneNumber: '',
+  leadBoardingFlow: {
+    hasGottenWelcomeModal: false,
+    hasViewedSelectedDeviceOffersModal: false,
+    hasViewedFinancingOptionModal: false,
+    hasSelectedFinancingOption: false,
+    prefersFinancingOption: LeadFinancingOptionEnum.DEFAULT,
+    hasPlacedOrderForDeviceForOutrightPurchase: false,
+    hasSubmittedKYCDocumentsForFinancingOption: false,
+    hasPlacedOrderForDeviceForFinancingOption: false
+  },
+  status: LeadStatusEnum.NEW,
+  leadSourceId: '',
+  leadSourceType: LeadSourceEnum.WEBSITE,
+  assignedSalesAgentId: null,
+  assignedScreeningAgentId: null,
+  interestedDevice: {
+    deviceCategoryId: '',
+    deviceCategoryName: ''
+  },
+  offerMedia: {
+    mediaUrl: '',
+    fileId: ''
+  },
+  leadConfigMetaData: {}
 }
 
 interface AuthState {
@@ -29,34 +149,15 @@ interface AuthState {
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
-      user: {
-        _id: '',
-        email: '',
-        status: 'active',
-        role: '',
-        privileges: [],
-        first_name: '',
-        last_name: '',
-        profile_picture_url: '',
-        bio: '',
-      },
+      user: { ...defaultUser },
       token: null,
       isAuthenticated: false,
       isLoading: false,
       setUser: (user) => set({ user, isAuthenticated: true }),
       setToken: (token) => set({ token }),
-      logout: () => set({ user:{
-        _id: '',
-        email: '',
-        status: 'active',
-        role: '',
-        privileges: [],
-        first_name: '',
-        last_name: ''
-      }, token: null, isAuthenticated: false }),
+      logout: () => set({ user: { ...defaultUser }, token: null, isAuthenticated: false }),
       setLoading: (isLoading) => set({ isLoading }),
     }),
-    // store the token in localstorage
     {
       name: 'auth-storage',
       partialize: (state) => ({ token: state.token }),

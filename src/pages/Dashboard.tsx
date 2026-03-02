@@ -9,7 +9,7 @@ import {
   ArrowPathIcon,
   ExclamationTriangleIcon
 } from '@heroicons/react/24/outline'
-import { useAuthStore } from '../store/authStore'
+import { useAuthStore, LeadStatusEnum } from '../store/authStore'
 import { 
   useTotalUniversity, 
   useTotalShc, 
@@ -241,7 +241,7 @@ export default function Dashboard() {
                 transition={{ delay: 0.2 }}
                 className="text-3xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent"
               >
-                Welcome back, {user?.first_name || 'Admin'}!
+                Welcome back, {user?.name || 'Admin'}!
               </motion.h1>
               <motion.p 
                 initial={{ opacity: 0, x: -20 }}
@@ -264,35 +264,31 @@ export default function Dashboard() {
                   </span>
                 )}
                 {user?.status && (
-                  <span className={`flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                    user.status === 'active' 
+                  <span className={`flex items-center px-2 py-1 rounded-full text-xs font-medium capitalize ${
+                    user.status === LeadStatusEnum.QUALIFIED || user.status === LeadStatusEnum.CONVERTED
                       ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' 
-                      : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
+                      : user.status === LeadStatusEnum.UNQUALIFIED
+                      ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
+                      : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400'
                   }`}>
-                    {user.status.charAt(0).toUpperCase() + user.status.slice(1)}
+                    {user.status.replace('_', ' ')}
                   </span>
                 )}
               </motion.div>
-              {user?.role && (
+              {user?.leadSourceType && (
                 <motion.div 
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.4 }}
                   className="mt-4 flex flex-wrap gap-2"
                 >
-                  <div className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium border ${
-                    user.role.includes('super_admin')
-                      ? 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 dark:from-green-900/20 dark:to-emerald-900/20 dark:text-green-400 border-green-200 dark:border-green-800'
-                      : 'bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 dark:from-blue-900/20 dark:to-indigo-900/20 dark:text-blue-400 border-blue-200 dark:border-blue-800'
-                  }`}>
-                    <div className={`w-2 h-2 rounded-full mr-2 ${
-                      user.role.includes('super_admin') ? 'bg-green-500 animate-pulse' : 'bg-blue-500'
-                    }`}></div>
-                    {user.role.includes('super_admin') ? 'Super Administrator' : user.role.replace('_', ' ').toUpperCase()}
+                  <div className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium border bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 dark:from-blue-900/20 dark:to-indigo-900/20 dark:text-blue-400 border-blue-200 dark:border-blue-800 capitalize">
+                    <div className="w-2 h-2 rounded-full mr-2 bg-blue-500"></div>
+                    {user.leadSourceType.replace('_', ' ')}
                   </div>
-                  {user.privileges && user.privileges.length > 0 && (
+                  {user?.interestedDevice?.deviceCategoryName && (
                     <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-secondary-100 text-secondary-700 dark:bg-secondary-700/50 dark:text-secondary-300 border border-secondary-200 dark:border-secondary-600">
-                      {user.privileges.length} Privilege{user.privileges.length !== 1 ? 's' : ''}
+                      {user.interestedDevice.deviceCategoryName}
                     </div>
                   )}
                 </motion.div>
@@ -321,22 +317,10 @@ export default function Dashboard() {
               >
                 <div className="h-16 w-16 rounded-full bg-gradient-to-br from-primary-500 via-purple-600 to-indigo-600 p-1 shadow-lg">
                   <div className="h-full w-full rounded-full bg-white dark:bg-secondary-800 flex items-center justify-center overflow-hidden">
-                    {user?.profile_picture_url ? (
-                      <img
-                        src={user.profile_picture_url}
-                        alt="Profile"
-                        className="h-full w-full object-cover rounded-full"
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none'
-                          e.currentTarget.nextElementSibling!.style.display = 'flex'
-                        }}
-                      />
-                    ) : null}
                     <span 
-                      className={`text-lg font-bold text-primary-600 dark:text-primary-400 ${user?.profile_picture_url ? 'hidden' : 'flex'}`}
-                      style={{ display: user?.profile_picture_url ? 'none' : 'flex' }}
+                      className="text-lg font-bold text-primary-600 dark:text-primary-400 flex"
                     >
-                      {`${user?.first_name?.charAt(0) || ''}${user?.last_name?.charAt(0) || ''}`.toUpperCase() || 'A'}
+                      {user?.name?.charAt(0)?.toUpperCase() || 'A'}
                     </span>
                   </div>
                 </div>

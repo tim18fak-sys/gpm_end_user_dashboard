@@ -1,29 +1,26 @@
 
 import { ReactNode } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
-import { useAuthStore } from '../store/authStore'
-import { useRBAC } from '../hooks/useRBAC'
+import { useAuthStore, LeadStatusEnum } from '../store/authStore'
 
 interface RouteGuardProps {
   children: ReactNode
-  requiredRoles?: string[]
-  requiredPrivileges?: string[]
+  requiredStatuses?: LeadStatusEnum[]
 }
 
-export const RouteGuard = ({ children, requiredRoles, requiredPrivileges }: RouteGuardProps) => {
+export const RouteGuard = ({ children, requiredStatuses }: RouteGuardProps) => {
   const { isAuthenticated, user } = useAuthStore()
-  const { canAccess } = useRBAC()
   const location = useLocation()
 
   if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />
   }
 
-  if (user?.status === 'deactivated') {
+  if (user?.status === LeadStatusEnum.UNQUALIFIED) {
     return <Navigate to="/deactivation-screen" replace />
   }
 
-  if (!canAccess(requiredRoles, requiredPrivileges)) {
+  if (requiredStatuses && !requiredStatuses.includes(user?.status)) {
     return <Navigate to="/unauthorized" replace />
   }
 

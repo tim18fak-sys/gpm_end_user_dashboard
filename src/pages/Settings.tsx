@@ -5,7 +5,7 @@ import {
   ExclamationTriangleIcon, 
   UserIcon
 } from '@heroicons/react/24/outline'
-import { useAuthStore } from '../store/authStore'
+import { useAuthStore, LeadStatusEnum } from '../store/authStore'
 
 const tabs = [
   { id: 'profile', name: 'Profile', icon: UserIcon },
@@ -99,53 +99,45 @@ function ProfileTab({ user }: { user: any }) {
         </h3>
       </div>
 
-      {/* Profile Card */}
       <div className="bg-secondary-50 dark:bg-secondary-700 rounded-xl p-6">
         <div className="flex items-center space-x-6">
           <div className="h-20 w-20 rounded-full overflow-hidden">
-            {user?.profile_picture_url ? (
-              <img
-                src={user.profile_picture_url}
-                alt="Profile"
-                className="h-full w-full object-cover"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none'
-                  e.currentTarget.nextElementSibling!.style.display = 'flex'
-                }}
-              />
-            ) : null}
             <div 
-              className={`h-full w-full bg-gradient-to-r from-primary-500 to-secondary-500 flex items-center justify-center text-white text-2xl font-bold ${user?.profile_picture_url ? 'hidden' : 'flex'}`}
-              style={{ display: user?.profile_picture_url ? 'none' : 'flex' }}
+              className="h-full w-full bg-gradient-to-r from-primary-500 to-secondary-500 flex items-center justify-center text-white text-2xl font-bold"
             >
-              {`${user?.first_name?.charAt(0) || ''}${user?.last_name?.charAt(0) || ''}`.toUpperCase() || 'A'}
+              {user?.name?.charAt(0)?.toUpperCase() || 'A'}
             </div>
           </div>
           <div className="flex-1">
             <h4 className="text-xl font-semibold text-secondary-900 dark:text-white">
-              {user?.first_name || 'Admin User'}
+              {user?.name || 'User'}
             </h4>
             <p className="text-secondary-600 dark:text-secondary-300">{user?.email}</p>
             <div className="mt-2 flex items-center space-x-4">
-              <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-success-100 text-success-800 dark:bg-success-900 dark:text-success-200">
-                Active
+              <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full capitalize ${
+                user?.status === LeadStatusEnum.QUALIFIED || user?.status === LeadStatusEnum.CONVERTED
+                  ? 'bg-success-100 text-success-800 dark:bg-success-900 dark:text-success-200'
+                  : user?.status === LeadStatusEnum.UNQUALIFIED
+                  ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                  : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+              }`}>
+                {user?.status?.replace('_', ' ')}
               </span>
-              <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-primary-100 text-primary-800 dark:bg-primary-900 dark:text-primary-200">
-                {user?.role?.replace('_', ' ') || 'Super Admin'}
+              <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-primary-100 text-primary-800 dark:bg-primary-900 dark:text-primary-200 capitalize">
+                {user?.leadSourceType?.replace('_', ' ')}
               </span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Profile Details */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-secondary-500 dark:text-secondary-400 mb-1">
-              Full Name
+              Name
             </label>
-            <p className="text-secondary-900 dark:text-white">{`${user?.first_name} ${user?.last_name}`  || 'Not provided'}</p>
+            <p className="text-secondary-900 dark:text-white">{user?.name || 'Not provided'}</p>
           </div>
           <div>
             <label className="block text-sm font-medium text-secondary-500 dark:text-secondary-400 mb-1">
@@ -157,39 +149,31 @@ function ProfileTab({ user }: { user: any }) {
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-secondary-500 dark:text-secondary-400 mb-1">
-              Role
+              Phone Number
             </label>
-            <p className="text-secondary-900 dark:text-white capitalize">
-              {user?.role?.replace('_', ' ') || 'Super Admin'}
+            <p className="text-secondary-900 dark:text-white">
+              {user?.phoneNumber || 'Not provided'}
             </p>
           </div>
           <div>
             <label className="block text-sm font-medium text-secondary-500 dark:text-secondary-400 mb-1">
               Status
             </label>
-            <p className="text-secondary-900 dark:text-white">Active</p>
+            <p className="text-secondary-900 dark:text-white capitalize">{user?.status?.replace('_', ' ')}</p>
           </div>
         </div>
       </div>
 
-      {/* Privileges */}
-      {user?.privileges && user.privileges.length > 0 && (
+      {user?.interestedDevice?.deviceCategoryName && (
         <div>
           <h4 className="text-md font-medium text-secondary-900 dark:text-white mb-3">
-            Privileges ({user.privileges.length})
+            Interested Device
           </h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {user.privileges.map((privilege: string, index: number) => (
-              <div
-                key={index}
-                className="flex items-center p-3 bg-secondary-50 dark:bg-secondary-700 rounded-lg"
-              >
-                <div className="h-2 w-2 bg-primary-500 rounded-full mr-3"></div>
-                <span className="text-sm text-secondary-900 dark:text-white capitalize">
-                  {privilege.replace(/_/g, ' ')}
-                </span>
-              </div>
-            ))}
+          <div className="flex items-center p-3 bg-secondary-50 dark:bg-secondary-700 rounded-lg">
+            <div className="h-2 w-2 bg-primary-500 rounded-full mr-3"></div>
+            <span className="text-sm text-secondary-900 dark:text-white">
+              {user.interestedDevice.deviceCategoryName}
+            </span>
           </div>
         </div>
       )}

@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-A React + TypeScript + Vite super admin dashboard for the CompusPal platform. It includes features for university management, staff management, SHC committees, analytics, alert center, notifications, and user management with role-based access control (RBAC).
+A React + TypeScript + Vite lead management dashboard for the CompusPal platform. It includes features for university management, staff management, SHC committees, analytics, alert center, notifications, and user management.
 
 ## Tech Stack
 
@@ -16,6 +16,21 @@ A React + TypeScript + Vite super admin dashboard for the CompusPal platform. It
 - **Forms**: React Hook Form + Hookform Resolvers + Formik + Yup
 - **Charts**: Recharts
 - **Notifications**: React Hot Toast
+- **KYC**: @smileid/web-components
+
+## Auth Store / User Model
+
+The authenticated user is modeled as a **Lead** (from the backend Lead schema). Key properties:
+- `name`, `email`, `phoneNumber` (basic info)
+- `status`: LeadStatusEnum (new, contacted, qualified, converted, unqualified)
+- `leadSourceType`: LeadSourceEnum (website, referral, social_media, cold_call, event, agent)
+- `interestedDevice`: { deviceCategoryId, deviceCategoryName }
+- `leadBoardingFlow`: onboarding dashboard state flags
+- `leadTracking`: screening/qualification tracking with score and KYC status
+- `offerMedia`, `objections`, `leadConfigMetaData`: additional lead data
+- `assignedSalesAgentId`, `assignedScreeningAgentId`, `hubId`: assignment references
+
+All status comparisons in components use `LeadStatusEnum` constants.
 
 ## Project Structure
 
@@ -23,7 +38,7 @@ A React + TypeScript + Vite super admin dashboard for the CompusPal platform. It
 src/
   components/     # Reusable UI components (auth, analytics, staff, etc.)
   hooks/          # Custom React hooks
-  pages/          # Route-level page components
+  pages/          # Route-level page components (including kyc/)
   services/       # API service layer (axios-based)
   store/          # Zustand global state stores
   types/          # TypeScript type definitions
@@ -34,9 +49,9 @@ public/
 
 ## Development
 
-- **Dev server**: `npm run dev` → runs on `0.0.0.0:5000`
+- **Dev server**: `npm run dev` -> runs on `0.0.0.0:5000`
 - **Build**: `npm run build`
-- **Workflow**: "Start application" → `npm run dev`
+- **Workflow**: "Start application" -> `npm run dev`
 
 ## Deployment
 
@@ -48,4 +63,4 @@ public/
 
 - `vite.config.ts`: Server configured with `host: '0.0.0.0'`, `port: 5000`, `allowedHosts: true` for Replit proxy compatibility
 - `tailwind.config.js`: Tailwind CSS configuration
-- `tsconfig.json`: TypeScript configuration with path alias `@` → `./src`
+- `tsconfig.json`: TypeScript configuration with path alias `@` -> `./src`

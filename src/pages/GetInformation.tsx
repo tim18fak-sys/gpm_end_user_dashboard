@@ -2,7 +2,7 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ProfileManagementAPI } from '../services/api'
-import { useAuthStore } from '../store/authStore'
+import { useAuthStore, LeadStatusEnum } from '../store/authStore'
 import toast from 'react-hot-toast'
 import { motion } from 'framer-motion'
 
@@ -78,7 +78,7 @@ export default function GetInformation() {
         console.log(userInfo, '')
         setUser(userInfo)
 
-        if (userInfo.status === 'deactivated') {
+        if (userInfo.status === LeadStatusEnum.UNQUALIFIED) {
           navigate('/deactivation-screen')
         } else {
           // Small delay to show the loading animation

@@ -1,0 +1,122 @@
+import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
+import mongoose, { HydratedDocument, Types } from "mongoose";
+import { LeadFinancingOptionEnum, LeadInterestedDevice, LeadOfferMedia, LeadOnBoardingDashboardFlow, LeadTracking } from "../../sub_schema/lead_management/lead.magement.sub.schema";
+
+export interface LeadObjectionInterface {
+    reason:string
+    details?:string,
+    isResolved:boolean
+    proposedSolution?:string
+    resolvedDate?:Date
+}
+
+export enum LeadStatusEnum {
+    // the first two are from the sourceLead
+    NEW='new',
+    // don't know where this fall in when the scope yet.
+    CONTACTED='contacted',
+    // from the sales agent or the hub manager
+    // this is when the lead has been screened, and met the min score, and their lead dashboard has been created.
+    QUALIFIED='qualified',
+    // this is when the lead makes payment and places an order for the device, this is when the lead is converted to customer. has they have access to the customer dashboard and all the benefits that come with being a customer.
+    CONVERTED='converted',
+    UNQUALIFIED='unqualified'
+}
+export enum LeadSourceEnum {
+    WEBSITE='website',
+    REFERRAL='referral',
+    SOCIAL_MEDIA='social_media',
+    COLD_CALL='cold_call',
+    EVENT='event',
+    FIELD_AGENT='agent'
+}
+// NOTE:The devices been sold are from 800 thousand naira upwards, so use that to determine the income level
+export enum LeadIncomeLevelEnum {
+    LOW='low',
+    
+    MEDIUM='medium',
+    HIGH='high'
+}
+export type LeadDocument = HydratedDocument<Lead>
+@Schema({
+    timestamps:true,
+})
+export class Lead {
+    @Prop({ required: true })
+    name: string;
+
+    @Prop({ required: true })
+    email: string;
+
+    @Prop({ required: true, })
+    phoneNumber: string;
+
+    // this is a flag for the lead dashboard , to know if the lead has completed the first module flow when they just logged, and have placed an order for their device
+    @Prop({required:false, default: {
+        hasGottenWelcomeModal:false,
+        hasViewedSelectedDeviceOffersModal:false,
+        hasViewedFinancingOptionModal:false,
+        hasSelectedFinancingOption:false,
+        hasCompletedKYCDocumentsFlow:false,
+        prefersFinancingOption:LeadFinancingOptionEnum.DEFAULT,
+        hasPlacedOrderForDeviceForOutrightPurchase:false,
+        hasSubmittedKYCDocumentsForFinancingOption:false,
+        hasPlacedOrderForDeviceForFinancingOption:false
+    }})
+    leadBoardingFlow:LeadOnBoardingDashboardFlow
+
+    // this will be the tracking document for the lead onboarding flow.
+
+    @Prop({ required: true, default:LeadStatusEnum.NEW, enum: LeadStatusEnum })
+    status: LeadStatusEnum;
+    // this is the lead tracking document
+    @Prop({required:false, type:LeadTracking})
+    leadTracking:LeadTracking
+
+    // this is to know the agent that owns the lead
+    @Prop({type:mongoose.Schema.Types.ObjectId, refPath:'leadSourceType', required:true})
+    leadSourceId:Types.ObjectId
+
+    @Prop({enum:LeadSourceEnum, required:true})
+    leadSourceType:LeadSourceEnum
+
+    // this is the assignedSalesAgent for the lead, it can be different from the agent that owns the lead
+    @Prop({type:mongoose.Schema.Types.ObjectId, ref:'Agent', required:false, default:null})
+    assignedSalesAgentId:Types.ObjectId|null
+    // this is assigned screening agent or hub manager for the lead
+    @Prop({type:mongoose.Schema.Types.ObjectId, ref:'Agent', required:false, default:null})
+    assignedScreeningAgentId:Types.ObjectId|null
+    // this is to know the timeline when the lead was assigned a sales agent
+    @Prop({required:false})
+    assignedSalesAgentAt:Date
+    // this is to know the hub that the lead belongs to, this will be assigned when the hub manager assigns the lead to a sales agent
+    @Prop({type:mongoose.Schema.Types.ObjectId, ref:'Hub', required:false})
+    hubId:Types.ObjectId
+
+    // // this is to add the device the user needs, this is important to record the device the lead is interested in purchasing
+    @Prop({type: LeadInterestedDevice, required:true})
+    interestedDevice: LeadInterestedDevice
+
+    // leads objection, this has to be a separate document, so has to prevent an every growing array.
+    @Prop({required:false, type:Array<LeadObjectionInterface>})
+    objections:LeadObjectionInterface[];
+
+    // this is the lead offer media document
+    @Prop({default:{},type:LeadOfferMedia})
+    offerMedia:LeadOfferMedia
+
+    // // income level of the lead, this will come from the leadConfigMetaData
+    // @Prop({required:false})
+    // incomeLevel:string
+
+    // this is the meta data of the selected lead configuration processes for the lead
+    @Prop({type:mongoose.Schema.Types.Mixed, required:false, default:{}})
+    leadConfigMetaData:Record<string, any>
+
+    // NOTE: any lead from an agent will automatically assigned to the agent for the screening, and the sales agent.
+    
+
+}
+export const LeadSchema = SchemaFactory.createForClass(Lead);
+
+// NOTE: after screening, the sales agent does not have to do anything else, the system does the rest by checking if the lead meets the minimium score to be qualified. Once qualified, the admin is notified to assign the lead to a sales agent to contact the lead. that is if the lead has not been assigned to a sales agent already. The hub manager does the screening of the lead, or assigns to the sales agent to do the screening.
