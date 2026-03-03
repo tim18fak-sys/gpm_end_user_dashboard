@@ -5,7 +5,7 @@ import { BaseDataInterface } from '@/types/shared'
 import { AxiosInstance } from 'axios'
 
 export class DeviceCategoryApi {
-    private endpoint = '/device-categories'
+    private endpoint = 'lead/device/category'
     private axios: AxiosInstance
     constructor(axios:AxiosInstance){
         this.axios = axios
@@ -13,7 +13,7 @@ export class DeviceCategoryApi {
 
     async getDeviceCategories(excludeDeviceCategoryId: string):Promise<DeviceCategoryPagination> {
         try {
-            const response = await this.axios.get(this.endpoint, {
+            const response = await this.axios.get(`${this.endpoint}/all`, {
                 params: {
                     exclude: excludeDeviceCategoryId
                 }
@@ -27,7 +27,7 @@ export class DeviceCategoryApi {
 
     async getDeviceCategoryDetails(id: string):Promise<BaseDataInterface<DeviceCategory>> {
         try {
-            const response = await this.axios.get(`${this.endpoint}/${id}`)
+            const response = await this.axios.get(`${this.endpoint}/${id}/one`)
             return response.data
         } catch (error) {
             console.error('Error fetching device category details:', error)

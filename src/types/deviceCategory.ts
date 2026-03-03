@@ -42,3 +42,4 @@ export interface DeviceCategoryPagination {
   nextCursor: string | null
   prevCursor: string | null
 }
+
