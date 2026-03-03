@@ -13,6 +13,7 @@ import { DeviceCategory } from '@/types/deviceCategory'
 interface DeviceOffersStepProps {
   onNext: () => void,
   selectedDeviceCategory:DeviceCategory
+  isAvailableInInventory: boolean,
   // other device categories details if needed,
   otherDeviceCategories:[]
 }
