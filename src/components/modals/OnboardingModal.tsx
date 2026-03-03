@@ -2,13 +2,13 @@ import { FC, useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import WelcomeStep from './steps/WelcomeStep'
 import DeviceOffersStep from './steps/DeviceOffersStep'
+import { useAuthStore } from '@/store/authStore'
+import { useDeviceCategoryDetails, useDeviceCategories } from '@/hooks/useDeviceCategory'
+import { useCheckDeviceAvailability } from '@/hooks/useInventory'
+import { InventoryStatusEnum } from '@/enum/inventory.enum'
+import { ONBOARDING_STEPS, OnboardingStepIndex } from './onboarding.constants'
 
-export const ONBOARDING_STEPS = {
-  WELCOME: 0,
-  DEVICE_OFFERS: 1,
-} as const
-
-export type OnboardingStepIndex = typeof ONBOARDING_STEPS[keyof typeof ONBOARDING_STEPS]
+export { ONBOARDING_STEPS, type OnboardingStepIndex } from './onboarding.constants'
 
 interface OnboardingModalProps {
   show: boolean
@@ -43,6 +43,30 @@ const OnboardingModal: FC<OnboardingModalProps> = ({
   const [currentStep, setCurrentStep] = useState<OnboardingStepIndex>(initialStep)
   const directionRef = useRef(1)
 
+  const { interestedDevice } = useAuthStore((state) => state.user)
+  const deviceCategoryId = interestedDevice?.deviceCategoryId ?? ''
+
+  const { data: deviceCategoryData, isLoading: isLoadingDevice } = useDeviceCategoryDetails(deviceCategoryId)
+
+  const { data: availabilityData, isLoading: isLoadingAvailability } = useCheckDeviceAvailability(deviceCategoryId)
+
+  const isAvailableInInventory = availabilityData
+    ? availabilityData.data.status !== InventoryStatusEnum.INACTIVE &&
+      availabilityData.data.availableQuantity > 0
+    : true
+
+  const fetchAlternatives = !isLoadingAvailability && !!availabilityData && !isAvailableInInventory
+
+  const { data: alternativesData, isLoading: isLoadingAlternatives } = useDeviceCategories(
+    deviceCategoryId,
+    fetchAlternatives
+  )
+
+  const isLoadingOffers =
+    isLoadingDevice ||
+    isLoadingAvailability ||
+    (fetchAlternatives && isLoadingAlternatives)
+
   const handleNext = () => {
     const completed = currentStep
     onStepComplete(completed)
@@ -59,7 +83,15 @@ const OnboardingModal: FC<OnboardingModalProps> = ({
       case ONBOARDING_STEPS.WELCOME:
         return <WelcomeStep name={name} onNext={handleNext} />
       case ONBOARDING_STEPS.DEVICE_OFFERS:
-        return <DeviceOffersStep onNext={handleNext} />
+        return (
+          <DeviceOffersStep
+            onNext={handleNext}
+            selectedDeviceCategory={deviceCategoryData?.data}
+            isAvailableInInventory={isAvailableInInventory}
+            otherDeviceCategories={alternativesData?.data ?? []}
+            isLoading={isLoadingOffers}
+          />
+        )
       default:
         return null
     }
@@ -90,11 +122,12 @@ const OnboardingModal: FC<OnboardingModalProps> = ({
                   key={i}
                   animate={{
                     width: i === currentStep ? 20 : 6,
-                    backgroundColor: i === currentStep
-                      ? 'rgb(59 130 246)'
-                      : i < currentStep
-                      ? 'rgb(147 197 253)'
-                      : 'rgb(209 213 219)',
+                    backgroundColor:
+                      i === currentStep
+                        ? 'rgb(59 130 246)'
+                        : i < currentStep
+                        ? 'rgb(147 197 253)'
+                        : 'rgb(209 213 219)',
                   }}
                   transition={{ duration: 0.3 }}
                   className="h-1.5 rounded-full"

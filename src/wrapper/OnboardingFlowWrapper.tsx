@@ -1,11 +1,8 @@
-import { useAuthStore, User } from '@/store/authStore'
+import { useAuthStore } from '@/store/authStore'
 import { ProfileManagementAPI } from '@/services/api'
 import { PropsWithChildren } from 'react'
-import OnboardingModal, {
-  ONBOARDING_STEPS,
-  OnboardingStepIndex,
-} from '@/components/modals/OnboardingModal'
-import { set } from 'lodash'
+import OnboardingModal from '@/components/modals/OnboardingModal'
+import { ONBOARDING_STEPS, OnboardingStepIndex } from '@/components/modals/onboarding.constants'
 
 interface OnboardingFlowWrapperProps extends PropsWithChildren {}
 
@@ -25,7 +22,7 @@ const STEP_FLAG_MAP: Record<OnboardingStepIndex, string> = {
 
 const OnboardingFlowWrapper = (props: OnboardingFlowWrapperProps) => {
   const { leadBoardingFlow, name } = useAuthStore((state) => state.user)
-  const {setUser,user} = useAuthStore()
+  const setUser = useAuthStore((state) => state.setUser)
 
   const { hasGottenWelcomeModal, hasViewedSelectedDeviceOffersModal } = leadBoardingFlow
 
@@ -35,11 +32,14 @@ const OnboardingFlowWrapper = (props: OnboardingFlowWrapperProps) => {
 
   const handleStepComplete = async (step: OnboardingStepIndex) => {
     const flagKey = STEP_FLAG_MAP[step]
-    user.leadBoardingFlow = {
-        ...user.leadBoardingFlow,
-        [flagKey]: true
-    }
-    setUser(user as User)
+
+    setUser((prev) => ({
+      ...prev,
+      leadBoardingFlow: {
+        ...prev.leadBoardingFlow,
+        [flagKey]: true,
+      },
+    }))
 
     try {
       await ProfileManagementAPI.updateBoardingFlow({ [flagKey]: true })

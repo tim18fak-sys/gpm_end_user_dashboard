@@ -18,4 +18,7 @@ export class InventoryApi {
             throw error
         }
     }
-} 
+}
+
+import { api } from './api'
+export const inventoryApi = new InventoryApi(api)

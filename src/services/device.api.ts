@@ -35,3 +35,6 @@ export class DeviceCategoryApi {
         }
     }
 }
+
+import { api } from './api'
+export const deviceCategoryApi = new DeviceCategoryApi(api)
