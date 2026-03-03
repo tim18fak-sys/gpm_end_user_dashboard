@@ -58,7 +58,7 @@ const OnboardingModal: FC<OnboardingModalProps> = ({
   const fetchAlternatives = !isLoadingAvailability && !!availabilityData && !isAvailableInInventory
 
   const { data: alternativesData, isLoading: isLoadingAlternatives } = useDeviceCategories(
-    deviceCategoryId,
+    { excludeDeviceCategoryId: deviceCategoryId },
     fetchAlternatives
   )
 

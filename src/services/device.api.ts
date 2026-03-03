@@ -4,6 +4,14 @@ import { DeviceCategory, DeviceCategoryPagination } from '@/types/deviceCategory
 import { BaseDataInterface } from '@/types/shared'
 import { AxiosInstance } from 'axios'
 
+export interface DeviceCursorPaginationDto {
+    limit: number
+    prevCursor?: string
+    nextCursor?: string
+    search?: string
+    excludeDeviceCategoryId: string
+}
+
 export class DeviceCategoryApi {
     private endpoint = '/device-categories'
     private axios: AxiosInstance
@@ -11,13 +19,9 @@ export class DeviceCategoryApi {
         this.axios = axios
     }
 
-    async getDeviceCategories(excludeDeviceCategoryId: string):Promise<DeviceCategoryPagination> {
+    async getDeviceCategories(params: DeviceCursorPaginationDto): Promise<DeviceCategoryPagination> {
         try {
-            const response = await this.axios.get(this.endpoint, {
-                params: {
-                    exclude: excludeDeviceCategoryId
-                }
-            })
+            const response = await this.axios.get(this.endpoint, { params })
             return response.data
         } catch (error) {
             console.error('Error fetching device categories:', error)
