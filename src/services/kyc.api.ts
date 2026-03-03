@@ -2,7 +2,7 @@ import { ProcessKycDto, ProcessKycResponse } from '@/types/kyc'
 import { api } from './api'
 
 
-const KYC_API = '/v1/auth/kyc/user'
+const KYC_API = '/v1/auth/kyc/lead'
 
 class KycApiService {
   async processKyc(data: ProcessKycDto): Promise<ProcessKycResponse> {

@@ -73,6 +73,8 @@ export interface LeadOfferMedia {
   fileId: string
 }
 
+
+// kyc verification first, before onboarding flow
 export interface LeadOnBoardingDashboardFlow {
   hasGottenWelcomeModal: boolean
   hasViewedSelectedDeviceOffersModal: boolean
@@ -91,7 +93,7 @@ export interface User {
   phoneNumber: string
   leadBoardingFlow: LeadOnBoardingDashboardFlow
   status: LeadStatusEnum
-  leadTracking?: LeadTracking
+  leadTracking: LeadTracking
   leadSourceId: string
   leadSourceType: LeadSourceEnum
   assignedSalesAgentId: string | null
@@ -132,7 +134,21 @@ const defaultUser: User = {
     mediaUrl: '',
     fileId: ''
   },
-  leadConfigMetaData: {}
+  leadConfigMetaData: {},
+  leadTracking: {
+    leadConfigId: "",
+  currentLeadScore: 0,
+  isReadyForConversion: false,
+  leadProcessTimeline: [],
+  isScreened: false,
+  screenedAt: null,
+  qualifiedAt: null,
+  qualificationJobFailed: false,
+  qualificationJobFailedReason: "",
+  hasSubmittedKYCDocuments: false,
+  kycVerificationStatus: LeadKycVerificationStatusEnum.NONE,
+  prefersFinancingOption: LeadFinancingOptionEnum.DEFAULT,
+  }
 }
 
 interface AuthState {

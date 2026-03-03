@@ -25,6 +25,7 @@ import CaseAnalytics from './pages/CaseAnalytics';
 import Kyc from './pages/kyc/Kyc'
 import PendingKycReview from './pages/kyc/PendingKycReview'
 import RejectedKyc from './pages/kyc/RejectedKyc'
+import Layout2 from './components/Layout2'
 
 function App() {
 
@@ -50,122 +51,17 @@ function App() {
         <Route path="/get-information" element={
           <GetInformation />
         } />
-
-        <Route path="/dashboard" element={
-          // <RouteGuard>
-            <Layout>
-              <Dashboard />
-            </Layout>
-          // </RouteGuard>
-        } />
-
-        <Route path="/university" element={
-          // <RouteGuard>
-            <Layout>
-              <UniversityManagement />
-            </Layout>
-          // </RouteGuard>
-        } />
-
-      <Route path="/universities/:id/analytics" element={
-              // <RouteGuard>
-              <Layout>
-              <UniversityAnalytics />
-              </Layout>
-              // </RouteGuard>
-          } />
-          <Route path="/universities/:id/case-analytics" element={<Layout><CaseAnalytics /></Layout>} />
-            <Route 
-              path="/notifications" 
-              element={
-                // <RouteGuard requiredRoles={['super_admin']}>
-                <Layout>
-                  <NotificationCenter />
-                </Layout>
-                // </RouteGuard>
-              } 
-            />
-             <Route 
-              path="/alerts" 
-              element={
-                // <RouteGuard requiredRoles={['super_admin']}>
-                <Layout>
-                  <AlertCenter />
-                </Layout>
-                // </RouteGuard>
-              } 
-            />
-        <Route path="/shc-committee" element={
-          // <RouteGuard>
-            <Layout>
-              <SHCCommittee />
-            </Layout>
-          // </RouteGuard>
-        } />
-        <Route path="/news" element={
-          // <RouteGuard>
-            <Layout>
-              <News />
-            </Layout>
-          // </RouteGuard>
-        } />
-        <Route path="/staff" element={
-          // <RouteGuard>
-            <Layout>
-              <StaffManagement />
-            </Layout>
-          // </RouteGuard>
-        } />
-
-        <Route path="/users" element={
-          // <RouteGuard requiredRoles={['super_admin',]}>
-            <Layout>
-              <Users />
-            </Layout>
-          // </RouteGuard>
-        } />
-
-        <Route path="/analytics" element={
-          // <RouteGuard requiredPrivileges={['read_analytics']}>
-            <Layout>
-              <Analytics />
-            </Layout>
-          // </RouteGuard>
-        } />
-
-        <Route path="/settings" element={
-          // <RouteGuard requiredRoles={['super_admin']}>
-            <Layout>
-              <Settings />
-            </Layout>
-          // </RouteGuard>
-        } />
-
-        <Route path="/profile" element={
-          // <RouteGuard>
-            <Layout>
-              <Profile />
-            </Layout>
-          // </RouteGuard>
-        } />
-
-{/* kyc route */}
-        <Route path='kyc'>
-          {/* index, submitting your kyc, NONE */}
-          <Route index  element={
-            <Kyc/>
-          }/>
-          {/* PENDING-review */}
-          <Route path='pending-review' element={
-            <PendingKycReview/>
-          }/>
-          {/* REJECTED */}
-          <Route path='rejected-kyc-review' element={
-            <RejectedKyc/>
-          }/>
-          {/*  */}
+        {/* kyc path */}
+        <Route path='/kyc'>
+          {/* index route */}
+          <Route index element={<Kyc />} />
+          <Route path='pending' element={<PendingKycReview />} />
+          <Route path='rejected' element={<RejectedKyc />} />
         </Route>
-
+        {/* main page and only page for now, the onboarding will be modals */}
+        <Route path="/dashboard" element={
+          isAuthenticated ? <Layout2><Dashboard /></Layout2> : <Navigate to="/login" />
+        } />
         {/* Default redirect */}
         <Route path="/" element={
           <Navigate to={isAuthenticated ? "/dashboard" : "/login"} />

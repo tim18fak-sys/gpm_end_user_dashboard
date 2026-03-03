@@ -2,7 +2,7 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ProfileManagementAPI } from '../services/api'
-import { useAuthStore, LeadStatusEnum } from '../store/authStore'
+import { useAuthStore, LeadStatusEnum, User, LeadKycVerificationStatusEnum } from '../store/authStore'
 import toast from 'react-hot-toast'
 import { motion } from 'framer-motion'
 
@@ -75,15 +75,18 @@ export default function GetInformation() {
       try {
         setLoading(true)
         const userInfo = await ProfileManagementAPI.getUserInfo()
-        console.log(userInfo, '')
-        setUser(userInfo)
+        const userInfoResponse = userInfo.data as User
+        console.log(userInfo.data, '')
+        setUser(userInfo.data)
 
         if (userInfo.status === LeadStatusEnum.UNQUALIFIED) {
           navigate('/deactivation-screen')
         } else {
           // Small delay to show the loading animation
           setTimeout(() => {
-            navigate('/dashboard')
+            
+              navigate('/')
+            
           }, 2000)
         }
       } catch (error: any) {

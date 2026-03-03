@@ -7,9 +7,11 @@ import { useProcessKyc } from '@/hooks/useKyc'
 import { ShieldCheckIcon, DocumentTextIcon, CameraIcon } from '@heroicons/react/24/outline'
 import '@smileid/web-components/smart-camera-web'
 import Celebration from '@/components/ui/Celebration'
+import { useAuthStore } from '@/store/authStore'
 
 const Kyc = () => {
   const navigate = useNavigate()
+  const { setUser} = useAuthStore()
   const smileIdRef = useRef<HTMLElement>(null)
   const [started, setStarted] = useState(false)
   const [showCelebration, setShowCelebration] = useState(false)
@@ -65,6 +67,16 @@ const Kyc = () => {
     },
   ]
 
+  const handleNavigateToPendingReview =() => {
+    setUser((prev) => ({
+      ...prev,
+      leadBoardingFlow: {
+        ...prev.leadBoardingFlow,
+        hasSubmittedKYCDocumentsForFinancingOption: true
+      }
+    }))
+    navigate('/kyc/pending-review', { replace: true })
+  }
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-100 dark:from-secondary-900 dark:to-primary-900 flex items-center justify-center p-4">
       <div className="w-full max-w-2xl">
