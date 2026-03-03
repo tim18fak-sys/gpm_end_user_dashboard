@@ -3,7 +3,7 @@ import { BaseDataInterface } from "@/types/shared"
 import { AxiosInstance } from "axios"
 
 export class InventoryApi {
-    private endpoint = 'inventory-management/lead'
+    private endpoint = '/v1/inventory-management/lead'
     private api: AxiosInstance
     constructor(api:AxiosInstance){
         this.api = api

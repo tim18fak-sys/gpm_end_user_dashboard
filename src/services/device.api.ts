@@ -13,7 +13,7 @@ export interface DeviceCursorPaginationDto {
 }
 
 export class DeviceCategoryApi {
-    private endpoint = 'lead/device/category'
+    private endpoint = '/v1/lead/device/category'
     private axios: AxiosInstance
     constructor(axios:AxiosInstance){
         this.axios = axios
@@ -21,7 +21,7 @@ export class DeviceCategoryApi {
 
     async getDeviceCategories(params: DeviceCursorPaginationDto): Promise<DeviceCategoryPagination> {
         try {
-            const response = await this.axios.get(this.endpoint, { params })
+            const response = await this.axios.get(`${this.endpoint}/all`, { params })
             return response.data
         } catch (error) {
             console.error('Error fetching device categories:', error)

@@ -50,10 +50,7 @@ const OnboardingModal: FC<OnboardingModalProps> = ({
 
   const { data: availabilityData, isLoading: isLoadingAvailability } = useCheckDeviceAvailability(deviceCategoryId)
 
-  const isAvailableInInventory = availabilityData
-    ? availabilityData.data.status !== InventoryStatusEnum.INACTIVE &&
-      availabilityData.data.availableQuantity > 0
-    : true
+  const isAvailableInInventory = false
 
   const fetchAlternatives = !isLoadingAvailability && !!availabilityData && !isAvailableInInventory
 
