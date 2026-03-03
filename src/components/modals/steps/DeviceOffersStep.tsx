@@ -8,12 +8,11 @@ import {
   CheckCircleIcon,
   ArrowRightIcon,
 } from '@heroicons/react/24/outline'
+import { DeviceCategory } from '@/types/deviceCategory'
 
 interface DeviceOffersStepProps {
   onNext: () => void,
-  selectedDeviceCategoryId: string
-  selectedDeviceCategoryName: string
-  deviceCategoryAvailableInInventory: boolean,
+  selectedDeviceCategory:DeviceCategory
   // other device categories details if needed,
   otherDeviceCategories:[]
 }
