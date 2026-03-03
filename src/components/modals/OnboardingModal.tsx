@@ -4,8 +4,7 @@ import WelcomeStep from './steps/WelcomeStep'
 import DeviceOffersStep from './steps/DeviceOffersStep'
 import { useAuthStore } from '@/store/authStore'
 import { useDeviceCategoryDetails, useDeviceCategories } from '@/hooks/useDeviceCategory'
-import { useCheckDeviceAvailability } from '@/hooks/useInventory'
-import { InventoryStatusEnum } from '@/enum/inventory.enum'
+import { useCheckDeviceAvailability, useCheckMultipleDeviceAvailability, isDeviceAvailable } from '@/hooks/useInventory'
 import { ONBOARDING_STEPS, OnboardingStepIndex } from './onboarding.constants'
 
 export { ONBOARDING_STEPS, type OnboardingStepIndex } from './onboarding.constants'
@@ -50,7 +49,10 @@ const OnboardingModal: FC<OnboardingModalProps> = ({
 
   const { data: availabilityData, isLoading: isLoadingAvailability } = useCheckDeviceAvailability(deviceCategoryId)
 
-  const isAvailableInInventory = false
+  const isAvailableInInventory = isDeviceAvailable(
+    availabilityData?.data.status,
+    availabilityData?.data.availableQuantity
+  )
 
   const fetchAlternatives = !isLoadingAvailability && !!availabilityData && !isAvailableInInventory
 
@@ -59,10 +61,25 @@ const OnboardingModal: FC<OnboardingModalProps> = ({
     fetchAlternatives
   )
 
+  const alternativeCategoryIds = (alternativesData?.data ?? []).map((cat) => cat._id)
+
+  const alternativeAvailabilityResults = useCheckMultipleDeviceAvailability(
+    fetchAlternatives ? alternativeCategoryIds : []
+  )
+
+  const isCheckingAlternativeAvailability =
+    fetchAlternatives && alternativeAvailabilityResults.some((r) => r.isLoading)
+
+  const availableAlternatives = (alternativesData?.data ?? []).filter((_, index) => {
+    const result = alternativeAvailabilityResults[index]
+    return isDeviceAvailable(result?.data?.data.status, result?.data?.data.availableQuantity)
+  })
+
   const isLoadingOffers =
     isLoadingDevice ||
     isLoadingAvailability ||
-    (fetchAlternatives && isLoadingAlternatives)
+    (fetchAlternatives && isLoadingAlternatives) ||
+    isCheckingAlternativeAvailability
 
   const handleNext = () => {
     const completed = currentStep
@@ -85,7 +102,7 @@ const OnboardingModal: FC<OnboardingModalProps> = ({
             onNext={handleNext}
             selectedDeviceCategory={deviceCategoryData?.data}
             isAvailableInInventory={isAvailableInInventory}
-            otherDeviceCategories={alternativesData?.data ?? []}
+            otherDeviceCategories={availableAlternatives}
             isLoading={isLoadingOffers}
           />
         )

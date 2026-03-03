@@ -1,4 +1,4 @@
-import { FC } from 'react'
+import { FC, useRef } from 'react'
 import { motion } from 'framer-motion'
 import {
   BoltIcon,
@@ -8,6 +8,7 @@ import {
   CurrencyDollarIcon,
   CalendarDaysIcon,
   TagIcon,
+  ChevronDownIcon,
 } from '@heroicons/react/24/outline'
 import { DeviceCategory, DeviceCategoryPaymentOptionEnum } from '@/types/deviceCategory'
 
@@ -22,10 +23,9 @@ interface DeviceOffersStepProps {
 const formatCurrency = (amount: number) =>
   new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', maximumFractionDigits: 0 }).format(amount)
 
-const DeviceCategoryCard: FC<{ category: DeviceCategory; isSelected?: boolean; isAlternative?: boolean }> = ({
+const DeviceCategoryCard: FC<{ category: DeviceCategory; isSelected?: boolean }> = ({
   category,
   isSelected = false,
-  isAlternative = false,
 }) => (
   <div
     className={`rounded-xl border p-4 ${
@@ -104,6 +104,9 @@ const DeviceOffersStep: FC<DeviceOffersStepProps> = ({
   otherDeviceCategories,
   isLoading,
 }) => {
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const hasMoreToScroll = otherDeviceCategories.length > 2
+
   return (
     <div className="px-8 pt-8 pb-6">
       <div className="flex flex-col items-center text-center mb-5">
@@ -130,7 +133,7 @@ const DeviceOffersStep: FC<DeviceOffersStepProps> = ({
           transition={{ delay: 0.2, duration: 0.4 }}
           className="text-2xl font-bold text-secondary-900 dark:text-white"
         >
-          {isAvailableInInventory ? 'Your Device Package' : 'Let\'s Find You an Option'}
+          {isLoading ? 'Checking availability...' : isAvailableInInventory ? 'Your Device Package' : "Let's Find You an Option"}
         </motion.h2>
 
         <motion.p
@@ -153,36 +156,51 @@ const DeviceOffersStep: FC<DeviceOffersStepProps> = ({
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.38, duration: 0.4 }}
-        className="flex flex-col gap-3 mb-5"
+        className="mb-5"
       >
         {isLoading ? (
-          <>
+          <div className="flex flex-col gap-3">
             <SkeletonCard />
             <SkeletonCard />
-          </>
+          </div>
         ) : isAvailableInInventory && selectedDeviceCategory ? (
           <DeviceCategoryCard category={selectedDeviceCategory} isSelected />
         ) : (
           <>
             {selectedDeviceCategory && (
-              <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+              <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 mb-3">
                 <ExclamationTriangleIcon className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
                 <p className="text-xs text-amber-700 dark:text-amber-300 leading-relaxed">
-                  <span className="font-semibold">{selectedDeviceCategory.model}</span> is currently unavailable. Please choose from the options below.
+                  <span className="font-semibold">{selectedDeviceCategory.model}</span> is currently
+                  unavailable. Please choose from the options below.
                 </p>
               </div>
             )}
+
             {otherDeviceCategories.length > 0 ? (
-              otherDeviceCategories.map((cat, i) => (
-                <motion.div
-                  key={cat._id}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.38 + i * 0.08, duration: 0.3 }}
+              <div className="relative">
+                <div
+                  ref={scrollRef}
+                  className="flex flex-col gap-3 max-h-52 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-secondary-600 scrollbar-track-transparent"
                 >
-                  <DeviceCategoryCard category={cat} isAlternative />
-                </motion.div>
-              ))
+                  {otherDeviceCategories.map((cat, i) => (
+                    <motion.div
+                      key={cat._id}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.1 + i * 0.07, duration: 0.3 }}
+                    >
+                      <DeviceCategoryCard category={cat} />
+                    </motion.div>
+                  ))}
+                </div>
+
+                {hasMoreToScroll && (
+                  <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-white dark:from-secondary-800 to-transparent rounded-b-xl flex items-end justify-center pb-1">
+                    <ChevronDownIcon className="w-4 h-4 text-secondary-400 animate-bounce" />
+                  </div>
+                )}
+              </div>
             ) : (
               <div className="text-center py-4 text-sm text-secondary-400 dark:text-secondary-500">
                 No alternative packages found at this time.
