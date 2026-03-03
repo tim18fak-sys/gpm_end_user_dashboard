@@ -1,21 +1,48 @@
 import { useAuthStore, User } from '@/store/authStore'
 import { ProfileManagementAPI } from '@/services/api'
 import { PropsWithChildren } from 'react'
-import WelcomeModal from '@/components/modals/WelcomeModal'
+import OnboardingModal, {
+  ONBOARDING_STEPS,
+  OnboardingStepIndex,
+} from '@/components/modals/OnboardingModal'
+import { set } from 'lodash'
 
 interface OnboardingFlowWrapperProps extends PropsWithChildren {}
+
+const getInitialStep = (
+  hasGottenWelcomeModal: boolean,
+  hasViewedSelectedDeviceOffersModal: boolean
+): OnboardingStepIndex => {
+  if (!hasGottenWelcomeModal) return ONBOARDING_STEPS.WELCOME
+  if (!hasViewedSelectedDeviceOffersModal) return ONBOARDING_STEPS.DEVICE_OFFERS
+  return ONBOARDING_STEPS.WELCOME
+}
+
+const STEP_FLAG_MAP: Record<OnboardingStepIndex, string> = {
+  [ONBOARDING_STEPS.WELCOME]: 'hasGottenWelcomeModal',
+  [ONBOARDING_STEPS.DEVICE_OFFERS]: 'hasViewedSelectedDeviceOffersModal',
+}
 
 const OnboardingFlowWrapper = (props: OnboardingFlowWrapperProps) => {
   const { leadBoardingFlow, name } = useAuthStore((state) => state.user)
   const {setUser,user} = useAuthStore()
 
-  const showWelcomeModal = !leadBoardingFlow.hasGottenWelcomeModal
+  const { hasGottenWelcomeModal, hasViewedSelectedDeviceOffersModal } = leadBoardingFlow
 
-  const handleWelcomeDismiss = async () => {
-    user.leadBoardingFlow.hasGottenWelcomeModal = true
+  const showModal = !hasGottenWelcomeModal || !hasViewedSelectedDeviceOffersModal
+
+  const initialStep = getInitialStep(hasGottenWelcomeModal, hasViewedSelectedDeviceOffersModal)
+
+  const handleStepComplete = async (step: OnboardingStepIndex) => {
+    const flagKey = STEP_FLAG_MAP[step]
+    user.leadBoardingFlow = {
+        ...user.leadBoardingFlow,
+        [flagKey]: true
+    }
     setUser(user as User)
+
     try {
-      await ProfileManagementAPI.updateBoardingFlow({ hasGottenWelcomeModal: true })
+      await ProfileManagementAPI.updateBoardingFlow({ [flagKey]: true })
     } catch {
     }
   }
@@ -24,10 +51,11 @@ const OnboardingFlowWrapper = (props: OnboardingFlowWrapperProps) => {
     <div>
       {props.children}
 
-      <WelcomeModal
-        show={showWelcomeModal}
+      <OnboardingModal
+        show={showModal}
+        initialStep={initialStep}
         name={name}
-        onGetStarted={handleWelcomeDismiss}
+        onStepComplete={handleStepComplete}
       />
     </div>
   )
