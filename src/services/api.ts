@@ -89,5 +89,9 @@ export const ProfileManagementAPI ={
   updateProfile:async (data:UpdateProfile) => {
     const response = await api.patch(`${PROFILE_MANAGEMENT_API}`, data)
     return response.data
+  },
+  updateBoardingFlow: async (data: Partial<Record<string, boolean | string>>) => {
+    const response = await api.patch(`${PROFILE_MANAGEMENT_API}/boarding-flow`, data)
+    return response.data
   }
 }
