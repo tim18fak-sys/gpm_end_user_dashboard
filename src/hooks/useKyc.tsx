@@ -14,8 +14,8 @@ export const useKycRouter = ({ isKycVerified, verificationStatus }: IKycRouterPr
   if (isKycVerified) return
 
   if (!isKycVerified && verificationStatus === KycRouterEnum.NONE) return <Navigate to={'/kyc'} replace />
-  if (!isKycVerified && verificationStatus === KycRouterEnum.PENDING) return <Navigate to={'/kyc/pending-review'} replace />
-  if (!isKycVerified && verificationStatus === KycRouterEnum.REJECTED) return <Navigate to={'/kyc/rejected-kyc-review'} replace />
+  if (!isKycVerified && verificationStatus === KycRouterEnum.PENDING) return <Navigate to={'/kyc/pending'} replace />
+  if (!isKycVerified && verificationStatus === KycRouterEnum.REJECTED) return <Navigate to={'/kyc/rejected'} replace />
 }
 
 export function useProcessKyc() {

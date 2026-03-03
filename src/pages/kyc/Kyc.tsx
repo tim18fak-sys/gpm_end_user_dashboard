@@ -75,7 +75,7 @@ const Kyc = () => {
         hasSubmittedKYCDocumentsForFinancingOption: true
       }
     }))
-    navigate('/kyc/pending-review', { replace: true })
+    navigate('/kyc/pending', { replace: true })
   }
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-100 dark:from-secondary-900 dark:to-primary-900 flex items-center justify-center p-4">
@@ -194,7 +194,7 @@ const Kyc = () => {
         subtitle="Your documents are being reviewed"
         message="We will verify your identity and notify you once the review is complete. This usually takes a few minutes to 2 days. Thank you for your patience!"
         buttonText="Continue"
-        onButtonClick={() => navigate('/kyc/pending-review', { replace: true })}
+        onButtonClick={() => navigate('/kyc/pending', { replace: true })}
       />
     </div>
   )
