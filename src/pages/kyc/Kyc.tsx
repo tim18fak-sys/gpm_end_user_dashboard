@@ -66,17 +66,6 @@ const Kyc = () => {
       description: 'Your documents will be reviewed and verified securely',
     },
   ]
-
-  const handleNavigateToPendingReview =() => {
-    setUser((prev) => ({
-      ...prev,
-      leadBoardingFlow: {
-        ...prev.leadBoardingFlow,
-        hasSubmittedKYCDocumentsForFinancingOption: true
-      }
-    }))
-    navigate('/kyc/pending', { replace: true })
-  }
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-100 dark:from-secondary-900 dark:to-primary-900 flex items-center justify-center p-4">
       <div className="w-full max-w-2xl">
