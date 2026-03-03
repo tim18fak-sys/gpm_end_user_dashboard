@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { deviceCategoryApi } from '../services/device.api'
+import { deviceCategoryApi, DeviceCursorPaginationDto } from '../services/device.api'
 
 export const useDeviceCategoryDetails = (id: string) => {
   return useQuery({
@@ -10,11 +10,19 @@ export const useDeviceCategoryDetails = (id: string) => {
   })
 }
 
-export const useDeviceCategories = (excludeDeviceCategoryId: string, enabled: boolean) => {
+export const useDeviceCategories = (
+  params: Omit<DeviceCursorPaginationDto, 'limit'> & { limit?: number },
+  enabled: boolean
+) => {
+  const fullParams: DeviceCursorPaginationDto = {
+    limit: 10,
+    ...params,
+  }
+
   return useQuery({
-    queryKey: ['device-categories', 'exclude', excludeDeviceCategoryId],
-    queryFn: () => deviceCategoryApi.getDeviceCategories(excludeDeviceCategoryId),
-    enabled: enabled && !!excludeDeviceCategoryId,
+    queryKey: ['device-categories', fullParams],
+    queryFn: () => deviceCategoryApi.getDeviceCategories(fullParams),
+    enabled: enabled && !!fullParams.excludeDeviceCategoryId,
     staleTime: 10 * 60 * 1000,
   })
 }
