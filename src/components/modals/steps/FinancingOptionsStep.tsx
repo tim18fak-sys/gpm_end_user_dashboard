@@ -196,12 +196,15 @@ const FinancingOptionsStep: FC<FinancingOptionsStepProps> = ({
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-primary-700 dark:text-primary-400 flex items-center gap-1">
                       <ClockIcon className="w-3.5 h-3.5" />
-                      Duration
+                      Plan duration
                     </span>
                     <span className="text-xs font-semibold text-primary-800 dark:text-primary-200">
-                      {selectedDeviceCategory.installment_duration_available} months
+                      1 – {selectedDeviceCategory.installment_duration_available} months
                     </span>
                   </div>
+                  <p className="text-xs text-primary-600 dark:text-primary-500 leading-relaxed">
+                    Choose any duration between 1 and {selectedDeviceCategory.installment_duration_available} months that suits your budget.
+                  </p>
 
                   {selectedDeviceCategory.installment_payment_durations_option.length > 0 && (
                     <div className="flex items-center justify-between">
