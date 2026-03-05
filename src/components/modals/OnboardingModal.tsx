@@ -2,6 +2,7 @@ import { FC, useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import WelcomeStep from './steps/WelcomeStep'
 import DeviceOffersStep from './steps/DeviceOffersStep'
+import FinancingOptionsStep from './steps/FinancingOptionsStep'
 import { useAuthStore } from '@/store/authStore'
 import { useDeviceCategoryDetails, useDeviceCategories } from '@/hooks/useDeviceCategory'
 import { useCheckDeviceAvailability, useCheckMultipleDeviceAvailability, isDeviceAvailable } from '@/hooks/useInventory'
@@ -96,6 +97,7 @@ const OnboardingModal: FC<OnboardingModalProps> = ({
     switch (step) {
       case ONBOARDING_STEPS.WELCOME:
         return <WelcomeStep name={name} onNext={handleNext} />
+
       case ONBOARDING_STEPS.DEVICE_OFFERS:
         return (
           <DeviceOffersStep
@@ -106,6 +108,16 @@ const OnboardingModal: FC<OnboardingModalProps> = ({
             isLoading={isLoadingOffers}
           />
         )
+
+      case ONBOARDING_STEPS.FINANCING_OPTIONS:
+        return (
+          <FinancingOptionsStep
+            onNext={handleNext}
+            selectedDeviceCategory={deviceCategoryData?.data}
+            isLoading={isLoadingDevice}
+          />
+        )
+
       default:
         return null
     }
