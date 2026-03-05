@@ -1,0 +1,81 @@
+import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
+import { HydratedDocument } from "mongoose";
+import { BaseStatusEnum } from "src/shared/utils/base.enum";
+import { DeviceTypeEnum } from "../device.schema";
+import { DeviceCategoryCommissionStructureSub } from "../sub-schema/device.commission.structure.sub.schema";
+
+export enum DeviceCategoryPaymentOptionEnum {
+    OUTRIGHT='OUTRIGHT',
+    INSTALLMENT='INSTALLMENT'
+}
+export enum DeviceCatetoryPaymentDurationOptionEnum {
+    WEEKLY='WEEKLY',
+    MONTHLY='MONTHLY'
+}
+// this is the category for the devices
+export type DeviceCategoryDocument = HydratedDocument<DeviceCategory>
+@Schema({
+    timestamps:true
+})
+export class DeviceCategory {
+    @Prop()
+    model:string
+    @Prop()
+    description:string
+    @Prop()
+    amount:number
+    @Prop({enum: BaseStatusEnum, default:BaseStatusEnum.ACTIVATED})
+    status: BaseStatusEnum
+    @Prop({type:Boolean, default:false})
+    is_soft_delete:boolean
+    // the base currency, 
+    @Prop({})
+    currency:string
+    @Prop({required:true, enum:DeviceTypeEnum})
+    device_type: DeviceTypeEnum
+    // this is to if the user would pay the amount in installment or outright, this is required to know how to calculate the total value of the device when creating a device.
+
+    // these should be an array, supporting both outright and installment payment options, as some device categories may have both payment options available, and the user can choose which one they want to use when creating a device.
+    @Prop({required:true, enum:DeviceCategoryPaymentOptionEnum, type:[String]})
+    payment_option: DeviceCategoryPaymentOptionEnum[]
+
+    // this is the comission structure for the hub manager and the agents, both the assigned agent or the sales agent.
+    @Prop({type:DeviceCategoryCommissionStructureSub, default:{
+        hub_manager_commission_percentage:0,
+        assigned_agent_commission_percentage:0,
+        sales_agent_commission_percentage:0
+    }})
+    commission_outright_structure:DeviceCategoryCommissionStructureSub
+    
+
+    // this is installment commission structure, this is the percentage of the amount that will be given to the hub manager and the agents when the payment option is installment, this will be used to calculate the commission for each party when the device is paid for in installment.
+    @Prop({
+        type:DeviceCategoryCommissionStructureSub, default:{
+            hub_manager_commission_percentage:0,
+            assigned_agent_commission_percentage:0,
+            sales_agent_commission_percentage:0
+        }
+    })
+    commission_installment_structure:DeviceCategoryCommissionStructureSub
+    
+    // this is to set how long the hub manager or the agent will get their commission for, if the device is paid in installment, this will be used to know how long the commission will be paid for, and when to stop paying the commission.
+    @Prop({type:Number, default:0})
+    commission_installment_duration_in_months:number
+
+    // installment duration available: longest installment duration available. This is a standard duration, with is in months.
+    @Prop({type:Number, default:0})
+    installment_duration_available:number
+    // installment payment duration: either weekly or monthly, others will be added later.
+    @Prop({enum:DeviceCatetoryPaymentDurationOptionEnum, default:[], type:[String]})
+    installment_payment_durations_option: DeviceCatetoryPaymentDurationOptionEnum[]
+    // installment initialization percentage: to be paid by the user before, the system can place an other.
+    @Prop({type:Number, default:0})
+    installment_initialization_percentage:number
+    // installment interest rate: this is the percentage of the amount that will be added to the total amount when the payment option is installment, this will be used to calculate the total value of the device when creating a device.
+    @Prop({type:Number, default:0})
+    installment_interest_rate:number
+
+
+}
+
+export const DeviceCategorySchema = SchemaFactory.createForClass(DeviceCategory)

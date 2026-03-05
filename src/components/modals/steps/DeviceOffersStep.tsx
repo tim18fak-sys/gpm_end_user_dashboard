@@ -57,7 +57,7 @@ const DeviceCategoryCard: FC<{ category: DeviceCategory; isSelected?: boolean }>
             <CurrencyDollarIcon className="w-3.5 h-3.5 text-primary-500" />
             {formatCurrency(category.amount)}
           </span>
-          {category.payment_option === DeviceCategoryPaymentOptionEnum.INSTALLMENT && (
+          {category.payment_option.includes(DeviceCategoryPaymentOptionEnum.INSTALLMENT) && (
             <>
               <span className="text-secondary-300 dark:text-secondary-600">·</span>
               <span className="inline-flex items-center gap-1 text-xs font-medium text-secondary-700 dark:text-secondary-300">
@@ -71,7 +71,7 @@ const DeviceCategoryCard: FC<{ category: DeviceCategory; isSelected?: boolean }>
               </span>
             </>
           )}
-          {category.payment_option === DeviceCategoryPaymentOptionEnum.OUTRIGHT && (
+          {category.payment_option.includes(DeviceCategoryPaymentOptionEnum.OUTRIGHT) && (
             <>
               <span className="text-secondary-300 dark:text-secondary-600">·</span>
               <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">

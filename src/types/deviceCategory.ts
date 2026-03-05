@@ -1,4 +1,5 @@
 import { DeviceTypeEnum } from "@/enum/device.enum"
+import { BaseStatusEnum } from "@/enum/base.enum"
 
 export enum DeviceCategoryPaymentOptionEnum {
   OUTRIGHT = 'OUTRIGHT',
@@ -21,10 +22,11 @@ export interface DeviceCategory {
   model: string
   description: string
   amount: number
-  status: 'activated' | 'deactivated'
+  currency: string
+  status: BaseStatusEnum
   is_soft_delete: boolean
   device_type: DeviceTypeEnum
-  payment_option: DeviceCategoryPaymentOptionEnum
+  payment_option: DeviceCategoryPaymentOptionEnum[]
   commission_outright_structure: DeviceCategoryCommissionStructure
   commission_installment_structure: DeviceCategoryCommissionStructure
   commission_installment_duration_in_months: number
@@ -42,4 +44,3 @@ export interface DeviceCategoryPagination {
   nextCursor: string | null
   prevCursor: string | null
 }
-
