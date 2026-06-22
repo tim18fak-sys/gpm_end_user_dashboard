@@ -94,7 +94,7 @@ const inputClass =
 
 const labelClass = 'block text-sm font-medium text-secondary-700 dark:text-secondary-300'
 
-const errorClass = 'mt-1 text-xs text-red-500'
+const errorClass = 'mt-1 text-xs text-danger-500'
 
 type LinkValidationState = 'loading' | 'valid' | 'invalid'
 
@@ -285,8 +285,8 @@ function OnboardingPage() {
         transition={{ type: 'spring', stiffness: 200, damping: 20 }}
         className="bg-white dark:bg-secondary-800 rounded-2xl shadow-2xl p-10 max-w-md w-full text-center"
       >
-        <div className="w-16 h-16 rounded-full bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 flex items-center justify-center mx-auto mb-5">
-          <ExclamationTriangleIcon className="w-8 h-8 text-red-500" />
+        <div className="w-16 h-16 rounded-full bg-danger-50 dark:bg-danger-900/20 border-2 border-danger-200 dark:border-danger-800 flex items-center justify-center mx-auto mb-5">
+          <ExclamationTriangleIcon className="w-8 h-8 text-danger-500" />
         </div>
         <h2 className="text-xl font-bold text-secondary-900 dark:text-white mb-2">
           Invalid Onboarding Link
@@ -296,7 +296,7 @@ function OnboardingPage() {
         </p>
         <button
           onClick={() => navigate('/login')}
-          className="w-full py-2.5 px-4 rounded-lg border border-secondary-300 dark:border-secondary-600 text-sm font-medium text-secondary-700 dark:text-secondary-300 hover:bg-gray-50 dark:hover:bg-secondary-700 transition-colors"
+          className="w-full py-2.5 px-4 rounded-lg border border-secondary-300 dark:border-secondary-600 text-sm font-medium text-secondary-700 dark:text-secondary-300 hover:bg-secondary-50 dark:hover:bg-secondary-700 transition-colors"
         >
           Go to Sign In
         </button>
@@ -313,8 +313,8 @@ function OnboardingPage() {
           transition={{ type: 'spring', stiffness: 200, damping: 20 }}
           className="bg-white dark:bg-secondary-800 rounded-2xl shadow-2xl p-10 max-w-md w-full text-center"
         >
-          <div className="w-20 h-20 rounded-full bg-emerald-50 dark:bg-emerald-900/20 border-2 border-emerald-200 dark:border-emerald-700 flex items-center justify-center mx-auto mb-5">
-            <CheckCircleIcon className="w-10 h-10 text-emerald-500" />
+          <div className="w-20 h-20 rounded-full bg-success-50 dark:bg-success-900/20 border-2 border-success-200 dark:border-success-700 flex items-center justify-center mx-auto mb-5">
+            <CheckCircleIcon className="w-10 h-10 text-success-500" />
           </div>
           <h2 className="text-2xl font-bold text-secondary-900 dark:text-white mb-2">
             You're all set!
@@ -340,8 +340,8 @@ function OnboardingPage() {
         <div className="bg-white dark:bg-secondary-800 rounded-2xl shadow-2xl overflow-hidden">
           <div className="px-8 pt-8 pb-4">
             <div className="flex flex-col items-center mb-6">
-              <div className="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 flex items-center justify-center mb-3">
-                <BoltIcon className="w-6 h-6 text-amber-500" />
+              <div className="w-12 h-12 rounded-xl bg-warning-50 dark:bg-warning-900/20 border border-warning-200 dark:border-warning-800 flex items-center justify-center mb-3">
+                <BoltIcon className="w-6 h-6 text-warning-500" />
               </div>
               <h2 className="text-2xl font-bold text-secondary-900 dark:text-white">
                 Create Your Account
@@ -358,7 +358,7 @@ function OnboardingPage() {
                     className={`w-full h-1.5 rounded-full transition-colors duration-300 ${
                       i <= step
                         ? 'bg-primary-500'
-                        : 'bg-gray-200 dark:bg-secondary-600'
+                        : 'bg-secondary-200 dark:bg-secondary-600'
                     }`}
                   />
                   <span
@@ -478,7 +478,7 @@ function OnboardingPage() {
                         <div className="space-y-4">
                           <div className="flex flex-col items-center gap-3 mb-2">
                             <div
-                              className="relative w-20 h-20 rounded-full border-2 border-dashed border-secondary-300 dark:border-secondary-600 overflow-hidden cursor-pointer hover:border-primary-400 transition-colors bg-gray-50 dark:bg-secondary-700 flex items-center justify-center"
+                              className="relative w-20 h-20 rounded-full border-2 border-dashed border-secondary-300 dark:border-secondary-600 overflow-hidden cursor-pointer hover:border-primary-400 transition-colors bg-secondary-50 dark:bg-secondary-700 flex items-center justify-center"
                               onClick={() => fileInputRef.current?.click()}
                             >
                               {avatarPreview ? (
@@ -615,7 +615,7 @@ function OnboardingPage() {
                       <button
                         type="button"
                         onClick={handleBack}
-                        className="flex items-center gap-1.5 py-2.5 px-4 rounded-lg border border-secondary-300 dark:border-secondary-600 text-sm font-medium text-secondary-700 dark:text-secondary-300 hover:bg-gray-50 dark:hover:bg-secondary-700 transition-colors"
+                        className="flex items-center gap-1.5 py-2.5 px-4 rounded-lg border border-secondary-300 dark:border-secondary-600 text-sm font-medium text-secondary-700 dark:text-secondary-300 hover:bg-secondary-50 dark:hover:bg-secondary-700 transition-colors"
                       >
                         <ArrowLeftIcon className="w-4 h-4" />
                         Back

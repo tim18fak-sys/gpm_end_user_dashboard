@@ -38,7 +38,7 @@ const periodsPerMonth: Record<DeviceCatetoryPaymentDurationOptionEnum, number> =
 }
 
 const SkeletonBlock = ({ className }: { className: string }) => (
-  <div className={`animate-pulse bg-gray-200 dark:bg-secondary-600 rounded ${className}`} />
+  <div className={`animate-pulse bg-secondary-200 dark:bg-secondary-600 rounded ${className}`} />
 )
 
 const FinancingOptionsStep: FC<FinancingOptionsStepProps> = ({
@@ -93,9 +93,9 @@ const FinancingOptionsStep: FC<FinancingOptionsStepProps> = ({
           initial={{ scale: 0.7, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.1, duration: 0.4, type: 'spring', stiffness: 200 }}
-          className="mb-4 w-16 h-16 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 flex items-center justify-center"
+          className="mb-4 w-16 h-16 rounded-2xl bg-success-50 dark:bg-success-900/20 border border-success-200 dark:border-success-800 flex items-center justify-center"
         >
-          <BanknotesIcon className="w-9 h-9 text-emerald-500" />
+          <BanknotesIcon className="w-9 h-9 text-success-500" />
         </motion.div>
 
         <motion.h2
@@ -129,12 +129,12 @@ const FinancingOptionsStep: FC<FinancingOptionsStepProps> = ({
       >
         {isLoading ? (
           <>
-            <div className="rounded-xl border border-gray-200 dark:border-secondary-600 p-4 space-y-3">
+            <div className="rounded-xl border border-secondary-200 dark:border-secondary-600 p-4 space-y-3">
               <SkeletonBlock className="h-4 w-1/3" />
               <SkeletonBlock className="h-3 w-2/3" />
               <SkeletonBlock className="h-3 w-1/2" />
             </div>
-            <div className="rounded-xl border border-gray-200 dark:border-secondary-600 p-4 space-y-3">
+            <div className="rounded-xl border border-secondary-200 dark:border-secondary-600 p-4 space-y-3">
               <SkeletonBlock className="h-4 w-1/3" />
               <SkeletonBlock className="h-3 w-2/3" />
               <SkeletonBlock className="h-3 w-1/2" />
@@ -150,32 +150,32 @@ const FinancingOptionsStep: FC<FinancingOptionsStepProps> = ({
                 onClick={() => handleSelectOption(DeviceCategoryPaymentOptionEnum.OUTRIGHT)}
                 className={`w-full text-left rounded-xl border p-4 transition-all duration-200 ${
                   selectedOption === DeviceCategoryPaymentOptionEnum.OUTRIGHT
-                    ? 'border-emerald-400 dark:border-emerald-600 bg-emerald-50 dark:bg-emerald-900/25 ring-2 ring-emerald-300 dark:ring-emerald-700'
-                    : 'border-gray-200 dark:border-secondary-600 bg-gray-50 dark:bg-secondary-700/50 hover:border-emerald-300 dark:hover:border-emerald-700'
+                    ? 'border-success-400 dark:border-success-600 bg-success-50 dark:bg-success-900/25 ring-2 ring-success-300 dark:ring-success-700'
+                    : 'border-secondary-200 dark:border-secondary-600 bg-secondary-50 dark:bg-secondary-700/50 hover:border-success-300 dark:hover:border-success-700'
                 }`}
               >
                 <div className="flex items-center gap-2 mb-2">
-                  <div className="w-7 h-7 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center flex-shrink-0">
-                    <CurrencyDollarIcon className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  <div className="w-7 h-7 rounded-lg bg-success-100 dark:bg-success-900/40 flex items-center justify-center flex-shrink-0">
+                    <CurrencyDollarIcon className="w-4 h-4 text-success-600 dark:text-success-400" />
                   </div>
-                  <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-300">
+                  <p className="text-sm font-semibold text-success-800 dark:text-success-300">
                     Outright Purchase
                   </p>
                   <div className="ml-auto flex items-center gap-2">
-                    <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300">
+                    <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-success-100 dark:bg-success-900/40 text-success-700 dark:text-success-300">
                       <CheckCircleIcon className="w-3 h-3" />
                       No interest
                     </span>
                     {selectedOption === DeviceCategoryPaymentOptionEnum.OUTRIGHT && (
-                      <CheckCircleIcon className="w-4 h-4 text-emerald-500" />
+                      <CheckCircleIcon className="w-4 h-4 text-success-500" />
                     )}
                   </div>
                 </div>
                 <div className="flex items-center justify-between">
-                  <p className="text-xs text-emerald-600 dark:text-emerald-500">
+                  <p className="text-xs text-success-600 dark:text-success-500">
                     Pay once, own it outright
                   </p>
-                  <span className="text-sm font-bold text-emerald-800 dark:text-emerald-200">
+                  <span className="text-sm font-bold text-success-800 dark:text-success-200">
                     {formatCurrency(amount, currency)}
                   </span>
                 </div>
@@ -190,7 +190,7 @@ const FinancingOptionsStep: FC<FinancingOptionsStepProps> = ({
                 className={`rounded-xl border transition-all duration-200 ${
                   selectedOption === DeviceCategoryPaymentOptionEnum.INSTALLMENT
                     ? 'border-primary-400 dark:border-primary-600 ring-2 ring-primary-300 dark:ring-primary-700'
-                    : 'border-gray-200 dark:border-secondary-600'
+                    : 'border-secondary-200 dark:border-secondary-600'
                 }`}
               >
                 <button
@@ -198,7 +198,7 @@ const FinancingOptionsStep: FC<FinancingOptionsStepProps> = ({
                   className={`w-full text-left p-4 rounded-xl transition-colors duration-200 ${
                     selectedOption === DeviceCategoryPaymentOptionEnum.INSTALLMENT
                       ? 'bg-primary-50 dark:bg-primary-900/25'
-                      : 'bg-gray-50 dark:bg-secondary-700/50 hover:border-primary-300 dark:hover:border-primary-700'
+                      : 'bg-secondary-50 dark:bg-secondary-700/50 hover:border-primary-300 dark:hover:border-primary-700'
                   }`}
                 >
                   <div className="flex items-center gap-2 mb-2">
@@ -331,7 +331,7 @@ const FinancingOptionsStep: FC<FinancingOptionsStepProps> = ({
                               </div>
                             )}
 
-                            <div className="border-t border-gray-100 dark:border-secondary-700 pt-2 flex items-center justify-between">
+                            <div className="border-t border-secondary-100 dark:border-secondary-700 pt-2 flex items-center justify-between">
                               <span className="text-xs text-secondary-500 dark:text-secondary-400">
                                 Total device value
                               </span>
@@ -345,7 +345,7 @@ const FinancingOptionsStep: FC<FinancingOptionsStepProps> = ({
                                 <CurrencyDollarIcon className="w-3 h-3" />
                                 Upfront ({initPercentage}%)
                               </span>
-                              <span className="text-xs font-bold text-amber-600 dark:text-amber-400">
+                              <span className="text-xs font-bold text-warning-600 dark:text-warning-400">
                                 {formatCurrency(upfrontAmount, currency)}
                               </span>
                             </div>
@@ -359,7 +359,7 @@ const FinancingOptionsStep: FC<FinancingOptionsStepProps> = ({
                               </span>
                             </div>
 
-                            <div className="border-t border-gray-100 dark:border-secondary-700 pt-2 flex items-center justify-between">
+                            <div className="border-t border-secondary-100 dark:border-secondary-700 pt-2 flex items-center justify-between">
                               <span className="text-xs text-secondary-500 dark:text-secondary-400 flex items-center gap-1">
                                 <ClockIcon className="w-3 h-3" />
                                 {durationLabel[selectedFrequency]} payment
