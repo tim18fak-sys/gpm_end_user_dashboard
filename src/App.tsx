@@ -1,6 +1,6 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from './store/authStore'
-import Layout from './components/Layout'
+
 import Login from './pages/Login'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
@@ -8,28 +8,19 @@ import GetInformation from './pages/GetInformation'
 import DeactivationScreen from './pages/DeactivationScreen'
 import Unauthorized from './pages/Unauthorized'
 import Dashboard from './pages/Dashboard'
-import Users from './pages/Users'
-import Settings from './pages/Settings'
-import Profile from './pages/Profile'
-import UniversityManagement from './pages/UniversityManagement';
-import SHCCommittee from './pages/SHCCommittee';
-import News from './pages/News';
-import StaffManagement from './pages/StaffManagement';
 import { Toaster } from 'react-hot-toast'
-import UniversityAnalytics from './pages/UniversityAnalytics'
 import CompleteSetup from './pages/CompleteSetup'
-import Analytics from './pages/Analytics'
-import NotificationCenter from './pages/NotificationCenter'; //Import NotificationCenter
-import AlertCenter from './pages/AlertCenter'
-import CaseAnalytics from './pages/CaseAnalytics';
 import Kyc from './pages/kyc/Kyc'
 import PendingKycReview from './pages/kyc/PendingKycReview'
 import RejectedKyc from './pages/kyc/RejectedKyc'
 import Layout2 from './components/Layout2'
+import OnboardingPage from './pages/OnboardingPage'
 
 function App() {
-
+  const location = useLocation()
+  location.pathname = location.pathname.toLowerCase() // Ensure the path is in lowercase for consistent routing
   const { isAuthenticated } = useAuthStore()
+  if(location.pathname === '/onboarding' && !isAuthenticated) return <OnboardingPage/>
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-secondary-900">
