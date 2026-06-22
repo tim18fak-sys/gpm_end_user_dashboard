@@ -16,6 +16,7 @@ import RejectedKyc from './pages/kyc/RejectedKyc'
 import OnboardingPage from './pages/OnboardingPage'
 import MobileLayout from './components/MobileLayout'
 import WaitingForApproval from './pages/WaitingForApproval'
+import PaymentHistory from './pages/PaymentHistory'
 
 function App() {
   const location = useLocation()
@@ -42,12 +43,19 @@ function App() {
         <Route
           path="/get-information"
           element={
-            <MobileLayout>
+            // <MobileLayout>
               <GetInformation />
+            // </MobileLayout>
+          }
+        />
+        <Route
+          path="/waiting-for-approval"
+          element={
+            <MobileLayout>
+              <WaitingForApproval />
             </MobileLayout>
           }
         />
-        <Route path="/waiting-for-approval" element={<MobileLayout><WaitingForApproval /></MobileLayout>} />
         {/* kyc path */}
         <Route path="/kyc">
           <Route
@@ -79,15 +87,22 @@ function App() {
         <Route
           path="/dashboard"
           element={
-            isAuthenticated ? (
-              <MobileLayout>
-                <Dashboard />
-              </MobileLayout>
-            ) : (
-              <Navigate to="/login" />
-            )
+            <MobileLayout>
+              <Dashboard />
+            </MobileLayout>
           }
         />
+
+        {/* payment history page */}
+        <Route
+          path="/payment-history"
+          element={
+            <MobileLayout>
+              <PaymentHistory />
+            </MobileLayout>
+          }
+        />
+
         {/* Default redirect */}
         <Route
           path="/"

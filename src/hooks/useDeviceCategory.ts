@@ -15,14 +15,32 @@ export const useDeviceCategories = (
   enabled: boolean
 ) => {
   const fullParams: DeviceCursorPaginationDto = {
-    limit: 10,
+    limit: 30,
     ...params,
   }
 
   return useQuery({
     queryKey: ['device-categories', fullParams],
     queryFn: () => deviceCategoryApi.getDeviceCategories(fullParams),
-    enabled: enabled && !!fullParams.excludeDeviceCategoryId,
+    enabled: enabled && !!params.paymentTimeline,
     staleTime: 10 * 60 * 1000,
+  })
+}
+
+
+export const useLinkedDeviceInfo = () => {
+  return useQuery({
+    queryKey: ['linked-device-info'],
+    queryFn: () => deviceCategoryApi.getLinkedDeviceInfo(),
+    staleTime: 5 * 60 * 1000,
+  })
+}
+
+export const useCurrentDeviceCode = (deviceId: string) => {
+  return useQuery({
+    queryKey: ['current-device-code', deviceId],
+    queryFn: () => deviceCategoryApi.getCurrentDeviceCode(deviceId),
+    enabled: !!deviceId,
+    staleTime: 5 * 60 * 1000,
   })
 }

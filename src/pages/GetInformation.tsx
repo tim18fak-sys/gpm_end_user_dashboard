@@ -2,12 +2,15 @@
 import { useEffect } from 'react'
 import { useLocation, useNavigate } from "react-router-dom";
 import { ProfileManagementAPI } from '../services/api'
-import { useAuthStore, LeadStatusEnum, User, LeadKycVerificationStatusEnum } from '../store/authStore'
+import { useAuthStore, LeadStatusEnum, User } from "../store/authStore";
 import toast from 'react-hot-toast'
 import { motion } from 'framer-motion'
 import { onboardingApi } from "@/services/onboarding.api";
 import { DevicePaymentTimelineEnum } from "@/enum/device.enum";
-import { DeviceUserOnboardingStatusEnum } from "@/enum/user.enum";
+import {
+  DeviceUserOnboardingStatusEnum,
+  UserVerificationStatusEnum,
+} from "@/enum/user.enum";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -85,13 +88,52 @@ export default function GetInformation() {
         setLoading(true);
         if (loginState.stage === "customer") {
           const userInfo = await ProfileManagementAPI.getUserInfo();
-          const userInfoResponse = userInfo.data as User;
+          const userInfoResponse = userInfo.data;
           console.log(userInfo.data, "");
-          setUser(userInfo.data);
+          setUser({
+            _id: userInfoResponse._id,
+            email: userInfoResponse.email,
+            phone_number: userInfoResponse.phone_number!,
+            first_name: userInfoResponse.first_name,
+            last_name: userInfoResponse.last_name,
+            full_name: userInfoResponse.full_name,
+            profile_picture: userInfoResponse.profile_picture,
+            date_birth: userInfoResponse.date_birth,
+            gender: userInfoResponse.gender,
+            is_device_assigned: userInfoResponse.is_device_assigned,
+            verification_status: userInfoResponse.verification_status,
+            verificationReason: userInfoResponse.verificationReason,
+            onboarding_id: userInfoResponse.onboarding_id,
+            distributorId: userInfoResponse.distributorId,
+            address: userInfoResponse.address,
+            onboarding_agent_id: userInfoResponse.onboarding_agent_id,
+            onboarding_hub_id: userInfoResponse.onboarding_hub_id,
+            paymentTimeline: userInfoResponse.paymentTimeline,
+            onboardingStatus: null,
+          });
 
-          if (userInfo.status === LeadStatusEnum.UNQUALIFIED) {
-            navigate("/deactivation-screen");
+          // only users who want installment payment timeline need to go through the kyc flow
+          if (
+            userInfoResponse.verification_status ===
+              UserVerificationStatusEnum.PENDING &&
+            userInfoResponse.paymentTimeline !==
+              DevicePaymentTimelineEnum.OUTRIGHT
+          ) {
+            navigate("/kyc");
+          } else if (
+            userInfoResponse.verification_status ===
+              UserVerificationStatusEnum.REJECTED &&
+            userInfoResponse.paymentTimeline !==
+              DevicePaymentTimelineEnum.OUTRIGHT
+          ) {
+            navigate("/rejected-kyc");
+          } else {
+            // if all is correct, we navigate the user to the dashboard after a short delay to show the success toast and also the loading animation.
+            setTimeout(() => {
+              navigate("/");
+            }, 2000);
           }
+          // we check for their kyc status, if pending we navigate then to the pending kyc review page, if rejected we navigate them to the rejected kyc page.
         } else if (loginState.stage === "onboarding") {
           // we get the onboarding information of the yet to be customer.
           const onboarding = await onboardingApi.getOnboardingInfo();
@@ -124,11 +166,13 @@ export default function GetInformation() {
           ) {
             // navigate to the waiting page, telling the customer to please wait while the admin approves of them.
             navigate("/waiting-for-approval");
+          } else {
+            // if all is correct, we navigate the user to the dashboard after a short delay to show the success toast and also the loading animation.
+            setTimeout(() => {
+              navigate("/");
+            }, 2000);
           }
-
-          
         }
-
        
       } catch (error: any) {
         toast.error("Failed to fetch user information");

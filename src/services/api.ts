@@ -1,6 +1,8 @@
 
 import axios from 'axios'
 import { useAuthStore } from '../store/authStore'
+import { BaseDataInterface } from "@/types/shared";
+import { User } from "@/types/user.types";
 
 // const API_BASE_URL = 'https://campus-pal-monolith-api.onrender.com' // Replace with your actual API URL
  const API_BASE_URL =  'http://localhost:3000' // Use environment variable or fallback to localhost
@@ -93,20 +95,26 @@ interface UpdateProfile {
   current_password?: string
   new_password?: string
 }
+
+interface GetUserInfoResponse extends BaseDataInterface<User> {}
 // this is for the user management
 const PROFILE_MANAGEMENT_API = '/v1/profile-management/customer'
-export const ProfileManagementAPI ={
-  getUserInfo:async() => {
-    const response = await api.get(`${PROFILE_MANAGEMENT_API}`)
-    return response.data
+export const ProfileManagementAPI = {
+  getUserInfo: async (): Promise<GetUserInfoResponse> => {
+    const response = await api.get(`${PROFILE_MANAGEMENT_API}`);
+    return response.data;
   },
-  updateProfile:async (data:UpdateProfile) => {
-    const response = await api.patch(`${PROFILE_MANAGEMENT_API}`, data)
-    return response.data
+  updateProfile: async (data: UpdateProfile) => {
+    const response = await api.patch(`${PROFILE_MANAGEMENT_API}`, data);
+    return response.data;
   },
-  updateBoardingFlow: async (data: Partial<Record<string, boolean | string>>) => {
-    const response = await api.patch(`${PROFILE_MANAGEMENT_API}/boarding-flow`, data)
-    return response.data
-  }
-  
-}
+  updateBoardingFlow: async (
+    data: Partial<Record<string, boolean | string>>,
+  ) => {
+    const response = await api.patch(
+      `${PROFILE_MANAGEMENT_API}/boarding-flow`,
+      data,
+    );
+    return response.data;
+  },
+};

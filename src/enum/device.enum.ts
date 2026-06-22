@@ -19,3 +19,13 @@ export enum DevicePaymentTimelineEnum {
   THIRTY_THREE_MONTH = "33_month",
   THIRTY_SIX_MONTH = "36_month",
 }
+
+export enum DevicePaymentPlan {
+  //
+  WEEKLY = "WEEKLY",
+  // divide by 4
+  MONTHLY = "MONTHLY",
+  // divide by 12
+  QUARTER_YEARLY = "QUARTER_YEARLY",
+  NONE = "NONE",
+}

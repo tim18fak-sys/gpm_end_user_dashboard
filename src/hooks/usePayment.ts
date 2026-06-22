@@ -1,0 +1,37 @@
+import { paymentApi } from "@/services/payment.api"
+import { BaseCursorPaginationInterface } from "@/types/shared";
+import { useQuery } from "@tanstack/react-query"
+
+export const useGetActiveInvoice = () => {
+    return useQuery({
+        queryKey: ['next-payment-invoice'],
+        queryFn: () => paymentApi.getActiveInvoice(),
+        staleTime: 5 * 60 * 1000, // 5 minutes
+    })
+}
+
+export const useGetAllInvoices = (params: BaseCursorPaginationInterface) => {
+  return useQuery({
+    queryKey: ["all-invoices"],
+    queryFn: () => paymentApi.getAllInvoices(params),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+};
+
+export const useInitializeInvoicePayment = (invoiceId: string) => {
+    return useQuery({
+        queryKey: ['initialize-recurring-payment', invoiceId],
+        queryFn: () => paymentApi.initializeInvoicePayment(invoiceId),
+        enabled: !!invoiceId,
+        staleTime: 5 * 60 * 1000, // 5 minutes
+    })
+}
+
+export const useActivateOrder = (orderId: string) => {
+    return useQuery({
+        queryKey: ['activate-order', orderId],
+        queryFn: () => paymentApi.activateOrder(orderId),
+        enabled: !!orderId,
+        staleTime: 5 * 60 * 1000, // 5 minutes
+    })
+}

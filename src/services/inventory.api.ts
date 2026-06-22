@@ -18,6 +18,8 @@ export class InventoryApi {
             throw error
         }
     }
+    
+
 }
 
 import { api } from './api'

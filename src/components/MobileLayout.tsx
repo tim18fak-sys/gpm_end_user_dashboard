@@ -1,4 +1,4 @@
-import { NavLink, useLocation } from 'react-router-dom'
+import { Navigate, NavLink, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   HomeIcon,
@@ -15,6 +15,7 @@ import {
   ExclamationCircleIcon as AlertSolid,
 } from '@heroicons/react/24/solid'
 import type { PropsWithChildren } from 'react'
+import { useAuthStore } from '@/store/authStore'
 
 const TAB_ITEMS = [
   {
@@ -24,14 +25,14 @@ const TAB_ITEMS = [
     ActiveIcon: HomeSolid,
   },
   {
-    label: 'Alerts',
-    to: '/alerts',
+    label: 'Orders',
+    to: '/orders',
     Icon: ExclamationCircleIcon,
     ActiveIcon: AlertSolid,
   },
   {
-    label: 'Analytics',
-    to: '/analytics',
+    label: 'Payments',
+    to: '/payments-history',
     Icon: ChartBarIcon,
     ActiveIcon: ChartSolid,
   },
@@ -42,8 +43,8 @@ const TAB_ITEMS = [
     ActiveIcon: BellSolid,
   },
   {
-    label: 'Profile',
-    to: '/profile',
+    label: 'Settings',
+    to: '/settings',
     Icon: UserIcon,
     ActiveIcon: UserSolid,
   },
@@ -142,6 +143,10 @@ function MobileTabBar() {
 }
 
 function MobileLayout({ children }: PropsWithChildren) {
+  const {isAuthenticated} = useAuthStore()
+
+  console.log('isAuthenticated', isAuthenticated)
+  if(!isAuthenticated) return <Navigate to="/login" />
   return (
     <>
       <DesktopGuard />

@@ -7,3 +7,9 @@ export interface BaseMessageInterface {
 export interface BaseStatusInterface {
     status:boolean
 }
+
+export interface BaseCursorPaginationInterface {
+    prevCursor:string|null
+    nextCursor:string|null
+    search:string|null
+}

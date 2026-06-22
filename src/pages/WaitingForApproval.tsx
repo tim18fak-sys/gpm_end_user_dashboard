@@ -48,7 +48,7 @@ function WaitingForApproval() {
     navigate('/login')
   }
 
-  const firstName = user?.name?.split(' ')[0] ?? 'there'
+  const firstName = user.first_name
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-100 dark:from-secondary-900 dark:to-primary-950 flex items-center justify-center p-4">
@@ -63,7 +63,7 @@ function WaitingForApproval() {
           <div className="px-8 pt-8 pb-0 flex items-center justify-center">
             <img
               src="/images/logo.png"
-              alt="CompusPal"
+              alt="GreenPower Logo"
               className="w-14 aspect-square object-contain"
             />
           </div>
