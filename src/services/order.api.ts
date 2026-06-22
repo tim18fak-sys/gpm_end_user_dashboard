@@ -34,7 +34,7 @@ export interface CreateNewStandardOrderServerResponse extends BaseMessageInterfa
 export interface CancelStandardOrderServerResponse extends BaseMessageInterface {}
 
 export class OrderApi {
-  private endpoint = "/v1/order-management/customer";
+  private endpoint = "/v1/order-management/customer"
   constructor(private axios: AxiosInstance) {}
   // get all orders.
   async getAllOrders(
@@ -81,7 +81,7 @@ export class OrderApi {
     data: CancelStandardOrderDTO,
   ): Promise<CancelStandardOrderServerResponse> {
     try {
-      const response = await this.axios.post(`${this.endpoint}/cancel`, data);
+      const response = await this.axios.patch(`${this.endpoint}/${data.orderId}/cancel`,);
       return response.data;
     } catch (error) {
       console.error("Error canceling order:", error);

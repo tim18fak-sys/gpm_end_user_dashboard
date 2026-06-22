@@ -1,6 +1,6 @@
 import { paymentApi } from "@/services/payment.api"
 import { BaseCursorPaginationInterface } from "@/types/shared";
-import { useQuery } from "@tanstack/react-query"
+import { useMutation, useQuery } from "@tanstack/react-query"
 
 export const useGetActiveInvoice = () => {
     return useQuery({
@@ -27,11 +27,9 @@ export const useInitializeInvoicePayment = (invoiceId: string) => {
     })
 }
 
-export const useActivateOrder = (orderId: string) => {
-    return useQuery({
-        queryKey: ['activate-order', orderId],
-        queryFn: () => paymentApi.activateOrder(orderId),
-        enabled: !!orderId,
-        staleTime: 5 * 60 * 1000, // 5 minutes
+export const useActivateOrder = () => {
+    return useMutation({
+        mutationKey: ['activate-order'],
+        mutationFn: (orderId:string) => paymentApi.activateOrder(orderId),
     })
 }

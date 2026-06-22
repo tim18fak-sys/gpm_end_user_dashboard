@@ -24,6 +24,7 @@ import { DevicePaymentPlan } from '@/enum/device.enum'
 import { NewOrderModal } from '@/components/modals/NewOrderModal'
 import { useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
+import { useActivateOrder } from "@/hooks/usePayment";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -227,11 +228,11 @@ function CancelConfirmSheet({
         onClick={onCancel}
       />
       <motion.div
-        initial={{ y: '100%' }}
+        initial={{ y: "100%" }}
         animate={{ y: 0 }}
-        exit={{ y: '100%' }}
-        transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-        className="relative bg-white dark:bg-secondary-800 rounded-t-3xl p-6 space-y-4"
+        exit={{ y: "100%" }}
+        transition={{ type: "spring", damping: 28, stiffness: 300 }}
+        className="relative bg-white dark:bg-secondary-800 rounded-t-3xl p-6 space-y-4 pb-14"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="w-12 h-1 rounded-full bg-secondary-200 dark:bg-secondary-600 mx-auto -mt-1 mb-4" />
@@ -240,7 +241,9 @@ function CancelConfirmSheet({
             <XCircleIcon className="w-6 h-6 text-danger-500" />
           </div>
           <div>
-            <p className="text-base font-bold text-secondary-900 dark:text-white">Cancel this order?</p>
+            <p className="text-base font-bold text-secondary-900 dark:text-white">
+              Cancel this order?
+            </p>
             <p className="text-sm text-secondary-400 dark:text-secondary-500 mt-0.5 leading-relaxed">
               This draft order will be cancelled. This action cannot be undone.
             </p>
@@ -264,13 +267,13 @@ function CancelConfirmSheet({
                 Cancelling…
               </>
             ) : (
-              'Yes, cancel'
+              "Yes, cancel"
             )}
           </button>
         </div>
       </motion.div>
     </div>
-  )
+  );
 }
 
 // ─── Order Card ───────────────────────────────────────────────────────────────
@@ -433,7 +436,7 @@ function EmptyOrders({ onNewOrder }: { onNewOrder: () => void }) {
 function OrderList() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-
+  const { mutate: activateOrderMutation } = useActivateOrder();
   const [showNewOrder, setShowNewOrder] = useState(false)
   const [cancelTarget, setCancelTarget] = useState<string | null>(null)
 
@@ -483,9 +486,13 @@ function OrderList() {
               <ArrowLeftIcon className="w-4 h-4 text-secondary-600 dark:text-secondary-300" />
             </button>
             <div>
-              <h1 className="text-base font-bold text-secondary-900 dark:text-white">My Orders</h1>
+              <h1 className="text-base font-bold text-secondary-900 dark:text-white">
+                My Orders
+              </h1>
               <p className="text-xs text-secondary-400 dark:text-secondary-500">
-                {isLoading ? 'Loading…' : `${orders.length} order${orders.length !== 1 ? 's' : ''}`}
+                {isLoading
+                  ? "Loading…"
+                  : `${orders.length} order${orders.length !== 1 ? "s" : ""}`}
               </p>
             </div>
           </div>
@@ -514,6 +521,7 @@ function OrderList() {
               order={order as StandardOrder & { _id?: string }}
               index={i}
               onCancel={(id) => setCancelTarget(id)}
+              onActivateOrder={}
             />
           ))}
         </div>
@@ -541,7 +549,7 @@ function OrderList() {
         )}
       </AnimatePresence>
     </div>
-  )
+  );
 }
 
 export default OrderList
