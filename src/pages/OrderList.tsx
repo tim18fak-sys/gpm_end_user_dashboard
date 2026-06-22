@@ -15,8 +15,10 @@ import {
   CalendarDaysIcon,
   BoltIcon,
   XMarkIcon,
+  CreditCardIcon,
 } from '@heroicons/react/24/outline'
 import { useGetAllOrders, useCancelOrder } from '@/hooks/useOrder'
+import { useActivateOrder } from '@/hooks/usePayment'
 import { StandardOrder } from '@/types/order.types'
 import { OrderStatusEnum } from '@/enum/order.enum'
 import { GetAllOrderCursorPaginationDTO } from '@/services/order.api'
@@ -24,7 +26,6 @@ import { DevicePaymentPlan } from '@/enum/device.enum'
 import { NewOrderModal } from '@/components/modals/NewOrderModal'
 import { useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
-import { useActivateOrder } from "@/hooks/usePayment";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -60,12 +61,13 @@ type StatusConfig = {
   pillBorder: string
   icon: React.FC<React.SVGProps<SVGSVGElement>>
   canCancel: boolean
+  canActivate: boolean
 }
 
 const statusConfig: Record<OrderStatusEnum, StatusConfig> = {
   [OrderStatusEnum.DRAFT]: {
     label: 'Draft',
-    description: 'Awaiting activation payment',
+    description: 'Pay your activation fee to start processing',
     iconBg: 'bg-warning-100 dark:bg-warning-900/30',
     iconColor: 'text-warning-500 dark:text-warning-400',
     pillBg: 'bg-warning-100 dark:bg-warning-900/30',
@@ -73,10 +75,11 @@ const statusConfig: Record<OrderStatusEnum, StatusConfig> = {
     pillBorder: 'border-warning-200 dark:border-warning-700',
     icon: DocumentTextIcon,
     canCancel: true,
+    canActivate: true,
   },
   [OrderStatusEnum.PENDING]: {
     label: 'Pending',
-    description: 'Processing your order',
+    description: 'Payment received — processing your order',
     iconBg: 'bg-primary-100 dark:bg-primary-900/30',
     iconColor: 'text-primary-500 dark:text-primary-400',
     pillBg: 'bg-primary-100 dark:bg-primary-900/30',
@@ -84,6 +87,7 @@ const statusConfig: Record<OrderStatusEnum, StatusConfig> = {
     pillBorder: 'border-primary-200 dark:border-primary-700',
     icon: ClockIcon,
     canCancel: false,
+    canActivate: false,
   },
   [OrderStatusEnum.IN_PROGRESS]: {
     label: 'In Progress',
@@ -95,6 +99,7 @@ const statusConfig: Record<OrderStatusEnum, StatusConfig> = {
     pillBorder: 'border-primary-200 dark:border-primary-700',
     icon: ArrowPathIcon,
     canCancel: false,
+    canActivate: false,
   },
   [OrderStatusEnum.COMPLETED]: {
     label: 'Completed',
@@ -106,6 +111,7 @@ const statusConfig: Record<OrderStatusEnum, StatusConfig> = {
     pillBorder: 'border-success-200 dark:border-success-700',
     icon: CheckCircleIcon,
     canCancel: false,
+    canActivate: false,
   },
   [OrderStatusEnum.CANCELLED]: {
     label: 'Cancelled',
@@ -117,6 +123,7 @@ const statusConfig: Record<OrderStatusEnum, StatusConfig> = {
     pillBorder: 'border-secondary-200 dark:border-secondary-600',
     icon: XCircleIcon,
     canCancel: false,
+    canActivate: false,
   },
   [OrderStatusEnum.REJECTED]: {
     label: 'Rejected',
@@ -128,6 +135,7 @@ const statusConfig: Record<OrderStatusEnum, StatusConfig> = {
     pillBorder: 'border-danger-200 dark:border-danger-700',
     icon: XCircleIcon,
     canCancel: false,
+    canActivate: false,
   },
   [OrderStatusEnum.ON_HOLD]: {
     label: 'On Hold',
@@ -139,6 +147,7 @@ const statusConfig: Record<OrderStatusEnum, StatusConfig> = {
     pillBorder: 'border-warning-200 dark:border-warning-700',
     icon: ExclamationTriangleIcon,
     canCancel: false,
+    canActivate: false,
   },
   [OrderStatusEnum.FAILED]: {
     label: 'Failed',
@@ -150,6 +159,7 @@ const statusConfig: Record<OrderStatusEnum, StatusConfig> = {
     pillBorder: 'border-danger-200 dark:border-danger-700',
     icon: XCircleIcon,
     canCancel: false,
+    canActivate: false,
   },
   [OrderStatusEnum.PARTIALLY_COMPLETED]: {
     label: 'Partial',
@@ -161,6 +171,7 @@ const statusConfig: Record<OrderStatusEnum, StatusConfig> = {
     pillBorder: 'border-warning-200 dark:border-warning-700',
     icon: ExclamationTriangleIcon,
     canCancel: false,
+    canActivate: false,
   },
   [OrderStatusEnum.PARTIALLY_CANCELLED]: {
     label: 'Part. Cancelled',
@@ -172,6 +183,7 @@ const statusConfig: Record<OrderStatusEnum, StatusConfig> = {
     pillBorder: 'border-warning-200 dark:border-warning-700',
     icon: ExclamationTriangleIcon,
     canCancel: false,
+    canActivate: false,
   },
   [OrderStatusEnum.PARTIALLY_REJECTED]: {
     label: 'Part. Rejected',
@@ -183,6 +195,7 @@ const statusConfig: Record<OrderStatusEnum, StatusConfig> = {
     pillBorder: 'border-danger-200 dark:border-danger-700',
     icon: XCircleIcon,
     canCancel: false,
+    canActivate: false,
   },
 }
 
@@ -190,9 +203,7 @@ const statusConfig: Record<OrderStatusEnum, StatusConfig> = {
 
 function Pulse({ className }: { className: string }) {
   return (
-    <div
-      className={`animate-pulse bg-secondary-200 dark:bg-secondary-700 rounded-xl ${className}`}
-    />
+    <div className={`animate-pulse bg-secondary-200 dark:bg-secondary-700 rounded-xl ${className}`} />
   )
 }
 
@@ -206,7 +217,7 @@ function OrderSkeleton() {
   )
 }
 
-// ─── Cancel Confirmation ──────────────────────────────────────────────────────
+// ─── Cancel Confirmation Sheet ────────────────────────────────────────────────
 
 function CancelConfirmSheet({
   onConfirm,
@@ -228,10 +239,10 @@ function CancelConfirmSheet({
         onClick={onCancel}
       />
       <motion.div
-        initial={{ y: "100%" }}
+        initial={{ y: '100%' }}
         animate={{ y: 0 }}
-        exit={{ y: "100%" }}
-        transition={{ type: "spring", damping: 28, stiffness: 300 }}
+        exit={{ y: '100%' }}
+        transition={{ type: 'spring', damping: 28, stiffness: 300 }}
         className="relative bg-white dark:bg-secondary-800 rounded-t-3xl p-6 space-y-4 pb-14"
         onClick={(e) => e.stopPropagation()}
       >
@@ -267,13 +278,13 @@ function CancelConfirmSheet({
                 Cancelling…
               </>
             ) : (
-              "Yes, cancel"
+              'Yes, cancel'
             )}
           </button>
         </div>
       </motion.div>
     </div>
-  );
+  )
 }
 
 // ─── Order Card ───────────────────────────────────────────────────────────────
@@ -282,10 +293,14 @@ function OrderCard({
   order,
   index,
   onCancel,
+  onActivate,
+  isActivating,
 }: {
   order: StandardOrder & { _id?: string }
   index: number
   onCancel: (id: string) => void
+  onActivate: (id: string) => void
+  isActivating: boolean
 }) {
   const cfg = statusConfig[order.status] ?? statusConfig[OrderStatusEnum.PENDING]
   const Icon = cfg.icon
@@ -302,9 +317,7 @@ function OrderCard({
       <div className="p-4">
         <div className="flex items-start gap-3">
           {/* Status icon */}
-          <div
-            className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${cfg.iconBg}`}
-          >
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${cfg.iconBg}`}>
             <Icon className={`w-5 h-5 ${cfg.iconColor}`} />
           </div>
 
@@ -345,7 +358,7 @@ function OrderCard({
         <div className="flex items-center gap-3 mt-3 pt-3 border-t border-secondary-100 dark:border-secondary-700">
           <div className="flex-1">
             <p className="text-[10px] text-secondary-400 dark:text-secondary-500">
-              {isOutright ? 'Total amount' : 'Activation'}
+              {isOutright ? 'Total amount' : 'Activation fee'}
             </p>
             <p className="text-sm font-bold text-secondary-900 dark:text-white">
               {formatCurrency(order.metadata.initializationAmount)}
@@ -370,24 +383,45 @@ function OrderCard({
         </div>
       </div>
 
-      {/* Cancel action for DRAFT orders */}
-      {cfg.canCancel && (
-        <div className="border-t border-secondary-100 dark:border-secondary-700 px-4 py-2.5 flex items-center justify-between">
-          <p className="text-xs text-secondary-400 dark:text-secondary-500 italic">
+      {/* ── DRAFT footer: Activate + Cancel ── */}
+      {cfg.canActivate && (
+        <div className="border-t border-secondary-100 dark:border-secondary-700 px-4 pt-3 pb-4 space-y-2.5">
+          <p className="text-xs text-secondary-400 dark:text-secondary-500 leading-relaxed">
             {cfg.description}
           </p>
-          <button
-            onClick={() => onCancel(orderId)}
-            className="flex items-center gap-1 text-xs font-semibold text-danger-500 dark:text-danger-400 hover:text-danger-700 dark:hover:text-danger-300 transition-colors"
-          >
-            <XMarkIcon className="w-3.5 h-3.5" />
-            Cancel
-          </button>
+          <div className="flex items-center gap-2">
+            <motion.button
+              whileTap={{ scale: 0.97 }}
+              onClick={() => onActivate(orderId)}
+              disabled={isActivating}
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 disabled:opacity-60 text-white text-xs font-bold transition-colors"
+            >
+              {isActivating ? (
+                <>
+                  <ArrowPathIcon className="w-3.5 h-3.5 animate-spin" />
+                  Getting link…
+                </>
+              ) : (
+                <>
+                  <CreditCardIcon className="w-3.5 h-3.5" />
+                  Activate Order
+                </>
+              )}
+            </motion.button>
+            <button
+              onClick={() => onCancel(orderId)}
+              disabled={isActivating}
+              className="flex items-center gap-1 px-3 py-2.5 rounded-xl border border-danger-200 dark:border-danger-800 text-xs font-semibold text-danger-500 dark:text-danger-400 hover:bg-danger-50 dark:hover:bg-danger-900/20 disabled:opacity-40 transition-colors flex-shrink-0"
+            >
+              <XMarkIcon className="w-3.5 h-3.5" />
+              Cancel
+            </button>
+          </div>
         </div>
       )}
 
-      {/* Status description for non-cancellable */}
-      {!cfg.canCancel && (
+      {/* ── Non-DRAFT footer: status label ── */}
+      {!cfg.canActivate && (
         <div className="border-t border-secondary-100 dark:border-secondary-700 px-4 py-2.5 flex items-center justify-between">
           <p className="text-xs text-secondary-400 dark:text-secondary-500 italic">
             {cfg.description}
@@ -436,9 +470,10 @@ function EmptyOrders({ onNewOrder }: { onNewOrder: () => void }) {
 function OrderList() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const { mutate: activateOrderMutation } = useActivateOrder();
+
   const [showNewOrder, setShowNewOrder] = useState(false)
   const [cancelTarget, setCancelTarget] = useState<string | null>(null)
+  const [activatingId, setActivatingId] = useState<string | null>(null)
 
   const [params] = useState<GetAllOrderCursorPaginationDTO>({
     prevCursor: null,
@@ -449,8 +484,33 @@ function OrderList() {
 
   const { data: ordersData, isLoading } = useGetAllOrders(params)
   const { mutate: cancelOrder, isPending: cancelling } = useCancelOrder()
+  const { mutate: activateOrder } = useActivateOrder()
 
   const orders = ordersData?.data ?? []
+
+  // ── Activate an order: get Paystack URL then redirect ──
+  const handleActivate = (orderId: string) => {
+    setActivatingId(orderId)
+    activateOrder(orderId, {
+      onSuccess: (response) => {
+        const url = response?.data?.authorization_url
+        if (url) {
+          // Redirect in same tab — most reliable on mobile
+          window.location.href = url
+        } else {
+          toast.error('Payment link not available. Please try again.')
+          setActivatingId(null)
+        }
+      },
+      onError: (err: any) => {
+        const message =
+          err?.response?.data?.message ||
+          'Failed to get payment link. Please try again.'
+        toast.error(message)
+        setActivatingId(null)
+      },
+    })
+  }
 
   const handleCancelConfirm = () => {
     if (!cancelTarget) return
@@ -486,13 +546,11 @@ function OrderList() {
               <ArrowLeftIcon className="w-4 h-4 text-secondary-600 dark:text-secondary-300" />
             </button>
             <div>
-              <h1 className="text-base font-bold text-secondary-900 dark:text-white">
-                My Orders
-              </h1>
+              <h1 className="text-base font-bold text-secondary-900 dark:text-white">My Orders</h1>
               <p className="text-xs text-secondary-400 dark:text-secondary-500">
                 {isLoading
-                  ? "Loading…"
-                  : `${orders.length} order${orders.length !== 1 ? "s" : ""}`}
+                  ? 'Loading…'
+                  : `${orders.length} order${orders.length !== 1 ? 's' : ''}`}
               </p>
             </div>
           </div>
@@ -521,7 +579,8 @@ function OrderList() {
               order={order as StandardOrder & { _id?: string }}
               index={i}
               onCancel={(id) => setCancelTarget(id)}
-              onActivateOrder={}
+              onActivate={handleActivate}
+              isActivating={activatingId === ((order as any)._id ?? order.deviceCategoryId)}
             />
           ))}
         </div>
@@ -549,7 +608,7 @@ function OrderList() {
         )}
       </AnimatePresence>
     </div>
-  );
+  )
 }
 
 export default OrderList
