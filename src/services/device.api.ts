@@ -9,7 +9,7 @@ export interface DeviceCursorPaginationDto {
   prevCursor?: string;
   nextCursor?: string;
   search?: string;
-  paymentTimeline: string;
+  paymentTimeline?: string;
 }
 
 

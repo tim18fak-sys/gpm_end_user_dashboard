@@ -17,6 +17,7 @@ import OnboardingPage from './pages/OnboardingPage'
 import MobileLayout from './components/MobileLayout'
 import WaitingForApproval from './pages/WaitingForApproval'
 import PaymentHistory from './pages/PaymentHistory'
+import OrderList from "./pages/OrderList";
 
 function App() {
   const location = useLocation()
@@ -44,7 +45,7 @@ function App() {
           path="/get-information"
           element={
             // <MobileLayout>
-              <GetInformation />
+            <GetInformation />
             // </MobileLayout>
           }
         />
@@ -95,7 +96,7 @@ function App() {
 
         {/* payment history page */}
         <Route
-          path="/payment-history"
+          path="/payments-history"
           element={
             <MobileLayout>
               <PaymentHistory />
@@ -103,6 +104,14 @@ function App() {
           }
         />
 
+        <Route
+          path="order-list"
+          element={
+            <MobileLayout>
+              <OrderList />
+            </MobileLayout>
+          }
+        />
         {/* Default redirect */}
         <Route
           path="/"

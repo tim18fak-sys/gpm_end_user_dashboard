@@ -12,4 +12,5 @@ export interface BaseCursorPaginationInterface {
     prevCursor:string|null
     nextCursor:string|null
     search:string|null
+    limit:number
 }

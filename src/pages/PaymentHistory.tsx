@@ -249,7 +249,8 @@ function PaymentHistory() {
     prevCursor: null,
     nextCursor: null,
     search: null,
-  })
+    limit: 10,
+  });
 
   const { data: activeData, isLoading: activeLoading } = useGetActiveInvoice()
   const { data: allData, isLoading: allLoading, isFetching } = useGetAllInvoices(params)

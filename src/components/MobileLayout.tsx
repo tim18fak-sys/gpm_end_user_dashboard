@@ -26,7 +26,7 @@ const TAB_ITEMS = [
   },
   {
     label: 'Orders',
-    to: '/orders',
+    to: '/order-list',
     Icon: ExclamationCircleIcon,
     ActiveIcon: AlertSolid,
   },
