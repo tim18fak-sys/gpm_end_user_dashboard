@@ -20,6 +20,8 @@ export interface DeviceUserOnboardingDto {
   // this are gotten from the link shared with the customer or user.
   onboarding_agent_id: string;
   onboarding_hub_id: string;
+  address: string;
+  dob: string;
 }
 
 // the db structure for the onboarding information.

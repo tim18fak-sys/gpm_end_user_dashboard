@@ -814,7 +814,7 @@ export function NewOrderModal({ onClose, onSuccess }: NewOrderModalProps) {
 
         {/* Footer nav — not shown on review step (has its own submit button) */}
         {step !== 4 && (
-          <div className="flex gap-3 px-5 py-4 border-t border-secondary-100 dark:border-secondary-700 flex-shrink-0">
+          <div className="flex gap-3 px-5 py-4 border-t border-secondary-100 dark:border-secondary-700 flex-shrink-0 mb-14">
             {step > 1 && (
               <button
                 onClick={handleBack}
@@ -836,7 +836,7 @@ export function NewOrderModal({ onClose, onSuccess }: NewOrderModalProps) {
           </div>
         )}
         {step === 4 && (
-          <div className="px-5 pb-4 pt-1 flex-shrink-0">
+          <div className="px-5 pb-4 pt-1 flex-shrink-0 mb-14">
             <button
               onClick={handleBack}
               className="flex items-center gap-1.5 text-sm text-secondary-400 dark:text-secondary-500 hover:text-secondary-600 transition-colors py-1"

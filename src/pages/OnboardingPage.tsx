@@ -87,6 +87,8 @@ interface FormValues {
   profile_picture: string
   interested_device_type: DeviceTypeEnum | ''
   paymentTimeline: DevicePaymentTimelineEnum | ''
+  address: string,
+  dob: string
 }
 
 const inputClass =
@@ -169,6 +171,8 @@ function OnboardingPage() {
     profile_picture: '',
     interested_device_type: '',
     paymentTimeline: '',
+    address:'',
+    dob:'',
   }
 
   const handleNext = async (
@@ -177,7 +181,7 @@ function OnboardingPage() {
   ) => {
     const errors = await helpers.validateForm()
     const stepFields: Record<StepIndex, (keyof FormValues)[]> = {
-      0: ['first_name', 'last_name', 'email', 'phone_number', 'gender'],
+      0: ['first_name', 'last_name', 'email', 'phone_number', 'gender', 'address','dob'],
       1: ['password', 'confirm_password'],
       2: ['interested_device_type', 'paymentTimeline'],
     }
@@ -231,6 +235,8 @@ function OnboardingPage() {
         paymentTimeline: values.paymentTimeline as DevicePaymentTimelineEnum,
         onboarding_agent_id: agentId,
         onboarding_hub_id: hubId,
+        address: values.address,
+        dob: values.dob,
       },
       {
         onSuccess: () => {
@@ -353,21 +359,24 @@ function OnboardingPage() {
 
             <div className="flex items-center gap-2 mb-6">
               {STEPS.map((label, i) => (
-                <div key={label} className="flex-1 flex flex-col items-center gap-1">
+                <div
+                  key={label}
+                  className="flex-1 flex flex-col items-center gap-1"
+                >
                   <div
                     className={`w-full h-1.5 rounded-full transition-colors duration-300 ${
                       i <= step
-                        ? 'bg-primary-500'
-                        : 'bg-secondary-200 dark:bg-secondary-600'
+                        ? "bg-primary-500"
+                        : "bg-secondary-200 dark:bg-secondary-600"
                     }`}
                   />
                   <span
                     className={`text-[10px] font-medium transition-colors duration-200 ${
                       i === step
-                        ? 'text-primary-600 dark:text-primary-400'
+                        ? "text-primary-600 dark:text-primary-400"
                         : i < step
-                        ? 'text-primary-400 dark:text-primary-600'
-                        : 'text-secondary-400 dark:text-secondary-500'
+                          ? "text-primary-400 dark:text-primary-600"
+                          : "text-secondary-400 dark:text-secondary-500"
                     }`}
                   >
                     {label}
@@ -384,7 +393,7 @@ function OnboardingPage() {
             validateOnBlur
             validateOnChange={false}
           >
-            {({ values,  validateForm, setTouched, setFieldValue }) => (
+            {({ values, validateForm, setTouched, setFieldValue }) => (
               <Form>
                 <div className="px-8 pb-8 overflow-hidden">
                   <AnimatePresence mode="wait" custom={direction}>
@@ -395,13 +404,23 @@ function OnboardingPage() {
                       initial="enter"
                       animate="center"
                       exit="exit"
-                      transition={{ type: 'spring', stiffness: 300, damping: 28, opacity: { duration: 0.15 } }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 28,
+                        opacity: { duration: 0.15 },
+                      }}
                     >
                       {step === 0 && (
                         <div className="space-y-4">
                           <div className="grid grid-cols-2 gap-3">
                             <div>
-                              <label htmlFor="first_name" className={labelClass}>First Name</label>
+                              <label
+                                htmlFor="first_name"
+                                className={labelClass}
+                              >
+                                First Name
+                              </label>
                               <Field
                                 id="first_name"
                                 name="first_name"
@@ -409,10 +428,16 @@ function OnboardingPage() {
                                 placeholder="John"
                                 className={inputClass}
                               />
-                              <ErrorMessage name="first_name" component="div" className={errorClass} />
+                              <ErrorMessage
+                                name="first_name"
+                                component="div"
+                                className={errorClass}
+                              />
                             </div>
                             <div>
-                              <label htmlFor="last_name" className={labelClass}>Last Name</label>
+                              <label htmlFor="last_name" className={labelClass}>
+                                Last Name
+                              </label>
                               <Field
                                 id="last_name"
                                 name="last_name"
@@ -420,12 +445,18 @@ function OnboardingPage() {
                                 placeholder="Doe"
                                 className={inputClass}
                               />
-                              <ErrorMessage name="last_name" component="div" className={errorClass} />
+                              <ErrorMessage
+                                name="last_name"
+                                component="div"
+                                className={errorClass}
+                              />
                             </div>
                           </div>
 
                           <div>
-                            <label htmlFor="email" className={labelClass}>Email Address</label>
+                            <label htmlFor="email" className={labelClass}>
+                              Email Address
+                            </label>
                             <Field
                               id="email"
                               name="email"
@@ -433,11 +464,20 @@ function OnboardingPage() {
                               placeholder="john@example.com"
                               className={inputClass}
                             />
-                            <ErrorMessage name="email" component="div" className={errorClass} />
+                            <ErrorMessage
+                              name="email"
+                              component="div"
+                              className={errorClass}
+                            />
                           </div>
 
                           <div>
-                            <label htmlFor="phone_number" className={labelClass}>Phone Number</label>
+                            <label
+                              htmlFor="phone_number"
+                              className={labelClass}
+                            >
+                              Phone Number
+                            </label>
                             <div className="relative mt-1">
                               <DevicePhoneMobileIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400" />
                               <Field
@@ -448,7 +488,60 @@ function OnboardingPage() {
                                 className={`${inputClass} !mt-0 pl-9`}
                               />
                             </div>
-                            <ErrorMessage name="phone_number" component="div" className={errorClass} />
+                            <ErrorMessage
+                              name="phone_number"
+                              component="div"
+                              className={errorClass}
+                            />
+                          </div>
+                          <div>
+                            <label
+                              htmlFor="address"
+                              className={labelClass}
+                            >
+                              Address
+                            </label>
+                            {/* address */}
+                            <div className="relative mt-1">
+                              <DevicePhoneMobileIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400" />
+                              <Field
+                                id="address"
+                                name="address"
+                                type="tel"
+                                placeholder="3 A, 2nd Avenue, Gwarinpa, Abuja"
+                                className={`${inputClass} !mt-0 pl-9`}
+                                required
+                              />
+                            </div>
+                            <ErrorMessage
+                              name="address"
+                              component="div"
+                              className={errorClass}
+                            />
+                          </div>
+                          {/* date of birth */}
+                          <div>
+                            <label
+                              htmlFor="dob"
+                              className={labelClass}
+                            >
+                              Date of Birth
+                            </label>
+                            <div className="relative mt-1">
+                              <DevicePhoneMobileIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400" />
+                              <Field
+                                id="dob"
+                                name="dob"
+                                type="date"
+                                className={`${inputClass} !mt-0 pl-9`}
+                                required
+                              />
+                            </div>
+                            <ErrorMessage
+                              name="dob"
+                              component="div"
+                              className={errorClass}
+                            />
                           </div>
 
                           <div>
@@ -458,18 +551,22 @@ function OnboardingPage() {
                                 <button
                                   key={g}
                                   type="button"
-                                  onClick={() => setFieldValue('gender', g)}
+                                  onClick={() => setFieldValue("gender", g)}
                                   className={`py-2 px-3 rounded-lg border text-sm font-medium transition-all duration-150 ${
                                     values.gender === g
-                                      ? 'bg-primary-600 border-primary-600 text-white shadow-sm'
-                                      : 'bg-white dark:bg-secondary-700 border-secondary-300 dark:border-secondary-600 text-secondary-700 dark:text-secondary-300 hover:border-primary-400'
+                                      ? "bg-primary-600 border-primary-600 text-white shadow-sm"
+                                      : "bg-white dark:bg-secondary-700 border-secondary-300 dark:border-secondary-600 text-secondary-700 dark:text-secondary-300 hover:border-primary-400"
                                   }`}
                                 >
                                   {g.charAt(0).toUpperCase() + g.slice(1)}
                                 </button>
                               ))}
                             </div>
-                            <ErrorMessage name="gender" component="div" className={errorClass} />
+                            <ErrorMessage
+                              name="gender"
+                              component="div"
+                              className={errorClass}
+                            />
                           </div>
                         </div>
                       )}
@@ -499,11 +596,16 @@ function OnboardingPage() {
                               type="file"
                               accept="image/jpeg,image/png,image/webp"
                               className="hidden"
-                              onChange={(e) => handleImageChange(e, setFieldValue)}
+                              onChange={(e) =>
+                                handleImageChange(e, setFieldValue)
+                              }
                             />
                             <div className="text-center">
                               <p className="text-xs font-medium text-secondary-700 dark:text-secondary-300">
-                                Profile Photo <span className="font-normal text-secondary-400">(optional)</span>
+                                Profile Photo{" "}
+                                <span className="font-normal text-secondary-400">
+                                  (optional)
+                                </span>
                               </p>
                               <p className="text-[11px] text-secondary-400 mt-0.5">
                                 JPG, PNG or WebP · max 5MB
@@ -512,12 +614,14 @@ function OnboardingPage() {
                           </div>
 
                           <div>
-                            <label htmlFor="password" className={labelClass}>Password</label>
+                            <label htmlFor="password" className={labelClass}>
+                              Password
+                            </label>
                             <div className="relative mt-1">
                               <Field
                                 id="password"
                                 name="password"
-                                type={showPassword ? 'text' : 'password'}
+                                type={showPassword ? "text" : "password"}
                                 placeholder="At least 8 characters"
                                 className={`${inputClass} !mt-0 pr-10`}
                               />
@@ -526,21 +630,32 @@ function OnboardingPage() {
                                 className="absolute inset-y-0 right-0 pr-3 flex items-center"
                                 onClick={() => setShowPassword((v) => !v)}
                               >
-                                {showPassword
-                                  ? <EyeSlashIcon className="h-4 w-4 text-secondary-400" />
-                                  : <EyeIcon className="h-4 w-4 text-secondary-400" />}
+                                {showPassword ? (
+                                  <EyeSlashIcon className="h-4 w-4 text-secondary-400" />
+                                ) : (
+                                  <EyeIcon className="h-4 w-4 text-secondary-400" />
+                                )}
                               </button>
                             </div>
-                            <ErrorMessage name="password" component="div" className={errorClass} />
+                            <ErrorMessage
+                              name="password"
+                              component="div"
+                              className={errorClass}
+                            />
                           </div>
 
                           <div>
-                            <label htmlFor="confirm_password" className={labelClass}>Confirm Password</label>
+                            <label
+                              htmlFor="confirm_password"
+                              className={labelClass}
+                            >
+                              Confirm Password
+                            </label>
                             <div className="relative mt-1">
                               <Field
                                 id="confirm_password"
                                 name="confirm_password"
-                                type={showConfirm ? 'text' : 'password'}
+                                type={showConfirm ? "text" : "password"}
                                 placeholder="Repeat your password"
                                 className={`${inputClass} !mt-0 pr-10`}
                               />
@@ -549,12 +664,18 @@ function OnboardingPage() {
                                 className="absolute inset-y-0 right-0 pr-3 flex items-center"
                                 onClick={() => setShowConfirm((v) => !v)}
                               >
-                                {showConfirm
-                                  ? <EyeSlashIcon className="h-4 w-4 text-secondary-400" />
-                                  : <EyeIcon className="h-4 w-4 text-secondary-400" />}
+                                {showConfirm ? (
+                                  <EyeSlashIcon className="h-4 w-4 text-secondary-400" />
+                                ) : (
+                                  <EyeIcon className="h-4 w-4 text-secondary-400" />
+                                )}
                               </button>
                             </div>
-                            <ErrorMessage name="confirm_password" component="div" className={errorClass} />
+                            <ErrorMessage
+                              name="confirm_password"
+                              component="div"
+                              className={errorClass}
+                            />
                           </div>
                         </div>
                       )}
@@ -571,22 +692,36 @@ function OnboardingPage() {
                                 <button
                                   key={type}
                                   type="button"
-                                  onClick={() => setFieldValue('interested_device_type', type)}
+                                  onClick={() =>
+                                    setFieldValue(
+                                      "interested_device_type",
+                                      type,
+                                    )
+                                  }
                                   className={`py-2.5 px-3 rounded-lg border text-xs font-semibold text-left transition-all duration-150 ${
                                     values.interested_device_type === type
-                                      ? 'bg-primary-600 border-primary-600 text-white shadow-sm'
-                                      : 'bg-white dark:bg-secondary-700 border-secondary-300 dark:border-secondary-600 text-secondary-700 dark:text-secondary-300 hover:border-primary-400'
+                                      ? "bg-primary-600 border-primary-600 text-white shadow-sm"
+                                      : "bg-white dark:bg-secondary-700 border-secondary-300 dark:border-secondary-600 text-secondary-700 dark:text-secondary-300 hover:border-primary-400"
                                   }`}
                                 >
                                   {deviceTypeLabels[type]}
                                 </button>
                               ))}
                             </div>
-                            <ErrorMessage name="interested_device_type" component="div" className={errorClass} />
+                            <ErrorMessage
+                              name="interested_device_type"
+                              component="div"
+                              className={errorClass}
+                            />
                           </div>
 
                           <div>
-                            <label htmlFor="paymentTimeline" className={labelClass}>Payment Timeline</label>
+                            <label
+                              htmlFor="paymentTimeline"
+                              className={labelClass}
+                            >
+                              Payment Timeline
+                            </label>
                             <p className="text-xs text-secondary-400 mt-0.5 mb-1">
                               How long would you like to spread your payments?
                             </p>
@@ -596,21 +731,31 @@ function OnboardingPage() {
                               name="paymentTimeline"
                               className={inputClass}
                             >
-                              <option value="">Select a payment timeline</option>
-                              {Object.values(DevicePaymentTimelineEnum).map((t) => (
-                                <option key={t} value={t}>
-                                  {paymentTimelineLabels[t]}
-                                </option>
-                              ))}
+                              <option value="">
+                                Select a payment timeline
+                              </option>
+                              {Object.values(DevicePaymentTimelineEnum).map(
+                                (t) => (
+                                  <option key={t} value={t}>
+                                    {paymentTimelineLabels[t]}
+                                  </option>
+                                ),
+                              )}
                             </Field>
-                            <ErrorMessage name="paymentTimeline" component="div" className={errorClass} />
+                            <ErrorMessage
+                              name="paymentTimeline"
+                              component="div"
+                              className={errorClass}
+                            />
                           </div>
                         </div>
                       )}
                     </motion.div>
                   </AnimatePresence>
 
-                  <div className={`flex gap-3 mt-6 ${step > 0 ? 'justify-between' : 'justify-end'}`}>
+                  <div
+                    className={`flex gap-3 mt-6 ${step > 0 ? "justify-between" : "justify-end"}`}
+                  >
                     {step > 0 && (
                       <button
                         type="button"
@@ -625,7 +770,9 @@ function OnboardingPage() {
                     {step < 2 ? (
                       <button
                         type="button"
-                        onClick={() => handleNext(values, { validateForm, setTouched })}
+                        onClick={() =>
+                          handleNext(values, { validateForm, setTouched })
+                        }
                         className="flex items-center gap-1.5 py-2.5 px-5 rounded-lg text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
                       >
                         Next
@@ -637,7 +784,7 @@ function OnboardingPage() {
                         disabled={isPending}
                         className="flex items-center gap-1.5 py-2.5 px-5 rounded-lg text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
                       >
-                        {isPending ? 'Submitting...' : 'Create Account'}
+                        {isPending ? "Submitting..." : "Create Account"}
                         {!isPending && <CheckCircleIcon className="w-4 h-4" />}
                       </button>
                     )}
@@ -649,10 +796,10 @@ function OnboardingPage() {
         </div>
 
         <p className="text-center text-xs text-secondary-500 dark:text-secondary-400 mt-4">
-          Already have an account?{' '}
+          Already have an account?{" "}
           <button
             type="button"
-            onClick={() => navigate('/login')}
+            onClick={() => navigate("/login")}
             className="text-primary-600 hover:text-primary-500 dark:text-primary-400 font-medium"
           >
             Sign in
@@ -660,7 +807,7 @@ function OnboardingPage() {
         </p>
       </div>
     </div>
-  )
+  );
 }
 
 export default OnboardingPage

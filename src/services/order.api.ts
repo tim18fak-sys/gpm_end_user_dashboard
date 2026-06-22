@@ -53,7 +53,9 @@ export class OrderApi {
     params: GetStandardOrderDetailsDTO,
   ): Promise<GetStandardOrderDetailsServerResponse> {
     try {
-      const response = await this.axios.get(`${this.endpoint}/${params.orderId}/one`);
+      const response = await this.axios.get(
+        `${this.endpoint}/${params.orderId}/one`,
+      );
       return response.data;
     } catch (error) {
       console.error("Error fetching order details:", error);

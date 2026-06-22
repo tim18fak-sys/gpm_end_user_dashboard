@@ -411,9 +411,14 @@ const Dashboard = () => {
   const { user } = useAuthStore()
 
   const { data: deviceResponse, isLoading: deviceLoading } = useLinkedDeviceInfo()
-  const device = deviceResponse?.data ?? null
+  const device =
+    deviceResponse?.data.length === 0
+      ? null
+      : (deviceResponse?.data[0] ?? null);
 
-  const { data: codeResponse, isLoading: codeLoading } = useCurrentDeviceCode(device?.uuid ?? '')
+  const { data: codeResponse, isLoading: codeLoading } = useCurrentDeviceCode(
+    device?._id ?? "",
+  );
   const deviceCode = codeResponse?.data ?? null
 
   const { data: invoiceResponse, isLoading: invoiceLoading } = useGetActiveInvoice()

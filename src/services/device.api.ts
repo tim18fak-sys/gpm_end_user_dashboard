@@ -1,7 +1,7 @@
 // get full device category details
 
 import { DeviceCategory, DeviceCategoryPagination } from '@/types/deviceCategory'
-import { BaseDataInterface } from '@/types/shared'
+import { BaseCursorPaginationInterface, BaseDataInterface } from '@/types/shared'
 import { AxiosInstance } from 'axios'
 
 export interface DeviceCursorPaginationDto {
@@ -13,12 +13,12 @@ export interface DeviceCursorPaginationDto {
 }
 
 
-export interface GetLinkedDeviceInfoResponse extends BaseDataInterface<Device|null> {}
+export interface GetLinkedDeviceInfoResponse extends BaseCursorPaginationInterface, BaseDataInterface<Device[]> {}
 
 export interface GetCurrentDeviceCodeResponse extends BaseDataInterface<PayGoDeviceCode> {}
 export class DeviceCategoryApi {
-  private endpoint = "/v1/customer/device/category";
-  private deviceEndpoint = "/v1/customer/device";
+  private endpoint = "/v1/device-category/customer";
+  private deviceEndpoint = "/v1/device/customer";
   private axios: AxiosInstance;
   constructor(axios: AxiosInstance) {
     this.axios = axios;
@@ -51,7 +51,7 @@ export class DeviceCategoryApi {
   // get the device information for the linked user
   async getLinkedDeviceInfo(): Promise<GetLinkedDeviceInfoResponse> {
     try {
-      const response = await this.axios.get(`${this.deviceEndpoint}/linked`);
+      const response = await this.axios.get(`${this.deviceEndpoint}/linked?limit=10`);
       return response.data;
     } catch (error) {
       console.error("Error fetching linked device info:", error);

@@ -6,6 +6,7 @@ import {
 import { Point } from "./shared.type";
 
 export interface Device {
+  _id: string;
   device_category: DeviceCategorySub;
   user: UserSub;
   device_value: number;
