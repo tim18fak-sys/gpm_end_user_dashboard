@@ -15,6 +15,8 @@ import {
   CheckCircleIcon,
   BoltIcon,
   ExclamationTriangleIcon,
+  MapPinIcon,
+  CalendarDaysIcon,
 } from '@heroicons/react/24/outline'
 import { useCheckAgentExist, useCheckHubExist, useOnboarding } from '@/hooks/useOnboarding'
 import { DeviceTypeEnum, DevicePaymentTimelineEnum } from '@/enum/device.enum'
@@ -56,6 +58,34 @@ const stepSchemas = [
     gender: Yup.mixed<UserGenderEnum>()
       .oneOf(Object.values(UserGenderEnum), 'Please select a gender')
       .required('Gender is required'),
+    address: Yup.string()
+      .trim()
+      .min(5, 'Please enter a full address (at least 5 characters)')
+      .required('Address is required'),
+    dob: Yup.string()
+      .required('Date of birth is required')
+      .test('dob-future', 'Date of birth cannot be in the future', (value) => {
+        if (!value) return true
+        return new Date(value) < new Date()
+      })
+      .test('dob-min-age', 'You must be at least 18 years old to register', (value) => {
+        if (!value) return true
+        const birth = new Date(value)
+        const today = new Date()
+        const age =
+          today.getFullYear() - birth.getFullYear() -
+          (today.getMonth() < birth.getMonth() ||
+          (today.getMonth() === birth.getMonth() && today.getDate() < birth.getDate())
+            ? 1
+            : 0)
+        return age >= 18
+      })
+      .test('dob-max-age', 'Please enter a valid date of birth', (value) => {
+        if (!value) return true
+        const birth = new Date(value)
+        const today = new Date()
+        return today.getFullYear() - birth.getFullYear() <= 120
+      }),
   }),
   Yup.object({
     password: Yup.string()
@@ -495,22 +525,17 @@ function OnboardingPage() {
                             />
                           </div>
                           <div>
-                            <label
-                              htmlFor="address"
-                              className={labelClass}
-                            >
+                            <label htmlFor="address" className={labelClass}>
                               Address
                             </label>
-                            {/* address */}
                             <div className="relative mt-1">
-                              <DevicePhoneMobileIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400" />
+                              <MapPinIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400" />
                               <Field
                                 id="address"
                                 name="address"
-                                type="tel"
-                                placeholder="3 A, 2nd Avenue, Gwarinpa, Abuja"
+                                type="text"
+                                placeholder="3A, 2nd Avenue, Gwarinpa, Abuja"
                                 className={`${inputClass} !mt-0 pl-9`}
-                                required
                               />
                             </div>
                             <ErrorMessage
@@ -519,22 +544,19 @@ function OnboardingPage() {
                               className={errorClass}
                             />
                           </div>
-                          {/* date of birth */}
+
                           <div>
-                            <label
-                              htmlFor="dob"
-                              className={labelClass}
-                            >
+                            <label htmlFor="dob" className={labelClass}>
                               Date of Birth
                             </label>
                             <div className="relative mt-1">
-                              <DevicePhoneMobileIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400" />
+                              <CalendarDaysIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400" />
                               <Field
                                 id="dob"
                                 name="dob"
                                 type="date"
+                                max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
                                 className={`${inputClass} !mt-0 pl-9`}
-                                required
                               />
                             </div>
                             <ErrorMessage
