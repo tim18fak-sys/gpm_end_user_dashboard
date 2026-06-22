@@ -1,10 +1,13 @@
 
 import { useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from "react-router-dom";
 import { ProfileManagementAPI } from '../services/api'
 import { useAuthStore, LeadStatusEnum, User, LeadKycVerificationStatusEnum } from '../store/authStore'
 import toast from 'react-hot-toast'
 import { motion } from 'framer-motion'
+import { onboardingApi } from "@/services/onboarding.api";
+import { DevicePaymentTimelineEnum } from "@/enum/device.enum";
+import { DeviceUserOnboardingStatusEnum } from "@/enum/user.enum";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -67,40 +70,78 @@ const dotVariants = {
 }
 
 export default function GetInformation() {
-  const navigate = useNavigate()
-  const { setUser, setLoading } = useAuthStore()
+  const navigate = useNavigate();
+  // how to get the state from the previous page, use location.state
+  const location = useLocation();
+  const loginState = (location.state =
+    (location.state as {
+      stage: "onboarding" | "customer";
+    }) || {});
+  const { setUser, setLoading } = useAuthStore();
 
   useEffect(() => {
     const fetchUserInfo = async () => {
       try {
-        setLoading(true)
-        const userInfo = await ProfileManagementAPI.getUserInfo()
-        const userInfoResponse = userInfo.data as User
-        console.log(userInfo.data, '')
-        setUser(userInfo.data)
+        setLoading(true);
+        if (loginState.stage === "customer") {
+          const userInfo = await ProfileManagementAPI.getUserInfo();
+          const userInfoResponse = userInfo.data as User;
+          console.log(userInfo.data, "");
+          setUser(userInfo.data);
 
-        if (userInfo.status === LeadStatusEnum.UNQUALIFIED) {
-          navigate('/deactivation-screen')
-        } else {
-          // Small delay to show the loading animation
-          setTimeout(() => {
-            
-              navigate('/')
-            
-          }, 2000)
+          if (userInfo.status === LeadStatusEnum.UNQUALIFIED) {
+            navigate("/deactivation-screen");
+          }
+        } else if (loginState.stage === "onboarding") {
+          // we get the onboarding information of the yet to be customer.
+          const onboarding = await onboardingApi.getOnboardingInfo();
+          setUser({
+            _id: onboarding.data._id,
+            email: onboarding.data.email,
+            phone_number: onboarding.data.phone_number,
+            first_name: onboarding.data.first_name,
+            last_name: onboarding.data.last_name,
+            full_name: onboarding.data.full_name,
+            profile_picture: onboarding.data.profile_picture,
+            date_birth: onboarding.data.date_birth,
+            gender: onboarding.data.gender,
+            onboardingStatus: onboarding.data.status,
+            onboarding_agent_id: onboarding.data.onboarding_agent_id,
+            onboarding_hub_id: onboarding.data.onboarding_hub_id,
+            paymentTimeline: onboarding.data.paymentTimeline,
+            is_device_assigned: false,
+            verification_status: null,
+            verificationReason: "",
+            onboarding_id: onboarding.data._id,
+            distributorId: "",
+            address: "",
+          });
+
+          if (
+            onboarding.data.paymentTimeline !==
+              DevicePaymentTimelineEnum.OUTRIGHT &&
+            onboarding.data.status === DeviceUserOnboardingStatusEnum.PENDING
+          ) {
+            // navigate to the waiting page, telling the customer to please wait while the admin approves of them.
+            navigate("/waiting-for-approval");
+          }
+
+          
         }
+
+       
       } catch (error: any) {
-        toast.error('Failed to fetch user information')
-        navigate('/login')
+        toast.error("Failed to fetch user information");
+        navigate("/login");
       } finally {
         setTimeout(() => {
-          setLoading(false)
-        }, 2000)
+          setLoading(false);
+        }, 2000);
       }
-    }
+    };
 
-    fetchUserInfo()
-  }, [navigate, setUser, setLoading])
+    fetchUserInfo();
+  }, [navigate, setUser, setLoading]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 via-white to-secondary-50 dark:from-secondary-900 dark:via-secondary-800 dark:to-primary-900 relative overflow-hidden">
@@ -114,7 +155,7 @@ export default function GetInformation() {
           transition={{
             duration: 20,
             repeat: Infinity,
-            ease: "linear"
+            ease: "linear",
           }}
           className="absolute top-10 left-10 w-72 h-72 bg-gradient-to-r from-primary-200/30 to-secondary-200/30 rounded-full blur-3xl"
         ></motion.div>
@@ -126,7 +167,7 @@ export default function GetInformation() {
           transition={{
             duration: 25,
             repeat: Infinity,
-            ease: "linear"
+            ease: "linear",
           }}
           className="absolute bottom-10 right-10 w-96 h-96 bg-gradient-to-r from-secondary-200/20 to-primary-200/20 rounded-full blur-3xl"
         ></motion.div>
@@ -150,44 +191,54 @@ export default function GetInformation() {
                 variants={spinnerVariants}
                 className="absolute inset-0 rounded-full border-4 border-primary-200 dark:border-primary-800"
               ></motion.div>
-              
+
               {/* Inner spinning ring */}
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{
                   duration: 1.5,
                   ease: "linear",
-                  repeat: Infinity
+                  repeat: Infinity,
                 }}
                 className="absolute inset-0 rounded-full border-4 border-transparent border-t-primary-600 border-r-primary-500"
               ></motion.div>
-              
+
               {/* Center gradient circle */}
               <motion.div
                 animate={{
                   scale: [1, 1.1, 1],
-                  opacity: [0.8, 1, 0.8]
+                  opacity: [0.8, 1, 0.8],
                 }}
                 transition={{
                   duration: 2,
                   repeat: Infinity,
-                  ease: "easeInOut"
+                  ease: "easeInOut",
                 }}
                 className="absolute inset-2 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500"
               ></motion.div>
-              
+
               {/* Inner icon */}
               <motion.div
                 animate={{ rotate: -360 }}
                 transition={{
                   duration: 3,
                   ease: "linear",
-                  repeat: Infinity
+                  repeat: Infinity,
                 }}
                 className="absolute inset-0 flex items-center justify-center"
               >
-                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                <svg
+                  className="w-8 h-8 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 10V3L4 14h7v7l9-11h-7z"
+                  />
                 </svg>
               </motion.div>
             </div>
@@ -201,12 +252,13 @@ export default function GetInformation() {
             >
               Setting up your dashboard
             </motion.h2>
-            
+
             <motion.p
               variants={itemVariants}
               className="text-secondary-600 dark:text-secondary-300 max-w-md mx-auto text-lg leading-relaxed"
             >
-              Please wait while your information is being collected. This will only take a moment.
+              Please wait while your information is being collected. This will
+              only take a moment.
             </motion.p>
 
             {/* Progress indicators */}
@@ -227,16 +279,16 @@ export default function GetInformation() {
                   ))}
                 </motion.div>
               </div>
-              
+
               {/* Progress text */}
               <motion.div
                 animate={{
-                  opacity: [0.5, 1, 0.5]
+                  opacity: [0.5, 1, 0.5],
                 }}
                 transition={{
                   duration: 2,
                   repeat: Infinity,
-                  ease: "easeInOut"
+                  ease: "easeInOut",
                 }}
                 className="text-sm text-secondary-500 dark:text-secondary-400"
               >
@@ -254,13 +306,13 @@ export default function GetInformation() {
                   key={i}
                   animate={{
                     y: [0, -10, 0],
-                    opacity: [0.5, 1, 0.5]
+                    opacity: [0.5, 1, 0.5],
                   }}
                   transition={{
                     duration: 1.5,
                     repeat: Infinity,
                     delay: i * 0.2,
-                    ease: "easeInOut"
+                    ease: "easeInOut",
                   }}
                   className="w-2 h-8 bg-gradient-to-t from-primary-300 to-primary-600 rounded-full"
                 ></motion.div>
@@ -270,5 +322,5 @@ export default function GetInformation() {
         </motion.div>
       </motion.div>
     </div>
-  )
+  );
 }

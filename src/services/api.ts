@@ -34,11 +34,25 @@ api.interceptors.response.use(
 
 // API endpoints configuration
 
-const AUTH_API = '/v1/lead/auth'
+export interface CustomerLoginResponse {
+  access_token: string;
+  is_verified: boolean;
+  is_new: boolean;
+  owner: string;
+  payload: {
+    name: string | null;
+    device_id: string | null;
+    email: string;
+    // gender:string
+    isVerified: boolean;
+    stage: string;
+  };
+}
+const AUTH_API = "/v1/auth/customer";
 // this is a central point
 export const authAPI = {
-  login: async (email: string, password: string) => {
-    const response = await api.post(`${AUTH_API}/login`, { email, password })
+  login: async (identity: string, password: string):Promise<CustomerLoginResponse> => {
+    const response = await api.post(`${AUTH_API}/login`, { identity, password })
     return response.data
   },
   
@@ -80,7 +94,7 @@ interface UpdateProfile {
   new_password?: string
 }
 // this is for the user management
-const PROFILE_MANAGEMENT_API = '/v1/profile-management/lead'
+const PROFILE_MANAGEMENT_API = '/v1/profile-management/customer'
 export const ProfileManagementAPI ={
   getUserInfo:async() => {
     const response = await api.get(`${PROFILE_MANAGEMENT_API}`)
@@ -94,4 +108,5 @@ export const ProfileManagementAPI ={
     const response = await api.patch(`${PROFILE_MANAGEMENT_API}/boarding-flow`, data)
     return response.data
   }
+  
 }

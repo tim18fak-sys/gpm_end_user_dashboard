@@ -1,4 +1,10 @@
 
+import { DevicePaymentTimelineEnum } from "@/enum/device.enum";
+import {
+  DeviceUserOnboardingStatusEnum,
+  UserVerificationStatusEnum,
+} from "@/enum/user.enum";
+import { UserGenderEnum } from "@/types/user.types";
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
@@ -87,69 +93,67 @@ export interface LeadOnBoardingDashboardFlow {
 }
 
 export interface User {
-  _id: string
-  name: string
-  email: string
-  phoneNumber: string
-  leadBoardingFlow: LeadOnBoardingDashboardFlow
-  status: LeadStatusEnum
-  leadTracking: LeadTracking
-  leadSourceId: string
-  leadSourceType: LeadSourceEnum
-  assignedSalesAgentId: string | null
-  assignedScreeningAgentId: string | null
-  assignedSalesAgentAt?: Date
-  hubId?: string
-  interestedDevice: LeadInterestedDevice
-  objections?: LeadObjectionInterface[]
-  offerMedia: LeadOfferMedia
-  leadConfigMetaData: Record<string, any>
+  _id: string;
+  email: string;
+  phone_number: string;
+  first_name: string;
+  last_name: string;
+  full_name: string;
+  profile_picture?: string;
+  date_birth: Date;
+  gender: UserGenderEnum;
+  onboardingStatus: DeviceUserOnboardingStatusEnum | null;
+  // who onboarded the user using the link, the flow is from agent to hub. So can can track commission spread.
+  onboarding_agent_id: string;
+  onboarding_hub_id: string;
+  paymentTimeline: DevicePaymentTimelineEnum | null;
+  is_device_assigned: boolean;
+  verification_status: UserVerificationStatusEnum | null;
+  verificationReason: string;
+  onboarding_id: string;
+  // get users created by a distributor.
+  distributorId: string;
+  address: string;
+  // name: string
+  // email: string
+  // phoneNumber: string
+  // leadBoardingFlow: LeadOnBoardingDashboardFlow
+  // status: LeadStatusEnum
+  // leadTracking: LeadTracking
+  // leadSourceId: string
+  // leadSourceType: LeadSourceEnum
+  // assignedSalesAgentId: string | null
+  // assignedScreeningAgentId: string | null
+  // assignedSalesAgentAt?: Date
+  // hubId?: string
+  // interestedDevice: LeadInterestedDevice
+  // objections?: LeadObjectionInterface[]
+  // offerMedia: LeadOfferMedia
+  // leadConfigMetaData: Record<string, any>
 }
 
 const defaultUser: User = {
-  _id: '',
-  name: '',
-  email: '',
-  phoneNumber: '',
-  leadBoardingFlow: {
-    hasGottenWelcomeModal: false,
-    hasViewedSelectedDeviceOffersModal: false,
-    hasViewedFinancingOptionModal: false,
-    hasSelectedFinancingOption: false,
-    prefersFinancingOption: LeadFinancingOptionEnum.DEFAULT,
-    hasPlacedOrderForDeviceForOutrightPurchase: false,
-    hasSubmittedKYCDocumentsForFinancingOption: false,
-    hasPlacedOrderForDeviceForFinancingOption: false
-  },
-  status: LeadStatusEnum.NEW,
-  leadSourceId: '',
-  leadSourceType: LeadSourceEnum.WEBSITE,
-  assignedSalesAgentId: null,
-  assignedScreeningAgentId: null,
-  interestedDevice: {
-    deviceCategoryId: '',
-    deviceCategoryName: ''
-  },
-  offerMedia: {
-    mediaUrl: '',
-    fileId: ''
-  },
-  leadConfigMetaData: {},
-  leadTracking: {
-    leadConfigId: "",
-  currentLeadScore: 0,
-  isReadyForConversion: false,
-  leadProcessTimeline: [],
-  isScreened: false,
-  screenedAt: null,
-  qualifiedAt: null,
-  qualificationJobFailed: false,
-  qualificationJobFailedReason: "",
-  hasSubmittedKYCDocuments: false,
-  kycVerificationStatus: LeadKycVerificationStatusEnum.NONE,
-  prefersFinancingOption: LeadFinancingOptionEnum.DEFAULT,
-  }
-}
+  _id: "",
+  email: "",
+  phone_number: "",
+  first_name: "",
+  last_name: "",
+  full_name: "",
+  profile_picture: "",
+  date_birth: new Date(),
+  gender: UserGenderEnum.MALE,
+  onboardingStatus: null,
+  onboarding_agent_id: "",
+  onboarding_hub_id: "",
+  paymentTimeline: null,
+  is_device_assigned: false,
+  verification_status: null,
+  verificationReason: "",
+  onboarding_id: "",
+  distributorId: "",
+  address: "",
+  
+};
 
 interface AuthState {
   user: User 

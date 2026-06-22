@@ -101,6 +101,7 @@ type LinkValidationState = 'loading' | 'valid' | 'invalid'
 function OnboardingPage() {
   const [linkValidation, setLinkValidation] = useState<LinkValidationState>('loading')
   const [invalidReason, setInvalidReason] = useState('')
+  const [isPending, setIsPending] = useState<boolean>(false)
 
   const [step, setStep] = useState<StepIndex>(0)
   const [direction, setDirection] = useState(1)
@@ -111,13 +112,16 @@ function OnboardingPage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const { mutate: onboard, isPending } = useOnboarding()
+  const { mutate: onboard, } = useOnboarding()
   const { mutateAsync: checkHub } = useCheckHubExist()
   const { mutateAsync: checkAgent } = useCheckAgentExist()
 
-  const agentId = searchParams.get('agent_id') ?? ''
-  const hubId = searchParams.get('hub_id') ?? ''
+  const agentId = searchParams.get('agentId') ?? ''
+  const hubId = searchParams.get('hubId') ?? ''
 
+
+
+  console.log('agentId:', agentId, 'hubId:', hubId)
   useEffect(() => {
     if (!agentId || !hubId) {
       setInvalidReason('This onboarding link is missing required information. Please request a new link from your agent.')
@@ -213,6 +217,7 @@ function OnboardingPage() {
   }
 
   const handleSubmit = (values: FormValues) => {
+    setIsPending(true)
     onboard(
       {
         first_name: values.first_name,
@@ -229,10 +234,13 @@ function OnboardingPage() {
       },
       {
         onSuccess: () => {
+            setIsPending(false) 
           setSuccess(true)
         },
         onError: (err: any) => {
+            console.log('Onboarding error:', err)
           toast.error(err?.response?.data?.message || 'Onboarding failed. Please try again.')
+          setIsPending(false)
         },
       }
     )
@@ -376,7 +384,7 @@ function OnboardingPage() {
             validateOnBlur
             validateOnChange={false}
           >
-            {({ values, isSubmitting, validateForm, setTouched, setFieldValue }) => (
+            {({ values,  validateForm, setTouched, setFieldValue }) => (
               <Form>
                 <div className="px-8 pb-8 overflow-hidden">
                   <AnimatePresence mode="wait" custom={direction}>
@@ -626,7 +634,7 @@ function OnboardingPage() {
                     ) : (
                       <button
                         type="submit"
-                        disabled={isPending || isSubmitting}
+                        disabled={isPending}
                         className="flex items-center gap-1.5 py-2.5 px-5 rounded-lg text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
                       >
                         {isPending ? 'Submitting...' : 'Create Account'}
