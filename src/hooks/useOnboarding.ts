@@ -11,3 +11,24 @@ export const useOnboarding = () => {
     },
   });
 };
+
+
+export const useCheckHubExist = () => {
+  return useMutation({
+    mutationKey: ["check-hub-exist", ],
+    mutationFn: async (hubId: string) => {
+      const response = await onboardingApi.checkHubExist(hubId);
+      return response;
+    },
+  });
+};
+
+export const useCheckAgentExist = () => {
+  return useMutation({
+    mutationKey: ["check-agent-exist"],
+    mutationFn: async (agentId: string) => {
+      const response = await onboardingApi.checkAgentExist(agentId);
+      return response;
+    },
+  });
+};

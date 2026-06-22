@@ -4,3 +4,6 @@ export interface BaseDataInterface<T> {
 export interface BaseMessageInterface {
     message:string
 }
+export interface BaseStatusInterface {
+    status:boolean
+}

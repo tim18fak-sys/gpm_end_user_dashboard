@@ -15,7 +15,7 @@ import {
   CheckCircleIcon,
   BoltIcon,
 } from '@heroicons/react/24/outline'
-import { useOnboarding } from '@/hooks/useOnboarding'
+import { useCheckAgentExist, useCheckHubExist, useOnboarding } from '@/hooks/useOnboarding'
 import { DeviceTypeEnum, DevicePaymentTimelineEnum } from '@/enum/device.enum'
 import { UserGenderEnum } from '@/types/user.types'
 
@@ -96,6 +96,8 @@ const labelClass = 'block text-sm font-medium text-secondary-700 dark:text-secon
 const errorClass = 'mt-1 text-xs text-red-500'
 
 function OnboardingPage() {
+    const {} = useCheckHubExist()
+    const {} = useCheckAgentExist()
   const [step, setStep] = useState<StepIndex>(0)
   const [direction, setDirection] = useState(1)
   const [showPassword, setShowPassword] = useState(false)
