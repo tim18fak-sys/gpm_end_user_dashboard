@@ -15,6 +15,7 @@ import PendingKycReview from './pages/kyc/PendingKycReview'
 import RejectedKyc from './pages/kyc/RejectedKyc'
 import Layout2 from './components/Layout2'
 import OnboardingPage from './pages/OnboardingPage'
+import MobileLayout from './components/MobileLayout'
 
 function App() {
   const location = useLocation()
@@ -38,20 +39,21 @@ function App() {
         <Route path="/deactivation-screen" element={<DeactivationScreen />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
 
-        {/* Protected routes */}
+        {/* Protected routes — wrapped in MobileLayout for mobile shell + tab bar */}
         <Route path="/get-information" element={
-          <GetInformation />
+          <MobileLayout><GetInformation /></MobileLayout>
         } />
         {/* kyc path */}
         <Route path='/kyc'>
-          {/* index route */}
-          <Route index element={<Kyc />} />
-          <Route path='pending' element={<PendingKycReview />} />
-          <Route path='rejected' element={<RejectedKyc />} />
+          <Route index element={<MobileLayout><Kyc /></MobileLayout>} />
+          <Route path='pending' element={<MobileLayout><PendingKycReview /></MobileLayout>} />
+          <Route path='rejected' element={<MobileLayout><RejectedKyc /></MobileLayout>} />
         </Route>
         {/* main page and only page for now, the onboarding will be modals */}
         <Route path="/dashboard" element={
-          isAuthenticated ? <Layout2><Dashboard /></Layout2> : <Navigate to="/login" />
+          isAuthenticated
+            ? <MobileLayout><Layout2><Dashboard /></Layout2></MobileLayout>
+            : <Navigate to="/login" />
         } />
         {/* Default redirect */}
         <Route path="/" element={
