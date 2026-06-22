@@ -44,3 +44,12 @@ export const useCurrentDeviceCode = (deviceId: string) => {
     staleTime: 5 * 60 * 1000,
   })
 }
+
+export const useAllDeviceCategories = (enabled: boolean) => {
+  return useQuery({
+    queryKey: ['device-categories-all'],
+    queryFn: () => deviceCategoryApi.getDeviceCategories({ limit: 30 }),
+    enabled,
+    staleTime: 10 * 60 * 1000,
+  })
+}

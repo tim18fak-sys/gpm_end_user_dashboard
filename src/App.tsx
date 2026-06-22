@@ -105,7 +105,7 @@ function App() {
         />
 
         <Route
-          path="order-list"
+          path="/order-list"
           element={
             <MobileLayout>
               <OrderList />
