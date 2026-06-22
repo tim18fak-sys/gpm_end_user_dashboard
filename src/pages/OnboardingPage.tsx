@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Formik, Form, Field, ErrorMessage, FormikHelpers } from 'formik'
 import * as Yup from 'yup'
@@ -14,6 +14,7 @@ import {
   ArrowLeftIcon,
   CheckCircleIcon,
   BoltIcon,
+  ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline'
 import { useCheckAgentExist, useCheckHubExist, useOnboarding } from '@/hooks/useOnboarding'
 import { DeviceTypeEnum, DevicePaymentTimelineEnum } from '@/enum/device.enum'
@@ -95,9 +96,12 @@ const labelClass = 'block text-sm font-medium text-secondary-700 dark:text-secon
 
 const errorClass = 'mt-1 text-xs text-red-500'
 
+type LinkValidationState = 'loading' | 'valid' | 'invalid'
+
 function OnboardingPage() {
-    const {} = useCheckHubExist()
-    const {} = useCheckAgentExist()
+  const [linkValidation, setLinkValidation] = useState<LinkValidationState>('loading')
+  const [invalidReason, setInvalidReason] = useState('')
+
   const [step, setStep] = useState<StepIndex>(0)
   const [direction, setDirection] = useState(1)
   const [showPassword, setShowPassword] = useState(false)
@@ -108,9 +112,47 @@ function OnboardingPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const { mutate: onboard, isPending } = useOnboarding()
+  const { mutateAsync: checkHub } = useCheckHubExist()
+  const { mutateAsync: checkAgent } = useCheckAgentExist()
 
   const agentId = searchParams.get('agent_id') ?? ''
   const hubId = searchParams.get('hub_id') ?? ''
+
+  useEffect(() => {
+    if (!agentId || !hubId) {
+      setInvalidReason('This onboarding link is missing required information. Please request a new link from your agent.')
+      setLinkValidation('invalid')
+      return
+    }
+
+    const validate = async () => {
+      try {
+        const [hubResult, agentResult] = await Promise.all([
+          checkHub(hubId),
+          checkAgent(agentId),
+        ])
+
+        if (!hubResult.isValid) {
+          setInvalidReason(hubResult.message || 'The hub in this link could not be found. Please request a new link.')
+          setLinkValidation('invalid')
+          return
+        }
+
+        if (!agentResult.status) {
+          setInvalidReason('The agent in this link could not be verified. Please request a new link from your agent.')
+          setLinkValidation('invalid')
+          return
+        }
+
+        setLinkValidation('valid')
+      } catch {
+        setInvalidReason('We were unable to verify this link. Please check your connection and try again.')
+        setLinkValidation('invalid')
+      }
+    }
+
+    validate()
+  }, [agentId, hubId])
 
   const initialValues: FormValues = {
     first_name: '',
@@ -126,7 +168,7 @@ function OnboardingPage() {
   }
 
   const handleNext = async (
-    values: FormValues,
+    _values: FormValues,
     helpers: Pick<FormikHelpers<FormValues>, 'validateForm' | 'setTouched'>
   ) => {
     const errors = await helpers.validateForm()
@@ -200,6 +242,58 @@ function OnboardingPage() {
     enter: (d: number) => ({ x: d > 0 ? '60%' : '-60%', opacity: 0 }),
     center: { x: 0, opacity: 1 },
     exit: (d: number) => ({ x: d < 0 ? '60%' : '-60%', opacity: 0 }),
+  }
+
+  const pageWrapper = (children: React.ReactNode) => (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-secondary-100 dark:from-secondary-900 dark:to-primary-900 p-4">
+      {children}
+    </div>
+  )
+
+  if (linkValidation === 'loading') {
+    return pageWrapper(
+      <motion.div
+        initial={{ opacity: 0, scale: 0.92 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.3 }}
+        className="bg-white dark:bg-secondary-800 rounded-2xl shadow-2xl p-10 max-w-md w-full text-center"
+      >
+        <div className="w-16 h-16 rounded-full border-4 border-primary-200 dark:border-primary-800 border-t-primary-600 dark:border-t-primary-400 animate-spin mx-auto mb-5" />
+        <p className="text-sm font-medium text-secondary-700 dark:text-secondary-300">
+          Verifying your onboarding link…
+        </p>
+        <p className="text-xs text-secondary-400 dark:text-secondary-500 mt-1">
+          This only takes a moment.
+        </p>
+      </motion.div>
+    )
+  }
+
+  if (linkValidation === 'invalid') {
+    return pageWrapper(
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+        className="bg-white dark:bg-secondary-800 rounded-2xl shadow-2xl p-10 max-w-md w-full text-center"
+      >
+        <div className="w-16 h-16 rounded-full bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 flex items-center justify-center mx-auto mb-5">
+          <ExclamationTriangleIcon className="w-8 h-8 text-red-500" />
+        </div>
+        <h2 className="text-xl font-bold text-secondary-900 dark:text-white mb-2">
+          Invalid Onboarding Link
+        </h2>
+        <p className="text-sm text-secondary-500 dark:text-secondary-400 leading-relaxed mb-8">
+          {invalidReason}
+        </p>
+        <button
+          onClick={() => navigate('/login')}
+          className="w-full py-2.5 px-4 rounded-lg border border-secondary-300 dark:border-secondary-600 text-sm font-medium text-secondary-700 dark:text-secondary-300 hover:bg-gray-50 dark:hover:bg-secondary-700 transition-colors"
+        >
+          Go to Sign In
+        </button>
+      </motion.div>
+    )
   }
 
   if (success) {
