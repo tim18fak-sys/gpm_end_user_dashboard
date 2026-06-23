@@ -17,6 +17,7 @@ import { useGetActiveInvoice, useGetAllInvoices, useInitializeInvoicePayment } f
 import { Invoice } from '@/types/payment.type'
 import { InvoiceStatusEnum } from '@/enum/payment.enum'
 import { BaseCursorPaginationInterface } from '@/types/shared'
+import toast from 'react-hot-toast'
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -25,6 +26,11 @@ const formatCurrency = (n: number) =>
 
 const formatDate = (d: Date | string) =>
   new Date(d).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' })
+
+const getInvoiceId = (invoice: Invoice): string => (invoice as any)._id ?? ''
+
+const canPay = (status: InvoiceStatusEnum) =>
+  status === InvoiceStatusEnum.PENDING || status === InvoiceStatusEnum.OVERDUE
 
 // ─── Status config ────────────────────────────────────────────────────────────
 
@@ -83,10 +89,19 @@ function HistorySkeleton() {
 
 // ─── Active Invoice Banner ─────────────────────────────────────────────────────
 
-function ActiveInvoiceBanner({ invoice }: { invoice: Invoice }) {
+function ActiveInvoiceBanner({
+  invoice,
+  onPayNow,
+  isPaying,
+}: {
+  invoice: Invoice
+  onPayNow: (id: string) => void
+  isPaying: boolean
+}) {
   const cfg = statusConfig[invoice.status]
   const Icon = cfg.icon
   const isOverdue = invoice.status === InvoiceStatusEnum.OVERDUE
+  const invoiceId = getInvoiceId(invoice)
 
   return (
     <motion.div
@@ -106,7 +121,7 @@ function ActiveInvoiceBanner({ invoice }: { invoice: Invoice }) {
             {isOverdue ? 'Overdue Payment' : 'Current Invoice'}
           </p>
         </div>
-        <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/20 text-white uppercase tracking-wide`}>
+        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/20 text-white uppercase tracking-wide">
           <Icon className="w-3 h-3" />
           {cfg.label}
         </span>
@@ -118,10 +133,25 @@ function ActiveInvoiceBanner({ invoice }: { invoice: Invoice }) {
         Due {formatDate(invoice.nextPaymentDate)}
       </p>
 
-      {invoice.status !== InvoiceStatusEnum.PAID && (
-        <button className="mt-4 w-full py-2.5 rounded-xl bg-white text-primary-700 text-sm font-bold hover:bg-white/90 transition-colors">
-          Pay Now
-        </button>
+      {canPay(invoice.status) && (
+        <motion.button
+          whileTap={{ scale: 0.97 }}
+          onClick={() => onPayNow(invoiceId)}
+          disabled={isPaying}
+          className="mt-4 w-full py-2.5 rounded-xl bg-white disabled:opacity-70 text-primary-700 text-sm font-bold hover:bg-white/90 transition-colors flex items-center justify-center gap-2"
+        >
+          {isPaying ? (
+            <>
+              <ArrowPathIcon className="w-4 h-4 animate-spin text-primary-600" />
+              <span>Getting payment link…</span>
+            </>
+          ) : (
+            <>
+              <CreditCardIcon className="w-4 h-4 text-primary-600" />
+              <span>Pay Now</span>
+            </>
+          )}
+        </motion.button>
       )}
     </motion.div>
   )
@@ -129,10 +159,22 @@ function ActiveInvoiceBanner({ invoice }: { invoice: Invoice }) {
 
 // ─── Invoice Row ──────────────────────────────────────────────────────────────
 
-function InvoiceRow({ invoice, index }: { invoice: Invoice; index: number }) {
+function InvoiceRow({
+  invoice,
+  index,
+  onPayNow,
+  isPaying,
+}: {
+  invoice: Invoice
+  index: number
+  onPayNow: (id: string) => void
+  isPaying: boolean
+}) {
   const [expanded, setExpanded] = useState(false)
   const cfg = statusConfig[invoice.status]
   const Icon = cfg.icon
+  const invoiceId = getInvoiceId(invoice)
+  const showPayButton = canPay(invoice.status)
 
   return (
     <motion.div
@@ -181,6 +223,35 @@ function InvoiceRow({ invoice, index }: { invoice: Invoice; index: number }) {
         </div>
       </button>
 
+      {/* Pay Now — for unpaid invoices in the list */}
+      {showPayButton && (
+        <div className="px-4 pb-3 -mt-1">
+          <motion.button
+            whileTap={{ scale: 0.97 }}
+            onClick={() => onPayNow(invoiceId)}
+            disabled={isPaying}
+            className={`w-full flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold transition-colors disabled:opacity-60 ${
+              invoice.status === InvoiceStatusEnum.OVERDUE
+                ? 'bg-danger-600 hover:bg-danger-700 text-white'
+                : 'bg-primary-600 hover:bg-primary-700 text-white'
+            }`}
+          >
+            {isPaying ? (
+              <>
+                <ArrowPathIcon className="w-3.5 h-3.5 animate-spin" />
+                Getting payment link…
+              </>
+            ) : (
+              <>
+                <CreditCardIcon className="w-3.5 h-3.5" />
+                Pay Now
+              </>
+            )}
+          </motion.button>
+        </div>
+      )}
+
+      {/* Expanded history */}
       <AnimatePresence>
         {expanded && invoice.history.length > 0 && (
           <motion.div
@@ -208,7 +279,9 @@ function InvoiceRow({ invoice, index }: { invoice: Invoice; index: number }) {
                         )}
                       </div>
                       <div className="flex items-center gap-1.5">
-                        <span className="font-semibold text-secondary-700 dark:text-secondary-300">{formatCurrency(h.amount)}</span>
+                        <span className="font-semibold text-secondary-700 dark:text-secondary-300">
+                          {formatCurrency(h.amount)}
+                        </span>
                         <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${hCfg.pillBg} ${hCfg.pillText}`}>
                           {h.status}
                         </span>
@@ -245,22 +318,52 @@ function EmptyInvoices() {
 
 function PaymentHistory() {
   const navigate = useNavigate()
+
   const [params, setParams] = useState<BaseCursorPaginationInterface>({
     prevCursor: null,
     nextCursor: null,
     search: null,
     limit: 10,
-  });
+  })
+
+  // Tracks which invoice is currently going through payment init (for per-card loading state)
+  const [payingInvoiceId, setPayingInvoiceId] = useState<string | null>(null)
 
   const { data: activeData, isLoading: activeLoading } = useGetActiveInvoice()
   const { data: allData, isLoading: allLoading, isFetching } = useGetAllInvoices(params)
-  const {} =  useInitializeInvoicePayment()
+  const { mutate: initializePayment, isPending: paymentFetching } = useInitializeInvoicePayment()
 
   const activeInvoice = activeData?.data ?? null
   const invoices: Invoice[] = allData?.data ?? []
   const nextCursor = allData?.nextCursor ?? null
-
   const pastInvoices = invoices.filter((inv) => !inv.isCurrent)
+
+  const handlePayNow = (invoiceId: string) => {
+    if (!invoiceId) {
+      toast.error('Invoice ID not available. Please refresh and try again.')
+      return
+    }
+    setPayingInvoiceId(invoiceId)
+    initializePayment(invoiceId, {
+      onSuccess: (response) => {
+        const url = response?.data?.authorization_url
+        if (url) {
+          // Redirect in same tab — most reliable on mobile
+          window.location.href = url
+        } else {
+          toast.error('Payment link not available. Please try again.')
+          setPayingInvoiceId(null)
+        }
+      },
+      onError: (err: any) => {
+        const message =
+          err?.response?.data?.message ||
+          'Failed to get payment link. Please try again.'
+        toast.error(message)
+        setPayingInvoiceId(null)
+      },
+    })
+  }
 
   const handleLoadMore = () => {
     if (nextCursor) setParams((p) => ({ ...p, nextCursor }))
@@ -287,10 +390,14 @@ function PaymentHistory() {
       {/* Active invoice banner */}
       {activeLoading ? (
         <div className="p-4">
-          <Pulse className="h-32 w-full" />
+          <Pulse className="h-36 w-full" />
         </div>
       ) : activeInvoice ? (
-        <ActiveInvoiceBanner invoice={activeInvoice} />
+        <ActiveInvoiceBanner
+          invoice={activeInvoice}
+          onPayNow={handlePayNow}
+          isPaying={payingInvoiceId === getInvoiceId(activeInvoice) && paymentFetching}
+        />
       ) : null}
 
       {/* Past invoices section */}
@@ -308,7 +415,13 @@ function PaymentHistory() {
       ) : (
         <div className="px-4 space-y-3 pb-8">
           {pastInvoices.map((inv, i) => (
-            <InvoiceRow key={`${inv.nextPaymentDate}-${i}`} invoice={inv} index={i} />
+            <InvoiceRow
+              key={`${getInvoiceId(inv)}-${i}`}
+              invoice={inv}
+              index={i}
+              onPayNow={handlePayNow}
+              isPaying={payingInvoiceId === getInvoiceId(inv) && paymentFetching}
+            />
           ))}
 
           {nextCursor && (
