@@ -13,7 +13,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { CheckCircleIcon as CheckCircleSolid } from '@heroicons/react/24/solid'
 import { useNavigate } from 'react-router-dom'
-import { useGetActiveInvoice, useGetAllInvoices } from '@/hooks/usePayment'
+import { useGetActiveInvoice, useGetAllInvoices, useInitializeInvoicePayment } from '@/hooks/usePayment'
 import { Invoice } from '@/types/payment.type'
 import { InvoiceStatusEnum } from '@/enum/payment.enum'
 import { BaseCursorPaginationInterface } from '@/types/shared'
@@ -254,6 +254,7 @@ function PaymentHistory() {
 
   const { data: activeData, isLoading: activeLoading } = useGetActiveInvoice()
   const { data: allData, isLoading: allLoading, isFetching } = useGetAllInvoices(params)
+  const {} =  useInitializeInvoicePayment()
 
   const activeInvoice = activeData?.data ?? null
   const invoices: Invoice[] = allData?.data ?? []

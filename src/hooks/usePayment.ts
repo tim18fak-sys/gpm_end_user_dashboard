@@ -18,12 +18,10 @@ export const useGetAllInvoices = (params: BaseCursorPaginationInterface) => {
   });
 };
 
-export const useInitializeInvoicePayment = (invoiceId: string) => {
-    return useQuery({
-        queryKey: ['initialize-recurring-payment', invoiceId],
-        queryFn: () => paymentApi.initializeInvoicePayment(invoiceId),
-        enabled: !!invoiceId,
-        staleTime: 5 * 60 * 1000, // 5 minutes
+export const useInitializeInvoicePayment = () => {
+    return useMutation({
+        mutationKey: ['initialize-recurring-payment', ],
+        mutationFn: (invoiceId: string) => paymentApi.initializeInvoicePayment(invoiceId),
     })
 }
 
