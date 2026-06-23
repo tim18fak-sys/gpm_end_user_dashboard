@@ -5,7 +5,7 @@ import { BaseDataInterface } from "@/types/shared";
 import { User } from "@/types/user.types";
 
 // const API_BASE_URL = 'https://campus-pal-monolith-api.onrender.com' // Replace with your actual API URL
- const API_BASE_URL =  'http://localhost:3000' // Use environment variable or fallback to localhost
+ const API_BASE_URL =  'http://localhost:4000' // Use environment variable or fallback to localhost
 export const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {

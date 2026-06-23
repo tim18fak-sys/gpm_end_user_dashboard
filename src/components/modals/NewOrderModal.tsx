@@ -693,23 +693,28 @@ export function NewOrderModal({ onClose, onSuccess }: NewOrderModalProps) {
         ? DevicePaymentPlan.NONE
         : planFromFrequency(state.selectedFrequency ?? DeviceCatetoryPaymentDurationOptionEnum.MONTHLY)
 
+    const paymentTimeline: DevicePaymentTimelineEnum =
+      state.selectedMonths > 1
+        ? (`${state.selectedMonths}_month` as DevicePaymentTimelineEnum)
+        : (DevicePaymentTimelineEnum.OUTRIGHT as DevicePaymentTimelineEnum);
+
     createOrder(
       {
         deviceCategoryId: state.selectedCategory._id,
-        paymentTimeline,
+        paymentTimeline: paymentTimeline,
         plan,
       },
       {
         onSuccess: () => {
-          toast.success('Order created successfully!')
-          onSuccess()
-          onClose()
+          toast.success("Order created successfully!");
+          onSuccess();
+          onClose();
         },
         onError: () => {
-          toast.error('Failed to create order. Please try again.')
+          toast.error("Failed to create order. Please try again.");
         },
       },
-    )
+    );
   }
 
   const canNext = useMemo(() => {

@@ -369,7 +369,7 @@ function ActiveInvoiceCard({ invoice }: { invoice: Invoice }) {
       {(isPending || isOverdue) && (
         <motion.button
           whileTap={{ scale: 0.97 }}
-          onClick={() => navigate('/payment-history')}
+          onClick={() => navigate('/payments-history')}
           className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-white transition-colors ${
             isOverdue ? 'bg-danger-600 hover:bg-danger-700' : 'bg-primary-600 hover:bg-primary-700'
           }`}
