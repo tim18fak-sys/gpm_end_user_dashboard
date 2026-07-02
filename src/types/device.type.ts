@@ -73,6 +73,7 @@ export interface PayGoDeviceCode {
 
 // DEVICE CLASS
 export interface DeviceClass {
+    _id: string
     name:string
     description:string
     status: DeviceClassStatusEnum
@@ -83,6 +84,7 @@ export interface DeviceClass {
 // DEVICE CATEGORY GROUP
 
 export interface DeviceCategoryGroup {
+  _id: string
   device_class: string;
   name: string;
   description: string;

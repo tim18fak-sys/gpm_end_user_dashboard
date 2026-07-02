@@ -24,9 +24,11 @@ import {
   ShieldCheckIcon,
   LockClosedIcon,
   CheckIcon,
+  ChevronRightIcon,
 } from '@heroicons/react/24/outline'
 import { useCheckAgentExist, useCheckHubExist, useOnboarding } from '@/hooks/useOnboarding'
 import { DeviceTypeEnum, DevicePaymentTimelineEnum } from '@/enum/device.enum'
+import DevicePickerModal, { SelectedDevice } from '@/components/modals/DevicePickerModal'
 import { UserGenderEnum } from '@/types/user.types'
 import {
   IdTypeEnum,
@@ -156,9 +158,17 @@ const stepSchemas: Yup.AnyObjectSchema[] = [
   }),
   // Step 1: ID + Product
   Yup.object({
-    id_type: Yup.string().required('Please select your ID type'),
-    id_number: Yup.string().trim().required('ID number is required'),
-    interested_device_type: Yup.string().required('Please select a device type'),
+    id_type: Yup.string().when('paymentTimeline', {
+      is: (v: string) => v !== DevicePaymentTimelineEnum.OUTRIGHT,
+      then: (s) => s.required('Please select your ID type'),
+      otherwise: (s) => s.optional(),
+    }),
+    id_number: Yup.string().trim().when('paymentTimeline', {
+      is: (v: string) => v !== DevicePaymentTimelineEnum.OUTRIGHT,
+      then: (s) => s.required('ID number is required'),
+      otherwise: (s) => s.optional(),
+    }),
+    interested_device_category_id: Yup.string().required('Please select an interested device'),
     paymentTimeline: Yup.string().required('Please select a payment timeline'),
     intended_use: Yup.string().required('Please select intended use'),
   }),
@@ -225,7 +235,9 @@ interface FormValues {
   business_address: string; occupation: string
   // Step 1
   id_type: IdTypeEnum | ''; id_number: string; profile_picture: string
-  interested_device_type: DeviceTypeEnum | ''; paymentTimeline: DevicePaymentTimelineEnum | ''
+  interested_device_type: DeviceTypeEnum | ''
+  interested_device_category_id: string; interested_device_category_name: string
+  paymentTimeline: DevicePaymentTimelineEnum | ''
   intended_use: IntendedUseEnum | ''; intended_use_other: string
   // Step 2
   income_source: string; daily_income: string; weekly_income: string
@@ -319,6 +331,7 @@ function OnboardingPage() {
   const [showConfirm, setShowConfirm] = useState(false)
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [devicePickerOpen, setDevicePickerOpen] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -353,8 +366,8 @@ function OnboardingPage() {
     whatsapp_number: '', alternative_number: '',
     gender: '', dob: '', address: '', business_address: '', occupation: '',
     id_type: '', id_number: '', profile_picture: '',
-    interested_device_type: '', paymentTimeline: '',
-    intended_use: '', intended_use_other: '',
+    interested_device_type: '', interested_device_category_id: '', interested_device_category_name: '',
+    paymentTimeline: '', intended_use: '', intended_use_other: '',
     income_source: '', daily_income: '', weekly_income: '',
     monthly_income: '', monthly_expenses: '', income_stability: '',
     monthly_rent: '', school_fees: '',
@@ -386,8 +399,8 @@ function OnboardingPage() {
     const stepFields: Record<StepIndex, (keyof FormValues)[]> = {
       0: ['first_name', 'last_name', 'email', 'phone_number', 'gender', 'dob', 'address', 'occupation'],
       1: isOutright
-        ? ['interested_device_type', 'paymentTimeline', 'intended_use']
-        : ['id_type', 'id_number', 'interested_device_type', 'paymentTimeline', 'intended_use'],
+        ? ['interested_device_category_id', 'paymentTimeline', 'intended_use']
+        : ['id_type', 'id_number', 'interested_device_category_id', 'paymentTimeline', 'intended_use'],
       2: ['income_source', 'monthly_income', 'income_stability'],
       3: ['monthly_rent', 'fuel_expenses', 'electricity_bill'],
       4: ['has_taken_loan', 'has_outstanding_debt', 'willing_to_provide_bank_statement'],
@@ -485,6 +498,8 @@ function OnboardingPage() {
         id_type: values.id_type as any, id_number: values.id_number,
         profile_picture: values.profile_picture || undefined,
         interested_device_type: values.interested_device_type as DeviceTypeEnum,
+        interested_device_category_id: values.interested_device_category_id,
+        interested_device_category_name: values.interested_device_category_name,
         paymentTimeline: values.paymentTimeline as DevicePaymentTimelineEnum,
         intended_use: values.intended_use as any,
         intended_use_other: values.intended_use === IntendedUseEnum.OTHER ? values.intended_use_other : undefined,
@@ -664,6 +679,18 @@ function OnboardingPage() {
             validateOnChange={false}
           >
             {({ values, validateForm, setTouched, setFieldValue }) => (
+              <>
+              <DevicePickerModal
+                open={devicePickerOpen}
+                onClose={() => setDevicePickerOpen(false)}
+                currentId={values.interested_device_category_id}
+                onSelect={(device: SelectedDevice) => {
+                  setFieldValue('interested_device_category_id', device.id)
+                  setFieldValue('interested_device_category_name', device.name)
+                  setFieldValue('interested_device_type', device.deviceType)
+                  setDevicePickerOpen(false)
+                }}
+              />
               <Form>
                 {/* Scrollable step content */}
                 <div className="px-6 pt-5 pb-2 overflow-y-auto max-h-[60vh]">
@@ -800,21 +827,49 @@ function OnboardingPage() {
                           {/* Product selection always shown first */}
                           <p className={sectionTitle}>Section 2 — Product Information</p>
 
+                          {/* Device picker */}
                           <div>
-                            <label className={labelClass}>Device Type</label>
-                            <div className="mt-1.5 grid grid-cols-2 gap-2">
-                              {Object.values(DeviceTypeEnum).map((t) => (
-                                <button key={t} type="button" onClick={() => setFieldValue('interested_device_type', t)}
-                                  className={`py-2.5 px-3 rounded-lg border text-xs font-semibold text-left transition-all ${
-                                    values.interested_device_type === t
-                                      ? 'bg-primary-600 border-primary-600 text-white shadow-sm'
-                                      : 'bg-white dark:bg-secondary-700 border-secondary-300 dark:border-secondary-600 text-secondary-700 dark:text-secondary-300 hover:border-primary-400'
-                                  }`}>
-                                  {t}
+                            <label className={labelClass}>Interested Device</label>
+                            {values.interested_device_category_id ? (
+                              <div className="mt-2 flex items-center gap-3 p-3 rounded-xl border border-primary-300 dark:border-primary-700 bg-primary-50 dark:bg-primary-900/20">
+                                <div className="w-9 h-9 rounded-lg bg-primary-500 flex items-center justify-center flex-shrink-0">
+                                  <DevicePhoneMobileIcon className="w-5 h-5 text-white" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-semibold text-primary-700 dark:text-primary-300 truncate">
+                                    {values.interested_device_category_name}
+                                  </p>
+                                  <p className="text-[11px] text-primary-500 dark:text-primary-400 mt-0.5 capitalize">
+                                    {values.interested_device_type}
+                                  </p>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => setDevicePickerOpen(true)}
+                                  className="text-xs font-medium text-primary-600 dark:text-primary-400 hover:underline flex-shrink-0"
+                                >
+                                  Change
                                 </button>
-                              ))}
-                            </div>
-                            <ErrorMessage name="interested_device_type" component="div" className={errorClass} />
+                              </div>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => setDevicePickerOpen(true)}
+                                className="mt-1.5 w-full flex items-center gap-3 p-3.5 rounded-xl border-2 border-dashed border-secondary-300 dark:border-secondary-600 hover:border-primary-400 dark:hover:border-primary-600 bg-white dark:bg-secondary-700 transition-colors text-left group"
+                              >
+                                <div className="w-9 h-9 rounded-lg bg-secondary-100 dark:bg-secondary-600 flex items-center justify-center flex-shrink-0 group-hover:bg-primary-100 dark:group-hover:bg-primary-900/30 transition-colors">
+                                  <DevicePhoneMobileIcon className="w-5 h-5 text-secondary-400 group-hover:text-primary-500 transition-colors" />
+                                </div>
+                                <div className="flex-1">
+                                  <p className="text-sm font-semibold text-secondary-700 dark:text-secondary-300 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                                    Pick an interested device
+                                  </p>
+                                  <p className="text-xs text-secondary-400 mt-0.5">Browse by class → group → model</p>
+                                </div>
+                                <ChevronRightIcon className="w-4 h-4 text-secondary-300 group-hover:text-primary-400 transition-colors flex-shrink-0" />
+                              </button>
+                            )}
+                            <ErrorMessage name="interested_device_category_id" component="div" className={errorClass} />
                           </div>
 
                           <div>
@@ -1516,6 +1571,7 @@ function OnboardingPage() {
                   )}
                 </div>
               </Form>
+              </>
             )}
           </Formik>
         </div>

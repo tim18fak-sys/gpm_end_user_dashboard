@@ -43,6 +43,8 @@ export interface DeviceUserOnboardingDto {
 
   // ── Section 2: Product Information ──────────────────────────────────────────
   interested_device_type: DeviceTypeEnum;
+  interested_device_category_id: string;
+  interested_device_category_name: string;
   paymentTimeline: DevicePaymentTimelineEnum;
   intended_use: IntendedUseEnum;
   intended_use_other?: string;   // only when intended_use === OTHER
