@@ -1,33 +1,112 @@
 import { DevicePaymentTimelineEnum, DeviceTypeEnum } from "@/enum/device.enum";
 import { UserGenderEnum } from "./user.types";
 import { DeviceUserOnboardingStatusEnum } from "@/enum/user.enum";
+import {
+  IdTypeEnum,
+  IntendedUseEnum,
+  IncomeStabilityEnum,
+  LoanTypeEnum,
+  LoanStatusEnum,
+  PowerProblemEnum,
+  ProductBenefitEnum,
+  BusinessTypeEnum,
+  BusinessDurationEnum,
+  CustomerTrafficEnum,
+} from "@/enum/kyc.enum";
 
 export interface DeviceUserOnboardingDto {
-  email: string;
-  phone_number: string;
+  // ── Section 1: Customer Identification ──────────────────────────────────────
   first_name: string;
   last_name: string;
-  profile_picture: string;
-
+  email: string;
+  phone_number: string;
+  whatsapp_number?: string;
+  alternative_number?: string;
   gender: UserGenderEnum;
+  dob: string;
+  address: string;               // home address
+  business_address?: string;
+  occupation: string;
+  id_type: IdTypeEnum;
+  id_number: string;
+  profile_picture?: string;
 
-  password: string;
+  // ── Section 2: Product Information ──────────────────────────────────────────
   interested_device_type: DeviceTypeEnum;
-
-  // this is to know the payment timeline the user is interested in, and we get device categories that support that payment timeline. And also if the timeline is outright, we don't need kyc verification, but if the timeline is not outright, we need kyc verification.
   paymentTimeline: DevicePaymentTimelineEnum;
+  intended_use: IntendedUseEnum;
+  intended_use_other?: string;   // only when intended_use === OTHER
 
-  // this are gotten from the link shared with the customer or user.
+  // ── Section 3A: Income ───────────────────────────────────────────────────────
+  income_source: string;
+  daily_income: number;
+  weekly_income: number;
+  monthly_income: number;
+  monthly_expenses: number;
+  income_stability: IncomeStabilityEnum;
+
+  // ── Section 3B: Expenditure & Liabilities ───────────────────────────────────
+  monthly_rent: number;
+  school_fees: number;
+  loan_repayment_amount?: number;
+  loan_repayment_lender?: string;
+  fuel_expenses: number;
+  electricity_bill: number;
+  other_expenses?: number;
+
+  // ── Section 4: Credit History ────────────────────────────────────────────────
+  has_taken_loan: boolean;
+  loan_type?: LoanTypeEnum;
+  loan_status?: LoanStatusEnum;
+  has_outstanding_debt: boolean;
+  outstanding_debt_amount?: number;
+  willing_to_provide_bank_statement: boolean;
+  bank_statement_refusal_reason?: string;
+
+  // ── Section 5: Compelling Need ───────────────────────────────────────────────
+  power_problems: PowerProblemEnum[];
+  product_benefits: ProductBenefitEnum[];
+
+  // ── Section 6: Business Verification (conditional on is_business_owner) ─────
+  is_business_owner: boolean;
+  business_type?: BusinessTypeEnum;
+  business_duration?: BusinessDurationEnum;
+  daily_customer_traffic?: CustomerTrafficEnum;
+  has_power_equipment?: boolean;
+  is_permanent_location?: boolean;
+  hub_distance_km?: number;
+
+  // ── Section 7: Guarantors ────────────────────────────────────────────────────
+  guarantor_1_name: string;
+  guarantor_1_phone: string;
+  guarantor_1_relationship: string;
+  guarantor_1_address: string;
+  guarantor_1_occupation: string;
+  guarantor_1_id_type: IdTypeEnum;
+  guarantor_1_id_number: string;
+
+  guarantor_2_name: string;
+  guarantor_2_phone: string;
+  guarantor_2_relationship: string;
+  guarantor_2_address: string;
+  guarantor_2_occupation: string;
+  guarantor_2_id_type: IdTypeEnum;
+  guarantor_2_id_number: string;
+
+  // ── Section 9: Consent ───────────────────────────────────────────────────────
+  consent_agreed: boolean;
+
+  // ── Account credentials ──────────────────────────────────────────────────────
+  password: string;
+
+  // ── Meta (from onboarding link) ──────────────────────────────────────────────
   onboarding_agent_id: string;
   onboarding_hub_id: string;
-  address: string;
-  dob: string;
 }
 
-// the db structure for the onboarding information.
-
+// ── DB record (returned from server) ─────────────────────────────────────────
 export interface DeviceUserOnboarding {
-    _id:string
+  _id: string;
   email: string;
   phone_number: string;
   first_name: string;
@@ -37,7 +116,6 @@ export interface DeviceUserOnboarding {
   date_birth: Date;
   gender: UserGenderEnum;
   status: DeviceUserOnboardingStatusEnum;
-  // who onboarded the user using the link, the flow is from agent to hub. So can can track commission spread.
   onboarding_agent_id: string;
   onboarding_hub_id: string;
   paymentTimeline: DevicePaymentTimelineEnum;
