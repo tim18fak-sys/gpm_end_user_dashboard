@@ -54,3 +54,14 @@ export enum DevicePaymentPlan {
   QUARTER_YEARLY = "QUARTER_YEARLY",
   NONE = "NONE",
 }
+
+export enum DeviceClassStatusEnum {
+  ACTIVATED = "ACTIVATED",
+  DEACTIVATED = "DEACTIVATED",
+}
+
+
+export enum DeviceCategoryGroupStatusEnum {
+  ACTIVATED = "ACTIVATED",
+  DEACTIVATED = "DEACTIVATED",
+}

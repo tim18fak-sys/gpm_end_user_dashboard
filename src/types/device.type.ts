@@ -1,5 +1,7 @@
 import { BaseStatusEnum } from "@/enum/base.enum";
 import {
+  DeviceCategoryGroupStatusEnum,
+  DeviceClassStatusEnum,
   DevicePaymentPlan,
   DevicePaymentTimelineEnum,
 } from "@/enum/device.enum";
@@ -67,4 +69,24 @@ export interface PayGoDeviceCode {
   is_current_code: boolean;
   // this is to know the code to finally disable the paygo feature
   is_master_code: boolean;
+}
+
+// DEVICE CLASS
+export interface DeviceClass {
+    name:string
+    description:string
+    status: DeviceClassStatusEnum
+    createdAt: string
+    updatedAt: string
+
+}
+// DEVICE CATEGORY GROUP
+
+export interface DeviceCategoryGroup {
+  device_class: string;
+  name: string;
+  description: string;
+  status: DeviceCategoryGroupStatusEnum;
+  createdAt: string;
+  updatedAt: string;
 }
