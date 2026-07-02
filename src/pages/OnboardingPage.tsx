@@ -376,27 +376,31 @@ function OnboardingPage() {
     password: '', confirm_password: '', consent_agreed: false,
   }
 
-  // ── Step field map for Yup error filtering ──
-  const stepFields: Record<StepIndex, (keyof FormValues)[]> = {
-    0: ['first_name', 'last_name', 'email', 'phone_number', 'gender', 'dob', 'address', 'occupation'],
-    1: ['id_type', 'id_number', 'interested_device_type', 'paymentTimeline', 'intended_use'],
-    2: ['income_source', 'monthly_income', 'income_stability'],
-    3: ['monthly_rent', 'fuel_expenses', 'electricity_bill'],
-    4: ['has_taken_loan', 'has_outstanding_debt', 'willing_to_provide_bank_statement'],
-    5: ['power_problems', 'product_benefits', 'is_business_owner'],
-    6: [
-      'guarantor_1_name', 'guarantor_1_phone', 'guarantor_1_relationship',
-      'guarantor_1_address', 'guarantor_1_occupation', 'guarantor_1_id_type', 'guarantor_1_id_number',
-      'guarantor_2_name', 'guarantor_2_phone', 'guarantor_2_relationship',
-      'guarantor_2_address', 'guarantor_2_occupation', 'guarantor_2_id_type', 'guarantor_2_id_number',
-    ],
-    7: ['password', 'confirm_password', 'consent_agreed'],
-  }
-
   const handleNext = async (
     values: FormValues,
     helpers: Pick<FormikHelpers<FormValues>, 'validateForm' | 'setTouched'>
   ) => {
+    const isOutright = values.paymentTimeline === DevicePaymentTimelineEnum.OUTRIGHT
+
+    // Step field map — step 1 skips ID fields for outright buyers
+    const stepFields: Record<StepIndex, (keyof FormValues)[]> = {
+      0: ['first_name', 'last_name', 'email', 'phone_number', 'gender', 'dob', 'address', 'occupation'],
+      1: isOutright
+        ? ['interested_device_type', 'paymentTimeline', 'intended_use']
+        : ['id_type', 'id_number', 'interested_device_type', 'paymentTimeline', 'intended_use'],
+      2: ['income_source', 'monthly_income', 'income_stability'],
+      3: ['monthly_rent', 'fuel_expenses', 'electricity_bill'],
+      4: ['has_taken_loan', 'has_outstanding_debt', 'willing_to_provide_bank_statement'],
+      5: ['power_problems', 'product_benefits', 'is_business_owner'],
+      6: [
+        'guarantor_1_name', 'guarantor_1_phone', 'guarantor_1_relationship',
+        'guarantor_1_address', 'guarantor_1_occupation', 'guarantor_1_id_type', 'guarantor_1_id_number',
+        'guarantor_2_name', 'guarantor_2_phone', 'guarantor_2_relationship',
+        'guarantor_2_address', 'guarantor_2_occupation', 'guarantor_2_id_type', 'guarantor_2_id_number',
+      ],
+      7: ['password', 'confirm_password', 'consent_agreed'],
+    }
+
     const errors = await helpers.validateForm()
     const current = stepFields[step]
     const bad = current.filter((f) => errors[f])
@@ -432,12 +436,24 @@ function OnboardingPage() {
       if (missing.length > 0) { toast.error(`Please complete: ${missing.join(', ')}`); return }
     }
 
+    // Outright buyers jump from step 1 directly to step 7
+    if (step === 1 && isOutright) {
+      setDirection(1)
+      setStep(7)
+      return
+    }
+
     setDirection(1)
     setStep((s) => Math.min(s + 1, TOTAL_STEPS - 1) as StepIndex)
   }
 
-  const handleBack = () => {
+  const handleBack = (paymentTimeline?: string) => {
     setDirection(-1)
+    // Outright buyers go back from step 7 to step 1 (skipping steps 2–6)
+    if (step === 7 && paymentTimeline === DevicePaymentTimelineEnum.OUTRIGHT) {
+      setStep(1)
+      return
+    }
     setStep((s) => Math.max(s - 1, 0) as StepIndex)
   }
 
@@ -780,63 +796,9 @@ function OnboardingPage() {
                       ═══════════════════════════════════════════════════════ */}
                       {step === 1 && (
                         <div className="space-y-4 pb-4">
-                          <p className={sectionTitle}>Section 1 — Valid ID</p>
 
-                          <div>
-                            <label className={labelClass}>ID Type</label>
-                            <div className="mt-1.5 grid grid-cols-2 gap-2">
-                              {Object.values(IdTypeEnum).map((t) => (
-                                <button key={t} type="button" onClick={() => setFieldValue('id_type', t)}
-                                  className={`py-2 px-3 rounded-lg border text-xs font-semibold text-left transition-all ${
-                                    values.id_type === t
-                                      ? 'bg-primary-600 border-primary-600 text-white shadow-sm'
-                                      : 'bg-white dark:bg-secondary-700 border-secondary-300 dark:border-secondary-600 text-secondary-700 dark:text-secondary-300 hover:border-primary-400'
-                                  }`}>
-                                  {idTypeLabels[t]}
-                                </button>
-                              ))}
-                            </div>
-                            <ErrorMessage name="id_type" component="div" className={errorClass} />
-                          </div>
-
-                          <div>
-                            <label htmlFor="id_number" className={labelClass}>ID Number</label>
-                            <div className="relative mt-1">
-                              <IdentificationIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400" />
-                              <Field id="id_number" name="id_number" type="text" placeholder="Enter your ID number" className={`${inputClass} !mt-0 pl-9`} />
-                            </div>
-                            <ErrorMessage name="id_number" component="div" className={errorClass} />
-                          </div>
-
-                          <div>
-                            <label className={labelClass}>
-                              Passport Photograph <span className="normal-case font-normal text-secondary-400">(optional)</span>
-                            </label>
-                            <div className="mt-2 flex items-center gap-4">
-                              <div
-                                className="relative w-16 h-16 rounded-xl border-2 border-dashed border-secondary-300 dark:border-secondary-600 overflow-hidden cursor-pointer hover:border-primary-400 transition-colors bg-secondary-50 dark:bg-secondary-700 flex items-center justify-center flex-shrink-0"
-                                onClick={() => fileInputRef.current?.click()}>
-                                {avatarPreview
-                                  ? <img src={avatarPreview} alt="Preview" className="w-full h-full object-cover" />
-                                  : <UserIcon className="w-7 h-7 text-secondary-400" />}
-                                <div className="absolute bottom-0 inset-x-0 bg-black/40 flex items-center justify-center py-1">
-                                  <CameraIcon className="w-3 h-3 text-white" />
-                                </div>
-                              </div>
-                              <div>
-                                <p className="text-xs font-medium text-secondary-700 dark:text-secondary-300">Passport photo</p>
-                                <p className="text-[11px] text-secondary-400 mt-0.5">JPG, PNG or WebP · max 5MB</p>
-                                <button type="button" onClick={() => fileInputRef.current?.click()}
-                                  className="mt-1.5 text-xs text-primary-600 dark:text-primary-400 font-medium hover:underline">
-                                  {avatarPreview ? 'Change photo' : 'Upload photo'}
-                                </button>
-                              </div>
-                              <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden"
-                                onChange={(e) => handleImageChange(e, setFieldValue)} />
-                            </div>
-                          </div>
-
-                          <SectionDivider label="Section 2 — Product" />
+                          {/* Product selection always shown first */}
+                          <p className={sectionTitle}>Section 2 — Product Information</p>
 
                           <div>
                             <label className={labelClass}>Device Type</label>
@@ -888,6 +850,77 @@ function OnboardingPage() {
                               <label htmlFor="intended_use_other" className={labelClass}>Please describe</label>
                               <Field id="intended_use_other" name="intended_use_other" type="text" placeholder="Describe your intended use" className={inputClass} />
                             </div>
+                          )}
+
+                          {/* Outright banner — skip KYC steps */}
+                          {values.paymentTimeline === DevicePaymentTimelineEnum.OUTRIGHT && (
+                            <div className="flex items-start gap-2.5 p-3 rounded-xl bg-success-50 dark:bg-success-900/20 border border-success-200 dark:border-success-800">
+                              <CheckCircleIcon className="w-4 h-4 text-success-600 dark:text-success-400 flex-shrink-0 mt-0.5" />
+                              <p className="text-xs text-success-700 dark:text-success-400 leading-relaxed">
+                                <span className="font-semibold">Outright purchase selected.</span> No financial assessment or guarantors needed — tap Next to set up your account.
+                              </p>
+                            </div>
+                          )}
+
+                          {/* ID section — only for non-outright buyers */}
+                          {values.paymentTimeline !== DevicePaymentTimelineEnum.OUTRIGHT && values.paymentTimeline !== '' && (
+                            <>
+                              <SectionDivider label="Section 1 — Valid ID" />
+
+                              <div>
+                                <label className={labelClass}>ID Type</label>
+                                <div className="mt-1.5 grid grid-cols-2 gap-2">
+                                  {Object.values(IdTypeEnum).map((t) => (
+                                    <button key={t} type="button" onClick={() => setFieldValue('id_type', t)}
+                                      className={`py-2 px-3 rounded-lg border text-xs font-semibold text-left transition-all ${
+                                        values.id_type === t
+                                          ? 'bg-primary-600 border-primary-600 text-white shadow-sm'
+                                          : 'bg-white dark:bg-secondary-700 border-secondary-300 dark:border-secondary-600 text-secondary-700 dark:text-secondary-300 hover:border-primary-400'
+                                      }`}>
+                                      {idTypeLabels[t]}
+                                    </button>
+                                  ))}
+                                </div>
+                                <ErrorMessage name="id_type" component="div" className={errorClass} />
+                              </div>
+
+                              <div>
+                                <label htmlFor="id_number" className={labelClass}>ID Number</label>
+                                <div className="relative mt-1">
+                                  <IdentificationIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400" />
+                                  <Field id="id_number" name="id_number" type="text" placeholder="Enter your ID number" className={`${inputClass} !mt-0 pl-9`} />
+                                </div>
+                                <ErrorMessage name="id_number" component="div" className={errorClass} />
+                              </div>
+
+                              <div>
+                                <label className={labelClass}>
+                                  Passport Photograph <span className="normal-case font-normal text-secondary-400">(optional)</span>
+                                </label>
+                                <div className="mt-2 flex items-center gap-4">
+                                  <div
+                                    className="relative w-16 h-16 rounded-xl border-2 border-dashed border-secondary-300 dark:border-secondary-600 overflow-hidden cursor-pointer hover:border-primary-400 transition-colors bg-secondary-50 dark:bg-secondary-700 flex items-center justify-center flex-shrink-0"
+                                    onClick={() => fileInputRef.current?.click()}>
+                                    {avatarPreview
+                                      ? <img src={avatarPreview} alt="Preview" className="w-full h-full object-cover" />
+                                      : <UserIcon className="w-7 h-7 text-secondary-400" />}
+                                    <div className="absolute bottom-0 inset-x-0 bg-black/40 flex items-center justify-center py-1">
+                                      <CameraIcon className="w-3 h-3 text-white" />
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <p className="text-xs font-medium text-secondary-700 dark:text-secondary-300">Passport photo</p>
+                                    <p className="text-[11px] text-secondary-400 mt-0.5">JPG, PNG or WebP · max 5MB</p>
+                                    <button type="button" onClick={() => fileInputRef.current?.click()}
+                                      className="mt-1.5 text-xs text-primary-600 dark:text-primary-400 font-medium hover:underline">
+                                      {avatarPreview ? 'Change photo' : 'Upload photo'}
+                                    </button>
+                                  </div>
+                                  <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden"
+                                    onChange={(e) => handleImageChange(e, setFieldValue)} />
+                                </div>
+                              </div>
+                            </>
                           )}
                         </div>
                       )}
@@ -1460,7 +1493,7 @@ function OnboardingPage() {
                 {/* Navigation buttons */}
                 <div className={`flex gap-3 px-6 py-4 border-t border-secondary-100 dark:border-secondary-700 ${step > 0 ? 'justify-between' : 'justify-end'}`}>
                   {step > 0 && (
-                    <button type="button" onClick={handleBack}
+                    <button type="button" onClick={() => handleBack(values.paymentTimeline)}
                       className="flex items-center gap-1.5 py-2.5 px-4 rounded-lg border border-secondary-300 dark:border-secondary-600 text-sm font-medium text-secondary-700 dark:text-secondary-300 hover:bg-secondary-50 dark:hover:bg-secondary-700 transition-colors">
                       <ArrowLeftIcon className="w-4 h-4" />
                       Back
