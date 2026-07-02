@@ -14,6 +14,16 @@ import {
   CustomerTrafficEnum,
 } from "@/enum/kyc.enum";
 
+export interface GuarantorDto {
+  name: string;
+  phone: string;
+  relationship: string;
+  address: string;
+  occupation: string;
+  id_type: IdTypeEnum;
+  id_number: string;
+}
+
 export interface DeviceUserOnboardingDto {
   // ── Section 1: Customer Identification ──────────────────────────────────────
   first_name: string;
@@ -77,21 +87,7 @@ export interface DeviceUserOnboardingDto {
   hub_distance_km?: number;
 
   // ── Section 7: Guarantors ────────────────────────────────────────────────────
-  guarantor_1_name: string;
-  guarantor_1_phone: string;
-  guarantor_1_relationship: string;
-  guarantor_1_address: string;
-  guarantor_1_occupation: string;
-  guarantor_1_id_type: IdTypeEnum;
-  guarantor_1_id_number: string;
-
-  guarantor_2_name: string;
-  guarantor_2_phone: string;
-  guarantor_2_relationship: string;
-  guarantor_2_address: string;
-  guarantor_2_occupation: string;
-  guarantor_2_id_type: IdTypeEnum;
-  guarantor_2_id_number: string;
+  guarantors: [GuarantorDto, GuarantorDto];
 
   // ── Section 9: Consent ───────────────────────────────────────────────────────
   consent_agreed: boolean;
