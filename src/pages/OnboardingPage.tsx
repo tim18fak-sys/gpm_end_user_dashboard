@@ -931,17 +931,6 @@ function OnboardingPage() {
                           </div>
 
                           <div>
-                            <label htmlFor="paymentTimeline" className={labelClass}>Payment Timeline</label>
-                            <Field as="select" id="paymentTimeline" name="paymentTimeline" className={inputClass}>
-                              <option value="">Select payment timeline</option>
-                              {Object.values(DevicePaymentTimelineEnum).map((t) => (
-                                <option key={t} value={t}>{paymentTimelineLabels[t]}</option>
-                              ))}
-                            </Field>
-                            <ErrorMessage name="paymentTimeline" component="div" className={errorClass} />
-                          </div>
-
-                          <div>
                             <label className={labelClass}>Intended Use</label>
                             <div className="mt-1.5 grid grid-cols-2 gap-2">
                               {Object.values(IntendedUseEnum).map((u) => (
