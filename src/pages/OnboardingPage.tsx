@@ -29,6 +29,7 @@ import {
 import { useCheckAgentExist, useCheckHubExist, useOnboarding } from '@/hooks/useOnboarding'
 import { DeviceTypeEnum, DevicePaymentTimelineEnum } from '@/enum/device.enum'
 import DevicePickerModal, { SelectedDevice } from '@/components/modals/DevicePickerModal'
+import { DeviceCategoryPaymentOptionEnum, DeviceCategoryPaymentDurationOptionEnum } from '@/types/deviceCategory'
 import { UserGenderEnum } from '@/types/user.types'
 import {
   IdTypeEnum,
@@ -237,6 +238,11 @@ interface FormValues {
   id_type: IdTypeEnum | ''; id_number: string; profile_picture: string
   interested_device_type: DeviceTypeEnum | ''
   interested_device_category_id: string; interested_device_category_name: string
+  device_payment_option: DeviceCategoryPaymentOptionEnum | ''
+  device_payment_duration: DeviceCategoryPaymentDurationOptionEnum | ''
+  device_initialization_amount: number | null
+  device_installment_amount: number | null
+  device_installment_duration_months: number | null
   paymentTimeline: DevicePaymentTimelineEnum | ''
   intended_use: IntendedUseEnum | ''; intended_use_other: string
   // Step 2
@@ -367,6 +373,8 @@ function OnboardingPage() {
     gender: '', dob: '', address: '', business_address: '', occupation: '',
     id_type: '', id_number: '', profile_picture: '',
     interested_device_type: '', interested_device_category_id: '', interested_device_category_name: '',
+    device_payment_option: '', device_payment_duration: '',
+    device_initialization_amount: null, device_installment_amount: null, device_installment_duration_months: null,
     paymentTimeline: '', intended_use: '', intended_use_other: '',
     income_source: '', daily_income: '', weekly_income: '',
     monthly_income: '', monthly_expenses: '', income_stability: '',
@@ -500,6 +508,11 @@ function OnboardingPage() {
         interested_device_type: values.interested_device_type as DeviceTypeEnum,
         interested_device_category_id: values.interested_device_category_id,
         interested_device_category_name: values.interested_device_category_name,
+        device_payment_option: values.device_payment_option as DeviceCategoryPaymentOptionEnum,
+        device_payment_duration: values.device_payment_duration as DeviceCategoryPaymentDurationOptionEnum || undefined,
+        device_initialization_amount: values.device_initialization_amount ?? 0,
+        device_installment_amount: values.device_installment_amount ?? undefined,
+        device_installment_duration_months: values.device_installment_duration_months ?? undefined,
         paymentTimeline: values.paymentTimeline as DevicePaymentTimelineEnum,
         intended_use: values.intended_use as any,
         intended_use_other: values.intended_use === IntendedUseEnum.OTHER ? values.intended_use_other : undefined,
@@ -688,6 +701,17 @@ function OnboardingPage() {
                   setFieldValue('interested_device_category_id', device.id)
                   setFieldValue('interested_device_category_name', device.name)
                   setFieldValue('interested_device_type', device.deviceType)
+                  setFieldValue('device_payment_option', device.paymentOption)
+                  setFieldValue('device_payment_duration', device.paymentDuration ?? '')
+                  setFieldValue('device_initialization_amount', device.initializationAmount)
+                  setFieldValue('device_installment_amount', device.installmentAmount ?? null)
+                  setFieldValue('device_installment_duration_months', device.installmentDurationMonths ?? null)
+                  // Auto-set paymentTimeline from modal choice
+                  if (device.paymentOption === DeviceCategoryPaymentOptionEnum.OUTRIGHT) {
+                    setFieldValue('paymentTimeline', DevicePaymentTimelineEnum.OUTRIGHT)
+                  } else if (device.installmentDurationMonths) {
+                    setFieldValue('paymentTimeline', `${device.installmentDurationMonths}_month` as DevicePaymentTimelineEnum)
+                  }
                   setDevicePickerOpen(false)
                 }}
               />
@@ -831,25 +855,59 @@ function OnboardingPage() {
                           <div>
                             <label className={labelClass}>Interested Device</label>
                             {values.interested_device_category_id ? (
-                              <div className="mt-2 flex items-center gap-3 p-3 rounded-xl border border-primary-300 dark:border-primary-700 bg-primary-50 dark:bg-primary-900/20">
-                                <div className="w-9 h-9 rounded-lg bg-primary-500 flex items-center justify-center flex-shrink-0">
-                                  <DevicePhoneMobileIcon className="w-5 h-5 text-white" />
+                              <div className="mt-2 rounded-xl border border-primary-300 dark:border-primary-700 bg-primary-50 dark:bg-primary-900/20 overflow-hidden">
+                                {/* Device row */}
+                                <div className="flex items-center gap-3 p-3">
+                                  <div className="w-9 h-9 rounded-lg bg-primary-500 flex items-center justify-center flex-shrink-0">
+                                    <DevicePhoneMobileIcon className="w-5 h-5 text-white" />
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-semibold text-primary-700 dark:text-primary-300 truncate">
+                                      {values.interested_device_category_name}
+                                    </p>
+                                    <p className="text-[11px] text-primary-500 dark:text-primary-400 mt-0.5 capitalize">
+                                      {values.interested_device_type}
+                                    </p>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => setDevicePickerOpen(true)}
+                                    className="text-xs font-medium text-primary-600 dark:text-primary-400 hover:underline flex-shrink-0"
+                                  >
+                                    Change
+                                  </button>
                                 </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-semibold text-primary-700 dark:text-primary-300 truncate">
-                                    {values.interested_device_category_name}
-                                  </p>
-                                  <p className="text-[11px] text-primary-500 dark:text-primary-400 mt-0.5 capitalize">
-                                    {values.interested_device_type}
-                                  </p>
-                                </div>
-                                <button
-                                  type="button"
-                                  onClick={() => setDevicePickerOpen(true)}
-                                  className="text-xs font-medium text-primary-600 dark:text-primary-400 hover:underline flex-shrink-0"
-                                >
-                                  Change
-                                </button>
+                                {/* Payment summary row */}
+                                {values.device_payment_option && (
+                                  <div className="border-t border-primary-200 dark:border-primary-700/50 px-3 py-2 flex items-center gap-2 flex-wrap">
+                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                                      values.device_payment_option === DeviceCategoryPaymentOptionEnum.OUTRIGHT
+                                        ? 'bg-success-100 dark:bg-success-900/30 text-success-700 dark:text-success-400'
+                                        : 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400'
+                                    }`}>
+                                      {values.device_payment_option === DeviceCategoryPaymentOptionEnum.OUTRIGHT ? 'Outright' : 'Installment'}
+                                    </span>
+                                    {values.device_payment_option === DeviceCategoryPaymentOptionEnum.INSTALLMENT && (
+                                      <>
+                                        {values.device_initialization_amount != null && (
+                                          <span className="text-[11px] text-primary-600 dark:text-primary-400">
+                                            Down: <strong>₦{values.device_initialization_amount.toLocaleString(undefined, { maximumFractionDigits: 0 })}</strong>
+                                          </span>
+                                        )}
+                                        {values.device_installment_amount != null && values.device_payment_duration && (
+                                          <span className="text-[11px] text-primary-600 dark:text-primary-400">
+                                            · <strong>₦{values.device_installment_amount.toLocaleString(undefined, { maximumFractionDigits: 0 })}</strong>/{values.device_payment_duration === DeviceCategoryPaymentDurationOptionEnum.WEEKLY ? 'wk' : 'mo'}
+                                          </span>
+                                        )}
+                                        {values.device_installment_duration_months != null && (
+                                          <span className="text-[11px] text-primary-600 dark:text-primary-400">
+                                            · {values.device_installment_duration_months} months
+                                          </span>
+                                        )}
+                                      </>
+                                    )}
+                                  </div>
+                                )}
                               </div>
                             ) : (
                               <button

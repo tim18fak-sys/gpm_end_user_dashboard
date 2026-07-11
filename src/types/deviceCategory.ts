@@ -11,6 +11,8 @@ export enum DeviceCategoryPaymentDurationOptionEnum {
   MONTHLY = "MONTHLY",
 }
 
+export { DeviceCategoryPaymentDurationOptionEnum as DeviceCatetoryPaymentDurationOptionEnum }
+
 export interface DeviceCategoryCommissionStructure {
   hub_manager_commission_percentage: number
   assigned_agent_commission_percentage: number
