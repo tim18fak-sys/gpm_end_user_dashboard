@@ -331,7 +331,7 @@ function OnboardingPage() {
   const [showConfirm, setShowConfirm] = useState(false)
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
-  const [devicePickerOpen, setDevicePickerOpen] = useState(false)
+  const [devicePickerOpen, setDevicePickerOpen] = useState(true)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()

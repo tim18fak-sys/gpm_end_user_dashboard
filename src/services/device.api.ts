@@ -45,7 +45,7 @@ export interface GetCurrentDeviceCodeResponse extends BaseDataInterface<PayGoDev
 export class DeviceCategoryApi {
   private endpoint = "/v1/device-category/customer";
   private deviceEndpoint = "/v1/device/customer";
-  private deviceClassEndpoint = "/v1/device-category/customer";
+  private deviceClassEndpoint = "/v1/device-class/customer";
   private deviceGroupEndpoint = "/v1/device-category-group/customer";
   private axios: AxiosInstance;
   constructor(axios: AxiosInstance) {
@@ -56,7 +56,7 @@ export class DeviceCategoryApi {
     dto: DeviceClassCursorPaginationDto,
   ): Promise<GetAllActiveDeviceClassCursorPaginationResponse> {
     try {
-      
+      console.log("device class");
       const response = await this.axios.get(`${this.deviceClassEndpoint}/all`, {
         params: dto,
       });
@@ -71,9 +71,21 @@ export class DeviceCategoryApi {
     params: DeviceCategoryGroupCursorPaginationDto,
   ): Promise<GetAllDeviceCategoryGroupByClassIdCursorPaginationResponse> {
     try {
-      const response = await this.axios.get(`${this.deviceGroupEndpoint}/all`, {
-        params,
-      });
+      if (!params.deviceClassId)
+        return {
+          data: [],
+          limit: 10,
+          nextCursor: null,
+          prevCursor: null,
+          search: "",
+        };
+      const { deviceClassId, ...rest } = params;
+      const response = await this.axios.get(
+        `${this.deviceGroupEndpoint}/${deviceClassId}/all`,
+        {
+          params: rest,
+        },
+      );
       return response.data;
     } catch (error) {
       console.error("Error fetching device category groups:", error);
@@ -85,6 +97,7 @@ export class DeviceCategoryApi {
     params: DeviceCursorPaginationDto,
   ): Promise<GetAllDeviceCategoryByGroupIdCursorPaginationResponse> {
     try {
+      
       const response = await this.axios.get(`${this.endpoint}/all`, { params });
       return response.data;
     } catch (error) {
