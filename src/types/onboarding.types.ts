@@ -45,6 +45,11 @@ export interface DeviceUserOnboardingDto {
   interested_device_type: DeviceTypeEnum;
   interested_device_category_id: string;
   interested_device_category_name: string;
+  device_payment_option: string;
+  device_payment_duration?: string;
+  device_initialization_amount: number;
+  device_installment_amount?: number;
+  device_installment_duration_months?: number;
   paymentTimeline: DevicePaymentTimelineEnum;
   intended_use: IntendedUseEnum;
   intended_use_other?: string;   // only when intended_use === OTHER
