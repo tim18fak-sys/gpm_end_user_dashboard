@@ -650,7 +650,7 @@ function OnboardingPage() {
               </div>
               <div>
                 <h2 className="text-lg font-bold text-secondary-900 dark:text-white leading-tight">
-                  Solar Financing Application
+                  GreenPower Financing Application
                 </h2>
                 <p className="text-xs text-secondary-400 dark:text-secondary-500">
                   Step {step + 1} of {TOTAL_STEPS} — {STEP_META[step].label}
