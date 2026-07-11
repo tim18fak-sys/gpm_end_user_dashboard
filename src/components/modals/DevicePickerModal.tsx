@@ -175,7 +175,7 @@ export default function DevicePickerModal({ open, onClose, onSelect, currentId }
         exit={{ y: 80, opacity: 0 }}
         transition={{ type: 'spring', damping: 28, stiffness: 320 }}
         className="relative z-10 w-full max-w-md bg-white dark:bg-secondary-800 rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col"
-        style={{ maxHeight: '85vh' }}
+        style={{ height: '80vh', maxHeight: '80vh' }}
       >
         {/* Header */}
         <div className="flex items-center gap-3 px-4 py-3.5 border-b border-secondary-100 dark:border-secondary-700 flex-shrink-0">
