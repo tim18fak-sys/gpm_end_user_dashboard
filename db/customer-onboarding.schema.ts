@@ -1,5 +1,20 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
+import {
+  IsString,
+  IsEmail,
+  IsEnum,
+  IsBoolean,
+  IsNumber,
+  IsOptional,
+  IsArray,
+  IsDateString,
+  ValidateNested,
+  Min,
+  ArrayMinSize,
+  ArrayMaxSize,
+} from 'class-validator';
+import { Type } from 'class-transformer';
 
 // ─── Enums ────────────────────────────────────────────────────────────────────
 
@@ -447,3 +462,276 @@ CustomerOnboardingSchema.index({ status: 1 });
 CustomerOnboardingSchema.index({ onboarding_agent_id: 1 });
 CustomerOnboardingSchema.index({ onboarding_hub_id: 1 });
 CustomerOnboardingSchema.index({ createdAt: -1 });
+
+// =============================================================================
+// DTOs  (flat wire format sent by the frontend)
+// Install:  npm i class-validator class-transformer
+// =============================================================================
+
+// ─── Guarantor DTO ────────────────────────────────────────────────────────────
+
+export class GuarantorDto {
+  @IsString()
+  name: string;
+
+  @IsString()
+  phone: string;
+
+  @IsString()
+  relationship: string;
+
+  @IsString()
+  address: string;
+
+  @IsString()
+  occupation: string;
+
+  @IsEnum(IdTypeEnum)
+  id_type: IdTypeEnum;
+
+  @IsString()
+  id_number: string;
+}
+
+// ─── Main onboarding DTO ──────────────────────────────────────────────────────
+
+export class CreateCustomerOnboardingDto {
+  // ── Section 1: Customer Identification ──────────────────────────────────────
+
+  @IsString()
+  first_name: string;
+
+  @IsString()
+  last_name: string;
+
+  @IsEmail()
+  email: string;
+
+  @IsString()
+  phone_number: string;
+
+  @IsOptional()
+  @IsString()
+  whatsapp_number?: string;
+
+  @IsOptional()
+  @IsString()
+  alternative_number?: string;
+
+  @IsEnum(UserGenderEnum)
+  gender: UserGenderEnum;
+
+  @IsDateString()
+  dob: string;
+
+  @IsString()
+  address: string;
+
+  @IsOptional()
+  @IsString()
+  business_address?: string;
+
+  @IsString()
+  occupation: string;
+
+  @IsEnum(IdTypeEnum)
+  id_type: IdTypeEnum;
+
+  @IsString()
+  id_number: string;
+
+  @IsOptional()
+  @IsString()
+  profile_picture?: string;
+
+  // ── Section 2: Product Information ──────────────────────────────────────────
+
+  @IsEnum(DeviceTypeEnum)
+  interested_device_type: DeviceTypeEnum;
+
+  @IsString()
+  interested_device_category_id: string;
+
+  @IsString()
+  interested_device_category_name: string;
+
+  @IsEnum(DeviceCategoryPaymentOptionEnum)
+  device_payment_option: DeviceCategoryPaymentOptionEnum;
+
+  @IsOptional()
+  @IsEnum(DeviceCategoryPaymentDurationOptionEnum)
+  device_payment_duration?: DeviceCategoryPaymentDurationOptionEnum;
+
+  @IsNumber()
+  @Min(0)
+  device_initialization_amount: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  device_installment_amount?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  device_installment_duration_months?: number;
+
+  @IsEnum(DevicePaymentTimelineEnum)
+  paymentTimeline: DevicePaymentTimelineEnum;
+
+  @IsEnum(IntendedUseEnum)
+  intended_use: IntendedUseEnum;
+
+  @IsOptional()
+  @IsString()
+  intended_use_other?: string;
+
+  // ── Section 3A: Income ───────────────────────────────────────────────────────
+
+  @IsString()
+  income_source: string;
+
+  @IsNumber()
+  @Min(0)
+  daily_income: number;
+
+  @IsNumber()
+  @Min(0)
+  weekly_income: number;
+
+  @IsNumber()
+  @Min(0)
+  monthly_income: number;
+
+  @IsNumber()
+  @Min(0)
+  monthly_expenses: number;
+
+  @IsEnum(IncomeStabilityEnum)
+  income_stability: IncomeStabilityEnum;
+
+  // ── Section 3B: Expenditure & Liabilities ───────────────────────────────────
+
+  @IsNumber()
+  @Min(0)
+  monthly_rent: number;
+
+  @IsNumber()
+  @Min(0)
+  school_fees: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  loan_repayment_amount?: number;
+
+  @IsOptional()
+  @IsString()
+  loan_repayment_lender?: string;
+
+  @IsNumber()
+  @Min(0)
+  fuel_expenses: number;
+
+  @IsNumber()
+  @Min(0)
+  electricity_bill: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  other_expenses?: number;
+
+  // ── Section 4: Credit History ────────────────────────────────────────────────
+
+  @IsBoolean()
+  has_taken_loan: boolean;
+
+  @IsOptional()
+  @IsEnum(LoanTypeEnum)
+  loan_type?: LoanTypeEnum;
+
+  @IsOptional()
+  @IsEnum(LoanStatusEnum)
+  loan_status?: LoanStatusEnum;
+
+  @IsBoolean()
+  has_outstanding_debt: boolean;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  outstanding_debt_amount?: number;
+
+  @IsBoolean()
+  willing_to_provide_bank_statement: boolean;
+
+  @IsOptional()
+  @IsString()
+  bank_statement_refusal_reason?: string;
+
+  // ── Section 5: Compelling Need ───────────────────────────────────────────────
+
+  @IsArray()
+  @IsEnum(PowerProblemEnum, { each: true })
+  power_problems: PowerProblemEnum[];
+
+  @IsArray()
+  @IsEnum(ProductBenefitEnum, { each: true })
+  product_benefits: ProductBenefitEnum[];
+
+  // ── Section 6: Business Verification ─────────────────────────────────────────
+
+  @IsBoolean()
+  is_business_owner: boolean;
+
+  @IsOptional()
+  @IsEnum(BusinessTypeEnum)
+  business_type?: BusinessTypeEnum;
+
+  @IsOptional()
+  @IsEnum(BusinessDurationEnum)
+  business_duration?: BusinessDurationEnum;
+
+  @IsOptional()
+  @IsEnum(CustomerTrafficEnum)
+  daily_customer_traffic?: CustomerTrafficEnum;
+
+  @IsOptional()
+  @IsBoolean()
+  has_power_equipment?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  is_permanent_location?: boolean;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  hub_distance_km?: number;
+
+  // ── Section 7: Guarantors ─────────────────────────────────────────────────────
+
+  @IsArray()
+  @ArrayMinSize(2)
+  @ArrayMaxSize(2)
+  @ValidateNested({ each: true })
+  @Type(() => GuarantorDto)
+  guarantors: [GuarantorDto, GuarantorDto];
+
+  // ── Section 8: Consent & Credentials ─────────────────────────────────────────
+
+  @IsBoolean()
+  consent_agreed: boolean;
+
+  @IsString()
+  password: string;
+
+  // ── Meta (from onboarding link) ───────────────────────────────────────────────
+
+  @IsString()
+  onboarding_agent_id: string;
+
+  @IsString()
+  onboarding_hub_id: string;
+}
