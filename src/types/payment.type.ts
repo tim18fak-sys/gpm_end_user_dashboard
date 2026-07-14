@@ -1,4 +1,5 @@
 import { InvoiceStatusEnum } from "@/enum/payment.enum";
+import { BaseMessageInterface } from "./shared";
 
 export interface Invoice {
   // let this be an embedded document, so that the admin can quickly see the user information in a single query without having to populate the user information.
@@ -30,3 +31,20 @@ export interface InvoiceUserInfoSubSchema {
   email: string;
   phone_number: string;
 }
+
+
+// manual payment receipt upload request
+export interface UploadActivateOrderPaymentReceiptDto {
+  orderId: string;
+  amountPaid: number;
+  receiptUrl: string;
+}
+export interface UploadInvoicePaymentReceiptDto {
+  invoiceId: string;
+  amountPaid: number;
+  receiptUrl: string;
+}
+// manual payment receipt upload response
+
+export interface UploadActivateOrderPaymentReceiptResponse extends BaseMessageInterface{}
+export interface UploadInvoicePaymentReceiptResponse extends BaseMessageInterface{}

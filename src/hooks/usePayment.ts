@@ -1,14 +1,18 @@
-import { paymentApi } from "@/services/payment.api"
+import { paymentApi } from "@/services/payment.api";
+import {
+  UploadInvoicePaymentReceiptDto,
+  UploadActivateOrderPaymentReceiptDto,
+} from "@/types/payment.type";
 import { BaseCursorPaginationInterface } from "@/types/shared";
-import { useMutation, useQuery } from "@tanstack/react-query"
+import { useMutation, useQuery } from "@tanstack/react-query";
 
 export const useGetActiveInvoice = () => {
-    return useQuery({
-        queryKey: ['next-payment-invoice'],
-        queryFn: () => paymentApi.getActiveInvoice(),
-        staleTime: 5 * 60 * 1000, // 5 minutes
-    })
-}
+  return useQuery({
+    queryKey: ["next-payment-invoice"],
+    queryFn: () => paymentApi.getActiveInvoice(),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+};
 
 export const useGetAllInvoices = (params: BaseCursorPaginationInterface) => {
   return useQuery({
@@ -19,15 +23,31 @@ export const useGetAllInvoices = (params: BaseCursorPaginationInterface) => {
 };
 
 export const useInitializeInvoicePayment = () => {
-    return useMutation({
-        mutationKey: ['initialize-recurring-payment', ],
-        mutationFn: (invoiceId: string) => paymentApi.initializeInvoicePayment(invoiceId),
-    })
-}
+  return useMutation({
+    mutationKey: ["initialize-recurring-payment"],
+    mutationFn: (invoiceId: string) =>
+      paymentApi.initializeInvoicePayment(invoiceId),
+  });
+};
 
 export const useActivateOrder = () => {
-    return useMutation({
-        mutationKey: ['activate-order'],
-        mutationFn: (orderId:string) => paymentApi.activateOrder(orderId),
-    })
-}
+  return useMutation({
+    mutationKey: ["activate-order"],
+    mutationFn: (orderId: string) => paymentApi.activateOrder(orderId),
+  });
+};
+export const useUploadInvoicePaymentReceipt = () => {
+  return useMutation({
+    mutationKey: ["upload-invoice-payment-receipt"],
+    mutationFn: (dto: UploadInvoicePaymentReceiptDto) =>
+      paymentApi.uploadInvoicePaymentReceipt(dto),
+  });
+};
+
+export const useUploadActivateOrderPaymentReceipt = () => {
+  return useMutation({
+    mutationKey: ["upload-activate-order-payment-receipt"],
+    mutationFn: (dto: UploadActivateOrderPaymentReceiptDto) =>
+      paymentApi.uploadActivateOrderPaymentReceipt(dto),
+  });
+};

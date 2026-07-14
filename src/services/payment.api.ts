@@ -1,4 +1,4 @@
-import { Invoice } from "@/types/payment.type";
+import { Invoice, UploadActivateOrderPaymentReceiptDto, UploadActivateOrderPaymentReceiptResponse, UploadInvoicePaymentReceiptDto, UploadInvoicePaymentReceiptResponse } from "@/types/payment.type";
 import {
   BaseCursorPaginationInterface,
   BaseDataInterface,
@@ -21,6 +21,7 @@ export interface InitializePaymentResponse extends BaseDataInterface<{
 export class PaymentApi {
   private endpoint = "/v1/invoice/customer";
   private paystackEndpoint = "/v1/payment/customer";
+  private receiptEndpoint = "/v1/receipt/user";
   constructor(private axios: AxiosInstance) {}
 
   // get next payment date and amount invoice.
@@ -33,6 +34,7 @@ export class PaymentApi {
       throw error;
     }
   }
+  // this is for paystack
   // initialization payment
   async initializeInvoicePayment(
     invoiceId: string,
@@ -50,6 +52,7 @@ export class PaymentApi {
       throw error;
     }
   }
+  // this is for paystack
   //   after creating an order, we activate it, by generating the payment link for the user.
   async activateOrder(orderId: string): Promise<InitializePaymentResponse> {
     try {
@@ -76,6 +79,29 @@ export class PaymentApi {
       return response.data;
     } catch (error) {
       console.error("Error fetching all invoices:", error);
+      throw error;
+    }
+  }
+  // for manual payment, uploading receipt.
+  async uploadInvoicePaymentReceipt(
+    dto: UploadInvoicePaymentReceiptDto,
+  ): Promise<UploadInvoicePaymentReceiptResponse>{
+    try {
+      const response = await this.axios.post(`${this.receiptEndpoint}/upload-invoice-payment-receipt`, dto);
+      return response.data;
+    } catch (error) {
+      console.error("Error uploading invoice payment receipt:", error);
+      throw error;
+    }
+  }
+  async uploadActivateOrderPaymentReceipt(
+    dto: UploadActivateOrderPaymentReceiptDto,
+  ): Promise<UploadActivateOrderPaymentReceiptResponse> {
+    try {
+      const response = await this.axios.post(`${this.receiptEndpoint}/upload-activate-order-payment-receipt`, dto);
+      return response.data;
+    } catch (error) {
+      console.error("Error uploading activate order payment receipt:", error);
       throw error;
     }
   }
