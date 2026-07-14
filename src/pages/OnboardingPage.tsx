@@ -67,6 +67,7 @@ const idTypeLabels: Record<IdTypeEnum, string> = {
   [IdTypeEnum.VOTERS_CARD]: "Voter's Card",
   [IdTypeEnum.DRIVERS_LICENSE]: "Driver's License",
   [IdTypeEnum.INTERNATIONAL_PASSPORT]: 'Intl. Passport',
+  [IdTypeEnum.NA]: 'N/A',
 }
 
 const intendedUseLabels: Record<IntendedUseEnum, string> = {
@@ -230,46 +231,84 @@ const stepSchemas: Yup.AnyObjectSchema[] = [
 
 interface FormValues {
   // Step 0
-  first_name: string; last_name: string; email: string; phone_number: string
-  whatsapp_number: string; alternative_number: string
-  gender: UserGenderEnum | ''; dob: string; address: string
-  business_address: string; occupation: string
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone_number: string;
+  whatsapp_number: string;
+  alternative_number: string;
+  gender: UserGenderEnum | "";
+  dob: string;
+  address: string;
+  business_address: string;
+  occupation: string;
   // Step 1
-  id_type: IdTypeEnum | ''; id_number: string; profile_picture: string
-  interested_device_type: DeviceTypeEnum | ''
-  interested_device_category_id: string; interested_device_category_name: string
-  device_payment_option: DeviceCategoryPaymentOptionEnum | ''
-  device_payment_duration: DeviceCategoryPaymentDurationOptionEnum | ''
-  device_initialization_amount: number | null
-  device_installment_amount: number | null
-  device_installment_duration_months: number | null
-  paymentTimeline: DevicePaymentTimelineEnum | ''
-  intended_use: IntendedUseEnum | ''; intended_use_other: string
+  id_type: IdTypeEnum;
+  id_number: string;
+  profile_picture: string;
+  interested_device_type: DeviceTypeEnum | "";
+  interested_device_category_id: string;
+  interested_device_category_name: string;
+  device_payment_option: DeviceCategoryPaymentOptionEnum | "";
+  device_payment_duration: DeviceCategoryPaymentDurationOptionEnum | "";
+  device_initialization_amount: number | null;
+  device_installment_amount: number | null;
+  device_installment_duration_months: number | null;
+  paymentTimeline: DevicePaymentTimelineEnum | "";
+  intended_use: IntendedUseEnum | "";
+  intended_use_other: string;
   // Step 2
-  income_source: string; daily_income: string; weekly_income: string
-  monthly_income: string; monthly_expenses: string; income_stability: IncomeStabilityEnum | ''
+  income_source: string;
+  daily_income: string;
+  weekly_income: string;
+  monthly_income: string;
+  monthly_expenses: string;
+  income_stability: IncomeStabilityEnum | "";
   // Step 3
-  monthly_rent: string; school_fees: string
-  loan_repayment_amount: string; loan_repayment_lender: string
-  fuel_expenses: string; electricity_bill: string; other_expenses: string
+  monthly_rent: string;
+  school_fees: string;
+  loan_repayment_amount: string;
+  loan_repayment_lender: string;
+  fuel_expenses: string;
+  electricity_bill: string;
+  other_expenses: string;
   // Step 4
-  has_taken_loan: boolean | null; loan_type: LoanTypeEnum | ''; loan_status: LoanStatusEnum | ''
-  has_outstanding_debt: boolean | null; outstanding_debt_amount: string
-  willing_to_provide_bank_statement: boolean | null; bank_statement_refusal_reason: string
+  has_taken_loan: boolean | null;
+  loan_type: LoanTypeEnum | "";
+  loan_status: LoanStatusEnum | "";
+  has_outstanding_debt: boolean | null;
+  outstanding_debt_amount: string;
+  willing_to_provide_bank_statement: boolean | null;
+  bank_statement_refusal_reason: string;
   // Step 5
-  power_problems: PowerProblemEnum[]; product_benefits: ProductBenefitEnum[]
-  is_business_owner: boolean | null; business_type: BusinessTypeEnum | ''
-  business_duration: BusinessDurationEnum | ''; daily_customer_traffic: CustomerTrafficEnum | ''
-  has_power_equipment: boolean | null; is_permanent_location: boolean | null; hub_distance_km: string
+  power_problems: PowerProblemEnum[];
+  product_benefits: ProductBenefitEnum[];
+  is_business_owner: boolean | null;
+  business_type: BusinessTypeEnum | "";
+  business_duration: BusinessDurationEnum | "";
+  daily_customer_traffic: CustomerTrafficEnum | "";
+  has_power_equipment: boolean | null;
+  is_permanent_location: boolean | null;
+  hub_distance_km: string;
   // Step 6
-  guarantor_1_name: string; guarantor_1_phone: string; guarantor_1_relationship: string
-  guarantor_1_address: string; guarantor_1_occupation: string
-  guarantor_1_id_type: IdTypeEnum | ''; guarantor_1_id_number: string
-  guarantor_2_name: string; guarantor_2_phone: string; guarantor_2_relationship: string
-  guarantor_2_address: string; guarantor_2_occupation: string
-  guarantor_2_id_type: IdTypeEnum | ''; guarantor_2_id_number: string
+  guarantor_1_name: string;
+  guarantor_1_phone: string;
+  guarantor_1_relationship: string;
+  guarantor_1_address: string;
+  guarantor_1_occupation: string;
+  guarantor_1_id_type: IdTypeEnum | "";
+  guarantor_1_id_number: string;
+  guarantor_2_name: string;
+  guarantor_2_phone: string;
+  guarantor_2_relationship: string;
+  guarantor_2_address: string;
+  guarantor_2_occupation: string;
+  guarantor_2_id_type: IdTypeEnum | "";
+  guarantor_2_id_number: string;
   // Step 7
-  password: string; confirm_password: string; consent_agreed: boolean
+  password: string;
+  confirm_password: string;
+  consent_agreed: boolean;
 }
 
 // ─── Shared UI tokens ────────────────────────────────────────────────────────
@@ -337,7 +376,7 @@ function OnboardingPage() {
   const [showConfirm, setShowConfirm] = useState(false)
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
-  const [devicePickerOpen, setDevicePickerOpen] = useState(true)
+  const [devicePickerOpen, setDevicePickerOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null)
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -368,34 +407,78 @@ function OnboardingPage() {
   }, [agentId, hubId])
 
   const initialValues: FormValues = {
-    first_name: '', last_name: '', email: '', phone_number: '',
-    whatsapp_number: '', alternative_number: '',
-    gender: '', dob: '', address: '', business_address: '', occupation: '',
-    id_type: '', id_number: '', profile_picture: '',
-    interested_device_type: '', interested_device_category_id: '', interested_device_category_name: '',
-    device_payment_option: '', device_payment_duration: '',
-    device_initialization_amount: null, device_installment_amount: null, device_installment_duration_months: null,
-    paymentTimeline: '', intended_use: '', intended_use_other: '',
-    income_source: '', daily_income: '', weekly_income: '',
-    monthly_income: '', monthly_expenses: '', income_stability: '',
-    monthly_rent: '', school_fees: '',
-    loan_repayment_amount: '', loan_repayment_lender: '',
-    fuel_expenses: '', electricity_bill: '', other_expenses: '',
-    has_taken_loan: null, loan_type: '', loan_status: '',
-    has_outstanding_debt: null, outstanding_debt_amount: '',
-    willing_to_provide_bank_statement: null, bank_statement_refusal_reason: '',
-    power_problems: [], product_benefits: [],
-    is_business_owner: null, business_type: '',
-    business_duration: '', daily_customer_traffic: '',
-    has_power_equipment: null, is_permanent_location: null, hub_distance_km: '',
-    guarantor_1_name: '', guarantor_1_phone: '', guarantor_1_relationship: '',
-    guarantor_1_address: '', guarantor_1_occupation: '',
-    guarantor_1_id_type: '', guarantor_1_id_number: '',
-    guarantor_2_name: '', guarantor_2_phone: '', guarantor_2_relationship: '',
-    guarantor_2_address: '', guarantor_2_occupation: '',
-    guarantor_2_id_type: '', guarantor_2_id_number: '',
-    password: '', confirm_password: '', consent_agreed: false,
-  }
+    first_name: "",
+    last_name: "",
+    email: "",
+    phone_number: "",
+    whatsapp_number: "",
+    alternative_number: "",
+    gender: "",
+    dob: "",
+    address: "",
+    business_address: "",
+    occupation: "",
+    id_type:IdTypeEnum.NA,
+    id_number: "",
+    profile_picture: "",
+    interested_device_type: "",
+    interested_device_category_id: "",
+    interested_device_category_name: "",
+    device_payment_option: "",
+    device_payment_duration: "",
+    device_initialization_amount: null,
+    device_installment_amount: null,
+    device_installment_duration_months: null,
+    paymentTimeline: "",
+    intended_use: "",
+    intended_use_other: "",
+    income_source: "",
+    daily_income: "",
+    weekly_income: "",
+    monthly_income: "",
+    monthly_expenses: "",
+    income_stability: "",
+    monthly_rent: "",
+    school_fees: "",
+    loan_repayment_amount: "",
+    loan_repayment_lender: "",
+    fuel_expenses: "",
+    electricity_bill: "",
+    other_expenses: "",
+    has_taken_loan: null,
+    loan_type: "",
+    loan_status: "",
+    has_outstanding_debt: null,
+    outstanding_debt_amount: "",
+    willing_to_provide_bank_statement: null,
+    bank_statement_refusal_reason: "",
+    power_problems: [],
+    product_benefits: [],
+    is_business_owner: null,
+    business_type: "",
+    business_duration: "",
+    daily_customer_traffic: "",
+    has_power_equipment: null,
+    is_permanent_location: null,
+    hub_distance_km: "",
+    guarantor_1_name: "",
+    guarantor_1_phone: "",
+    guarantor_1_relationship: "",
+    guarantor_1_address: "",
+    guarantor_1_occupation: "",
+    guarantor_1_id_type: "",
+    guarantor_1_id_number: "",
+    guarantor_2_name: "",
+    guarantor_2_phone: "",
+    guarantor_2_relationship: "",
+    guarantor_2_address: "",
+    guarantor_2_occupation: "",
+    guarantor_2_id_type: "",
+    guarantor_2_id_number: "",
+    password: "",
+    confirm_password: "",
+    consent_agreed: false,
+  };
 
   const handleNext = async (
     values: FormValues,
@@ -495,93 +578,141 @@ function OnboardingPage() {
     setIsPending(true)
     onboard(
       {
-        first_name: values.first_name, last_name: values.last_name,
-        email: values.email, phone_number: values.phone_number,
+        first_name: values.first_name,
+        last_name: values.last_name,
+        email: values.email,
+        phone_number: values.phone_number,
         whatsapp_number: values.whatsapp_number || undefined,
         alternative_number: values.alternative_number || undefined,
-        gender: values.gender as UserGenderEnum, dob: values.dob,
+        gender: values.gender as UserGenderEnum,
+        dob: values.dob,
         address: values.address,
         business_address: values.business_address || undefined,
         occupation: values.occupation,
-        id_type: values.id_type as any, id_number: values.id_number,
+
+        id_number: values.id_number,
         profile_picture: values.profile_picture || undefined,
         interested_device_type: values.interested_device_type as DeviceTypeEnum,
         interested_device_category_id: values.interested_device_category_id,
         interested_device_category_name: values.interested_device_category_name,
-        device_payment_option: values.device_payment_option as DeviceCategoryPaymentOptionEnum,
-        device_payment_duration: values.device_payment_duration as DeviceCategoryPaymentDurationOptionEnum || undefined,
+        device_payment_option:
+          values.device_payment_option as DeviceCategoryPaymentOptionEnum,
+        device_payment_duration:
+          (values.device_payment_duration as DeviceCategoryPaymentDurationOptionEnum) ||
+          undefined,
         device_initialization_amount: values.device_initialization_amount ?? 0,
-        device_installment_amount: values.device_installment_amount ?? undefined,
-        device_installment_duration_months: values.device_installment_duration_months ?? undefined,
+        device_installment_amount:
+          values.device_installment_amount ?? undefined,
+        device_installment_duration_months:
+          values.device_installment_duration_months ?? undefined,
         paymentTimeline: values.paymentTimeline as DevicePaymentTimelineEnum,
         intended_use: values.intended_use as any,
-        intended_use_other: values.intended_use === IntendedUseEnum.OTHER ? values.intended_use_other : undefined,
+        intended_use_other:
+          values.intended_use === IntendedUseEnum.OTHER
+            ? values.intended_use_other
+            : undefined,
         income_source: values.income_source,
         daily_income: parseFloat(values.daily_income) || 0,
         weekly_income: parseFloat(values.weekly_income) || 0,
         monthly_income: parseFloat(values.monthly_income) || 0,
         monthly_expenses: parseFloat(values.monthly_expenses) || 0,
-        income_stability: values.income_stability as any,
+
         monthly_rent: parseFloat(values.monthly_rent) || 0,
         school_fees: parseFloat(values.school_fees) || 0,
-        loan_repayment_amount: values.loan_repayment_amount ? parseFloat(values.loan_repayment_amount) : undefined,
+        loan_repayment_amount: values.loan_repayment_amount
+          ? parseFloat(values.loan_repayment_amount)
+          : undefined,
         loan_repayment_lender: values.loan_repayment_lender || undefined,
         fuel_expenses: parseFloat(values.fuel_expenses) || 0,
         electricity_bill: parseFloat(values.electricity_bill) || 0,
-        other_expenses: values.other_expenses ? parseFloat(values.other_expenses) : undefined,
+        other_expenses: values.other_expenses
+          ? parseFloat(values.other_expenses)
+          : undefined,
         has_taken_loan: values.has_taken_loan as boolean,
-        loan_type: values.has_taken_loan ? (values.loan_type as any) : undefined,
-        loan_status: values.has_taken_loan ? (values.loan_status as any) : undefined,
+        loan_type: values.has_taken_loan
+          ? (values.loan_type as any)
+          : undefined,
+        loan_status: values.has_taken_loan
+          ? (values.loan_status as any)
+          : undefined,
         has_outstanding_debt: values.has_outstanding_debt as boolean,
-        outstanding_debt_amount: values.has_outstanding_debt && values.outstanding_debt_amount
-          ? parseFloat(values.outstanding_debt_amount) : undefined,
-        willing_to_provide_bank_statement: values.willing_to_provide_bank_statement as boolean,
+        outstanding_debt_amount:
+          values.has_outstanding_debt && values.outstanding_debt_amount
+            ? parseFloat(values.outstanding_debt_amount)
+            : undefined,
+        willing_to_provide_bank_statement:
+          values.willing_to_provide_bank_statement as boolean,
         bank_statement_refusal_reason: !values.willing_to_provide_bank_statement
-          ? values.bank_statement_refusal_reason || undefined : undefined,
+          ? values.bank_statement_refusal_reason || undefined
+          : undefined,
         power_problems: values.power_problems,
         product_benefits: values.product_benefits,
         is_business_owner: values.is_business_owner as boolean,
-        ...(values.is_business_owner ? {
-          business_type: values.business_type as any,
-          business_duration: values.business_duration as any,
-          daily_customer_traffic: values.daily_customer_traffic as any,
-          has_power_equipment: values.has_power_equipment as boolean,
-          is_permanent_location: values.is_permanent_location as boolean,
-          hub_distance_km: values.hub_distance_km ? parseFloat(values.hub_distance_km) : undefined,
-        } : {}),
-        guarantors: [
-          {
-            name: values.guarantor_1_name,
-            phone: values.guarantor_1_phone,
-            relationship: values.guarantor_1_relationship,
-            address: values.guarantor_1_address,
-            occupation: values.guarantor_1_occupation,
-            id_type: values.guarantor_1_id_type as any,
-            id_number: values.guarantor_1_id_number,
-          },
-          {
-            name: values.guarantor_2_name,
-            phone: values.guarantor_2_phone,
-            relationship: values.guarantor_2_relationship,
-            address: values.guarantor_2_address,
-            occupation: values.guarantor_2_occupation,
-            id_type: values.guarantor_2_id_type as any,
-            id_number: values.guarantor_2_id_number,
-          },
-        ],
+        ...(values.is_business_owner
+          ? {
+              business_type: values.business_type as any,
+              business_duration: values.business_duration as any,
+              daily_customer_traffic: values.daily_customer_traffic as any,
+              has_power_equipment: values.has_power_equipment as boolean,
+              is_permanent_location: values.is_permanent_location as boolean,
+              hub_distance_km: values.hub_distance_km
+                ? parseFloat(values.hub_distance_km)
+                : undefined,
+            }
+          : {}),
+
+        ...(values.paymentTimeline !== DevicePaymentTimelineEnum.OUTRIGHT
+          ? {
+              guarantors: [
+                {
+                  name: values.guarantor_1_name,
+                  phone: values.guarantor_1_phone,
+                  relationship: values.guarantor_1_relationship,
+                  address: values.guarantor_1_address,
+                  occupation: values.guarantor_1_occupation,
+                  id_type: values.guarantor_1_id_type as any,
+                  id_number: values.guarantor_1_id_number,
+                },
+                {
+                  name: values.guarantor_2_name,
+                  phone: values.guarantor_2_phone,
+                  relationship: values.guarantor_2_relationship,
+                  address: values.guarantor_2_address,
+                  occupation: values.guarantor_2_occupation,
+                  id_type: values.guarantor_2_id_type as any,
+                  id_number: values.guarantor_2_id_number,
+                },
+              ],
+            }
+          : {}),
+        ...(values.paymentTimeline === DevicePaymentTimelineEnum.OUTRIGHT
+          ? {
+              income_stability: IncomeStabilityEnum.VERY_STABLE,
+              id_type:IdTypeEnum.NA
+            }
+          : {
+              income_stability: values.income_stability as any,
+               id_type:initialValues.id_type
+            }),
         consent_agreed: values.consent_agreed,
         password: values.password,
         onboarding_agent_id: agentId,
         onboarding_hub_id: hubId,
       },
       {
-        onSuccess: () => { setIsPending(false); setSuccess(true) },
-        onError: (err: any) => {
-          toast.error(err?.response?.data?.message || 'Submission failed. Please try again.')
-          setIsPending(false)
+        onSuccess: () => {
+          setIsPending(false);
+          setSuccess(true);
         },
-      }
-    )
+        onError: (err: any) => {
+          toast.error(
+            err?.response?.data?.message ||
+              "Submission failed. Please try again.",
+          );
+          setIsPending(false);
+        },
+      },
+    );
   }
 
   const slideVariants = {

@@ -34,7 +34,7 @@ export interface DeviceUserOnboardingDto {
   alternative_number?: string;
   gender: UserGenderEnum;
   dob: string;
-  address: string;               // home address
+  address: string; // home address
   business_address?: string;
   occupation: string;
   id_type: IdTypeEnum;
@@ -52,7 +52,7 @@ export interface DeviceUserOnboardingDto {
   device_installment_duration_months?: number;
   paymentTimeline: DevicePaymentTimelineEnum;
   intended_use: IntendedUseEnum;
-  intended_use_other?: string;   // only when intended_use === OTHER
+  intended_use_other?: string; // only when intended_use === OTHER
 
   // ── Section 3A: Income ───────────────────────────────────────────────────────
   income_source: string;
@@ -94,7 +94,7 @@ export interface DeviceUserOnboardingDto {
   hub_distance_km?: number;
 
   // ── Section 7: Guarantors ────────────────────────────────────────────────────
-  guarantors: [GuarantorDto, GuarantorDto];
+  guarantors?: GuarantorDto[];
 
   // ── Section 9: Consent ───────────────────────────────────────────────────────
   consent_agreed: boolean;

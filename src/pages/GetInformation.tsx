@@ -109,7 +109,7 @@ export default function GetInformation() {
             onboarding_agent_id: userInfoResponse.onboarding_agent_id,
             onboarding_hub_id: userInfoResponse.onboarding_hub_id,
             paymentTimeline: userInfoResponse.paymentTimeline,
-            onboardingStatus: null,
+            onboardingStatus: DeviceUserOnboardingStatusEnum.ACCEPTED,
           });
 
           // only users who want installment payment timeline need to go through the kyc flow
@@ -158,8 +158,15 @@ export default function GetInformation() {
             distributorId: "",
             address: "",
           });
-
           if (
+            onboarding.data.status ===
+              DeviceUserOnboardingStatusEnum.REJECTED &&
+            onboarding.data.paymentTimeline !==
+              DevicePaymentTimelineEnum.OUTRIGHT
+          ) {
+            // telling the user that their request has been rejected, and they should contact your agent for more information.
+            navigate("/rejected-application");
+          } else if (
             onboarding.data.paymentTimeline !==
               DevicePaymentTimelineEnum.OUTRIGHT &&
             onboarding.data.status === DeviceUserOnboardingStatusEnum.PENDING

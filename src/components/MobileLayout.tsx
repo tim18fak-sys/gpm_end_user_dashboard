@@ -16,6 +16,8 @@ import {
 } from '@heroicons/react/24/solid'
 import type { PropsWithChildren } from 'react'
 import { useAuthStore } from '@/store/authStore'
+import KycRouterWrapper from "./wrapper/KycRouterWrapper";
+import ApprovalFlowWrapper from "./wrapper/ApprovalFlowWrapper";
 
 const TAB_ITEMS = [
   {
@@ -143,19 +145,24 @@ function MobileTabBar() {
 }
 
 function MobileLayout({ children }: PropsWithChildren) {
-  const {isAuthenticated} = useAuthStore()
+  const { isAuthenticated } = useAuthStore();
 
-  console.log('isAuthenticated', isAuthenticated)
-  if(!isAuthenticated) return <Navigate to="/login" />
+  console.log("isAuthenticated", isAuthenticated);
+  if (!isAuthenticated) return <Navigate to="/login" />;
+
   return (
     <>
-      <DesktopGuard />
-      <div className="pb-[calc(env(safe-area-inset-bottom,0px)+64px)]">
-        {children}
-      </div>
-      <MobileTabBar />
+      <ApprovalFlowWrapper>
+        <KycRouterWrapper>
+          <DesktopGuard />
+          <div className="pb-[calc(env(safe-area-inset-bottom,0px)+64px)]">
+            {children}
+          </div>
+          <MobileTabBar />
+        </KycRouterWrapper>
+      </ApprovalFlowWrapper>
     </>
-  )
+  );
 }
 
 export default MobileLayout

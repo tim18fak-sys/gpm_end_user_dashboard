@@ -92,7 +92,7 @@ function NoDeviceState() {
         No device assigned yet
       </h2>
       <p className="text-sm text-secondary-500 dark:text-secondary-400 leading-relaxed max-w-xs mb-7">
-        Once your hub admin assigns a device to your account it will appear here. Check your order status below.
+        Once onboarding  agent assigns a device to your account it will appear here. Check your order status below.
       </p>
 
       <div className="w-full max-w-sm space-y-3 mb-8">

@@ -3,6 +3,7 @@ export enum IdTypeEnum {
   VOTERS_CARD = "voters_card",
   DRIVERS_LICENSE = "drivers_license",
   INTERNATIONAL_PASSPORT = "international_passport",
+  NA='N/A'
 }
 
 export enum IntendedUseEnum {

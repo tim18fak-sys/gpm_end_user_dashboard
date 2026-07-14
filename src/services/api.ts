@@ -53,40 +53,50 @@ export interface CustomerLoginResponse {
 const AUTH_API = "/v1/auth/customer";
 // this is a central point
 export const authAPI = {
-  login: async (identity: string, password: string):Promise<CustomerLoginResponse> => {
-    const response = await api.post(`${AUTH_API}/login`, { identity, password })
-    return response.data
-  },
-  
-  forgotPassword: async (email: string) => {
-    const response = await api.post(`${AUTH_API}/forgot-password`, { email })
-    return response.data
-  },
-  
-  resetPassword: async (token: string, newPassword: string) => {
-    const response = await api.post(`${AUTH_API}/set-password?token=${token}`, {
-      password: newPassword
-    })
-    return response.data
-  },
-  completeSetup: async (token: string, newPassword: string) => {
-    const response = await api.post(`${AUTH_API}/complete-setup?token=${token}`, {
-      password: newPassword
-    })
-    return response.data
-  },
-  
-  
-  getUserInfo: async () => {
-    const response = await api.get(`${AUTH_API}/me`)
-    return response.data
+  login: async (
+    identity: string,
+    password: string,
+  ): Promise<CustomerLoginResponse> => {
+    const response = await api.post(`${AUTH_API}/login`, {
+      identity,
+      password,
+    });
+    return response.data;
   },
 
-  logout:async() => {
-    const response = await api.patch(`${AUTH_API}/logout`)
-    return response.data
-  }
-}
+  forgotPassword: async (identity: string) => {
+    const response = await api.post(`${AUTH_API}/forgot-password`, {
+      identity,
+    });
+    return response.data;
+  },
+
+  resetPassword: async (token: string, newPassword: string) => {
+    const response = await api.post(`${AUTH_API}/set-password?token=${token}`, {
+      password: newPassword,
+    });
+    return response.data;
+  },
+  completeSetup: async (token: string, newPassword: string) => {
+    const response = await api.post(
+      `${AUTH_API}/complete-setup?token=${token}`,
+      {
+        password: newPassword,
+      },
+    );
+    return response.data;
+  },
+
+  getUserInfo: async () => {
+    const response = await api.get(`${AUTH_API}/me`);
+    return response.data;
+  },
+
+  logout: async () => {
+    const response = await api.patch(`${AUTH_API}/logout`);
+    return response.data;
+  },
+};
 
 interface UpdateProfile {
   name?: string

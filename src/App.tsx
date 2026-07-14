@@ -15,9 +15,10 @@ import PendingKycReview from './pages/kyc/PendingKycReview'
 import RejectedKyc from './pages/kyc/RejectedKyc'
 import OnboardingPage from './pages/OnboardingPage'
 import MobileLayout from './components/MobileLayout'
-import WaitingForApproval from './pages/WaitingForApproval'
+import WaitingForApproval from './pages/approval.flow/WaitingForApproval'
 import PaymentHistory from './pages/PaymentHistory'
 import OrderList from "./pages/OrderList";
+import RejectedApplication from './pages/approval.flow/RejectedApplication'
 
 function App() {
   const location = useLocation()
@@ -49,13 +50,25 @@ function App() {
             // </MobileLayout>
           }
         />
+
         <Route
-          path="/waiting-for-approval"
+          path='/waiting-for-approval'
           element={
             <MobileLayout>
               <WaitingForApproval />
             </MobileLayout>
           }
+        
+        />
+        {/* for rejected application */}
+        <Route
+          path='/rejected-application'
+          element={
+            <MobileLayout>
+              <RejectedApplication />
+            </MobileLayout>
+          }
+        
         />
         {/* kyc path */}
         <Route path="/kyc">

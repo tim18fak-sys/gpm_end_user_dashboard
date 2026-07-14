@@ -22,6 +22,7 @@ import {
   DeviceCategoryPaymentOptionEnum,
   DeviceCategoryPaymentDurationOptionEnum,
 } from '@/types/deviceCategory'
+import { useDebounce } from "@/hooks/useDebounce";
 
 // ─── Public contract ─────────────────────────────────────────────────────────
 
@@ -139,17 +140,28 @@ export default function DevicePickerModal({ open, onClose, onSelect, currentId }
   const [selectedCategory, setSelectedCategory] = useState<DeviceCategory | null>(null)
   const [selectedDuration, setSelectedDuration] = useState<DeviceCategoryPaymentDurationOptionEnum | null>(null)
 
-  const classQuery = useDeviceClass({ limit: 50, enabled: open })
+  const searchedClassDebounce = useDebounce(search, 300);
+  const searchedGroupDebounce = useDebounce(search, 300);
+  const searchedCategoryDebounce = useDebounce(search, 300);
+  const classQuery = useDeviceClass({
+    limit: 50,
+    enabled: open,
+    search: searchedClassDebounce,
+  });
   const groupQuery = useDeviceCategoryGroup({
     limit: 50,
     deviceClassId: selectedClassId,
-    enabled: !!selectedClassId && stage !== 'class',
-  })
+    enabled: !!selectedClassId && stage !== "class",
+    search: searchedGroupDebounce,
+  });
   const categoryQuery = useDeviceCategoryByGroupId({
     limit: 50,
     deviceGroupId: selectedGroupId,
-    enabled: !!selectedGroupId && (stage === 'category' || stage === 'details' || stage === 'installment'),
-  })
+    enabled:
+      !!selectedGroupId &&
+      (stage === "category" || stage === "details" || stage === "installment"),
+    search: searchedCategoryDebounce,
+  });
 
   const classes = classQuery.data?.data ?? []
   const groups = groupQuery.data?.data ?? []
@@ -209,6 +221,7 @@ export default function DevicePickerModal({ open, onClose, onSelect, currentId }
       amount: selectedCategory.amount,
       paymentOption: DeviceCategoryPaymentOptionEnum.OUTRIGHT,
       initializationAmount: 0,
+      
     })
     handleClose()
   }

@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import {
   ArrowLeftIcon,
-  PlusIcon,
   ShoppingBagIcon,
   ClockIcon,
   CheckCircleIcon,
@@ -23,7 +22,7 @@ import { StandardOrder } from '@/types/order.types'
 import { OrderStatusEnum } from '@/enum/order.enum'
 import { GetAllOrderCursorPaginationDTO } from '@/services/order.api'
 import { DevicePaymentPlan } from '@/enum/device.enum'
-import { NewOrderModal } from '@/components/modals/NewOrderModal'
+// import { NewOrderModal } from '@/components/modals/NewOrderModal'
 import { useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 
@@ -451,22 +450,23 @@ function EmptyOrders({ onNewOrder }: { onNewOrder: () => void }) {
         No orders yet
       </p>
       <p className="text-xs text-secondary-400 dark:text-secondary-500 leading-relaxed mb-6">
-        Place your first order to get your solar device and start your plan.
+        Please wait while we process your order
       </p>
-      <motion.button
+      {/* <motion.button
         whileTap={{ scale: 0.97 }}
         onClick={onNewOrder}
         className="flex items-center gap-2 px-5 py-3 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-bold transition-colors"
       >
         <PlusIcon className="w-4 h-4" />
         Place an order
-      </motion.button>
+      </motion.button> */}
     </motion.div>
   )
 }
 
 // ─── Order List Page ──────────────────────────────────────────────────────────
 
+// this page only shows the customer their orders and for them to be able to activate the order.
 function OrderList() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -546,23 +546,26 @@ function OrderList() {
               <ArrowLeftIcon className="w-4 h-4 text-secondary-600 dark:text-secondary-300" />
             </button>
             <div>
-              <h1 className="text-base font-bold text-secondary-900 dark:text-white">My Orders</h1>
+              <h1 className="text-base font-bold text-secondary-900 dark:text-white">
+                My Orders
+              </h1>
               <p className="text-xs text-secondary-400 dark:text-secondary-500">
                 {isLoading
-                  ? 'Loading…'
-                  : `${orders.length} order${orders.length !== 1 ? 's' : ''}`}
+                  ? "Loading…"
+                  : `${orders.length} order${orders.length !== 1 ? "s" : ""}`}
               </p>
             </div>
           </div>
 
-          <motion.button
+          {/*   ORDER IS AUTO CREATED ONCE ADMIN APPROVES OF THE CUSTOMER REQUEST. */}
+          {/* <motion.button
             whileTap={{ scale: 0.95 }}
             onClick={() => setShowNewOrder(true)}
             className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-xs font-bold transition-colors shadow-sm"
           >
             <PlusIcon className="w-4 h-4" />
             New order
-          </motion.button>
+          </motion.button> */}
         </div>
       </div>
 
@@ -570,7 +573,7 @@ function OrderList() {
       {isLoading ? (
         <OrderSkeleton />
       ) : orders.length === 0 ? (
-        <EmptyOrders onNewOrder={() => setShowNewOrder(true)} />
+        <EmptyOrders onNewOrder={() => setShowNewOrder(false)} />
       ) : (
         <div className="px-4 pt-4 pb-8 space-y-3">
           {orders.map((order, i) => (
@@ -580,21 +583,25 @@ function OrderList() {
               index={i}
               onCancel={(id) => setCancelTarget(id)}
               onActivate={handleActivate}
-              isActivating={activatingId === ((order as any)._id ?? order.deviceCategoryId)}
+              isActivating={
+                activatingId === ((order as any)._id ?? order.deviceCategoryId)
+              }
             />
           ))}
         </div>
       )}
 
+
       {/* New Order Modal */}
-      <AnimatePresence>
+      {/* ORDER IS AUTO CREATED WHEN ADMIN APPROVES OF THE CUSTOMER */}
+      {/* <AnimatePresence>
         {showNewOrder && (
           <NewOrderModal
             onClose={() => setShowNewOrder(false)}
             onSuccess={handleOrderSuccess}
           />
         )}
-      </AnimatePresence>
+      </AnimatePresence> */}
 
       {/* Cancel Confirmation */}
       <AnimatePresence>
@@ -608,7 +615,7 @@ function OrderList() {
         )}
       </AnimatePresence>
     </div>
-  )
+  );
 }
 
 export default OrderList
