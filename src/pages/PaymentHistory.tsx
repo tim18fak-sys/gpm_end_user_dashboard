@@ -13,7 +13,8 @@ import {
 } from '@heroicons/react/24/outline'
 import { CheckCircleIcon as CheckCircleSolid } from '@heroicons/react/24/solid'
 import { useNavigate } from 'react-router-dom'
-import { useGetActiveInvoice, useGetAllInvoices, useInitializeInvoicePayment } from '@/hooks/usePayment'
+import { useGetActiveInvoice, useGetAllInvoices } from '@/hooks/usePayment'
+import PaymentModal from '@/components/modals/PaymentModal'
 import { Invoice } from '@/types/payment.type'
 import { InvoiceStatusEnum } from '@/enum/payment.enum'
 import { BaseCursorPaginationInterface } from '@/types/shared'
@@ -92,11 +93,9 @@ function HistorySkeleton() {
 function ActiveInvoiceBanner({
   invoice,
   onPayNow,
-  isPaying,
 }: {
   invoice: Invoice
-  onPayNow: (id: string) => void
-  isPaying: boolean
+  onPayNow: (id: string, amount: number) => void
 }) {
   const cfg = statusConfig[invoice.status]
   const Icon = cfg.icon
@@ -136,21 +135,11 @@ function ActiveInvoiceBanner({
       {canPay(invoice.status) && (
         <motion.button
           whileTap={{ scale: 0.97 }}
-          onClick={() => onPayNow(invoiceId)}
-          disabled={isPaying}
-          className="mt-4 w-full py-2.5 rounded-xl bg-white disabled:opacity-70 text-primary-700 text-sm font-bold hover:bg-white/90 transition-colors flex items-center justify-center gap-2"
+          onClick={() => onPayNow(invoiceId, invoice.amount)}
+          className="mt-4 w-full py-2.5 rounded-xl bg-white text-primary-700 text-sm font-bold hover:bg-white/90 transition-colors flex items-center justify-center gap-2"
         >
-          {isPaying ? (
-            <>
-              <ArrowPathIcon className="w-4 h-4 animate-spin text-primary-600" />
-              <span>Getting payment link…</span>
-            </>
-          ) : (
-            <>
-              <CreditCardIcon className="w-4 h-4 text-primary-600" />
-              <span>Pay Now</span>
-            </>
-          )}
+          <CreditCardIcon className="w-4 h-4 text-primary-600" />
+          <span>Pay Now</span>
         </motion.button>
       )}
     </motion.div>
@@ -163,12 +152,10 @@ function InvoiceRow({
   invoice,
   index,
   onPayNow,
-  isPaying,
 }: {
   invoice: Invoice
   index: number
-  onPayNow: (id: string) => void
-  isPaying: boolean
+  onPayNow: (id: string, amount: number) => void
 }) {
   const [expanded, setExpanded] = useState(false)
   const cfg = statusConfig[invoice.status]
@@ -228,25 +215,15 @@ function InvoiceRow({
         <div className="px-4 pb-3 -mt-1">
           <motion.button
             whileTap={{ scale: 0.97 }}
-            onClick={() => onPayNow(invoiceId)}
-            disabled={isPaying}
-            className={`w-full flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold transition-colors disabled:opacity-60 ${
+            onClick={() => onPayNow(invoiceId, invoice.amount)}
+            className={`w-full flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold transition-colors ${
               invoice.status === InvoiceStatusEnum.OVERDUE
                 ? 'bg-danger-600 hover:bg-danger-700 text-white'
                 : 'bg-primary-600 hover:bg-primary-700 text-white'
             }`}
           >
-            {isPaying ? (
-              <>
-                <ArrowPathIcon className="w-3.5 h-3.5 animate-spin" />
-                Getting payment link…
-              </>
-            ) : (
-              <>
-                <CreditCardIcon className="w-3.5 h-3.5" />
-                Pay Now
-              </>
-            )}
+            <CreditCardIcon className="w-3.5 h-3.5" />
+            Pay Now
           </motion.button>
         </div>
       )}
@@ -326,43 +303,23 @@ function PaymentHistory() {
     limit: 10,
   })
 
-  // Tracks which invoice is currently going through payment init (for per-card loading state)
-  const [payingInvoiceId, setPayingInvoiceId] = useState<string | null>(null)
+  const [payModal, setPayModal] = useState<{ invoiceId: string; amount: number } | null>(null)
 
   const { data: activeData, isLoading: activeLoading } = useGetActiveInvoice()
   const { data: allData, isLoading: allLoading, isFetching } = useGetAllInvoices(params)
-  const { mutate: initializePayment, isPending: paymentFetching } = useInitializeInvoicePayment()
 
   const activeInvoice = activeData?.data ?? null
   const invoices: Invoice[] = allData?.data ?? []
   const nextCursor = allData?.nextCursor ?? null
   const pastInvoices = invoices.filter((inv) => !inv.isCurrent)
 
-  const handlePayNow = (invoiceId: string) => {
+  // ── Open PaymentModal for the selected invoice ──
+  const handlePayNow = (invoiceId: string, amount: number) => {
     if (!invoiceId) {
       toast.error('Invoice ID not available. Please refresh and try again.')
       return
     }
-    setPayingInvoiceId(invoiceId)
-    initializePayment(invoiceId, {
-      onSuccess: (response) => {
-        const url = response?.data?.authorization_url
-        if (url) {
-          // Redirect in same tab — most reliable on mobile
-          window.location.href = url
-        } else {
-          toast.error('Payment link not available. Please try again.')
-          setPayingInvoiceId(null)
-        }
-      },
-      onError: (err: any) => {
-        const message =
-          err?.response?.data?.message ||
-          'Failed to get payment link. Please try again.'
-        toast.error(message)
-        setPayingInvoiceId(null)
-      },
-    })
+    setPayModal({ invoiceId, amount })
   }
 
   const handleLoadMore = () => {
@@ -396,7 +353,6 @@ function PaymentHistory() {
         <ActiveInvoiceBanner
           invoice={activeInvoice}
           onPayNow={handlePayNow}
-          isPaying={payingInvoiceId === getInvoiceId(activeInvoice) && paymentFetching}
         />
       ) : null}
 
@@ -420,7 +376,6 @@ function PaymentHistory() {
               invoice={inv}
               index={i}
               onPayNow={handlePayNow}
-              isPaying={payingInvoiceId === getInvoiceId(inv) && paymentFetching}
             />
           ))}
 
@@ -448,6 +403,15 @@ function PaymentHistory() {
           )}
         </div>
       )}
+      {/* Payment Modal */}
+      <PaymentModal
+        open={!!payModal}
+        onClose={() => setPayModal(null)}
+        mode="pay-invoice"
+        invoiceId={payModal?.invoiceId}
+        amount={payModal?.amount ?? 0}
+        onSuccess={() => setPayModal(null)}
+      />
     </div>
   )
 }

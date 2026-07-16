@@ -17,8 +17,8 @@ import {
   CreditCardIcon,
 } from '@heroicons/react/24/outline'
 import { useGetAllOrders, useCancelOrder } from '@/hooks/useOrder'
-import { useActivateOrder } from '@/hooks/usePayment'
 import { StandardOrder } from '@/types/order.types'
+import PaymentModal from '@/components/modals/PaymentModal'
 import { OrderStatusEnum } from '@/enum/order.enum'
 import { GetAllOrderCursorPaginationDTO } from '@/services/order.api'
 import { DevicePaymentPlan } from '@/enum/device.enum'
@@ -293,13 +293,11 @@ function OrderCard({
   index,
   onCancel,
   onActivate,
-  isActivating,
 }: {
   order: StandardOrder & { _id?: string }
   index: number
   onCancel: (id: string) => void
-  onActivate: (id: string) => void
-  isActivating: boolean
+  onActivate: (id: string, amount: number) => void
 }) {
   const cfg = statusConfig[order.status] ?? statusConfig[OrderStatusEnum.PENDING]
   const Icon = cfg.icon
@@ -391,26 +389,15 @@ function OrderCard({
           <div className="flex items-center gap-2">
             <motion.button
               whileTap={{ scale: 0.97 }}
-              onClick={() => onActivate(orderId)}
-              disabled={isActivating}
-              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 disabled:opacity-60 text-white text-xs font-bold transition-colors"
+              onClick={() => onActivate(orderId, order.metadata.initializationAmount)}
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-xs font-bold transition-colors"
             >
-              {isActivating ? (
-                <>
-                  <ArrowPathIcon className="w-3.5 h-3.5 animate-spin" />
-                  Getting link…
-                </>
-              ) : (
-                <>
-                  <CreditCardIcon className="w-3.5 h-3.5" />
-                  Activate Order
-                </>
-              )}
+              <CreditCardIcon className="w-3.5 h-3.5" />
+              Activate Order
             </motion.button>
             <button
               onClick={() => onCancel(orderId)}
-              disabled={isActivating}
-              className="flex items-center gap-1 px-3 py-2.5 rounded-xl border border-danger-200 dark:border-danger-800 text-xs font-semibold text-danger-500 dark:text-danger-400 hover:bg-danger-50 dark:hover:bg-danger-900/20 disabled:opacity-40 transition-colors flex-shrink-0"
+              className="flex items-center gap-1 px-3 py-2.5 rounded-xl border border-danger-200 dark:border-danger-800 text-xs font-semibold text-danger-500 dark:text-danger-400 hover:bg-danger-50 dark:hover:bg-danger-900/20 transition-colors flex-shrink-0"
             >
               <XMarkIcon className="w-3.5 h-3.5" />
               Cancel
@@ -436,7 +423,7 @@ function OrderCard({
 
 // ─── Empty State ──────────────────────────────────────────────────────────────
 
-function EmptyOrders({ onNewOrder }: { onNewOrder: () => void }) {
+function EmptyOrders(_: { onNewOrder: () => void }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 14 }}
@@ -471,9 +458,8 @@ function OrderList() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  const [showNewOrder, setShowNewOrder] = useState(false)
   const [cancelTarget, setCancelTarget] = useState<string | null>(null)
-  const [activatingId, setActivatingId] = useState<string | null>(null)
+  const [payModal, setPayModal] = useState<{ orderId: string; amount: number } | null>(null)
 
   const [params] = useState<GetAllOrderCursorPaginationDTO>({
     prevCursor: null,
@@ -484,32 +470,12 @@ function OrderList() {
 
   const { data: ordersData, isLoading } = useGetAllOrders(params)
   const { mutate: cancelOrder, isPending: cancelling } = useCancelOrder()
-  const { mutate: activateOrder } = useActivateOrder()
 
   const orders = ordersData?.data ?? []
 
-  // ── Activate an order: get Paystack URL then redirect ──
-  const handleActivate = (orderId: string) => {
-    setActivatingId(orderId)
-    activateOrder(orderId, {
-      onSuccess: (response) => {
-        const url = response?.data?.authorization_url
-        if (url) {
-          // Redirect in same tab — most reliable on mobile
-          window.location.href = url
-        } else {
-          toast.error('Payment link not available. Please try again.')
-          setActivatingId(null)
-        }
-      },
-      onError: (err: any) => {
-        const message =
-          err?.response?.data?.message ||
-          'Failed to get payment link. Please try again.'
-        toast.error(message)
-        setActivatingId(null)
-      },
-    })
+  // ── Activate an order: open PaymentModal ──
+  const handleActivate = (orderId: string, amount: number) => {
+    setPayModal({ orderId, amount })
   }
 
   const handleCancelConfirm = () => {
@@ -527,10 +493,6 @@ function OrderList() {
         },
       },
     )
-  }
-
-  const handleOrderSuccess = () => {
-    queryClient.invalidateQueries({ queryKey: ['all-orders'] })
   }
 
   return (
@@ -573,7 +535,7 @@ function OrderList() {
       {isLoading ? (
         <OrderSkeleton />
       ) : orders.length === 0 ? (
-        <EmptyOrders onNewOrder={() => setShowNewOrder(false)} />
+        <EmptyOrders onNewOrder={() => {}} />
       ) : (
         <div className="px-4 pt-4 pb-8 space-y-3">
           {orders.map((order, i) => (
@@ -583,9 +545,6 @@ function OrderList() {
               index={i}
               onCancel={(id) => setCancelTarget(id)}
               onActivate={handleActivate}
-              isActivating={
-                activatingId === ((order as any)._id ?? order.deviceCategoryId)
-              }
             />
           ))}
         </div>
@@ -614,6 +573,19 @@ function OrderList() {
           />
         )}
       </AnimatePresence>
+
+      {/* Payment Modal */}
+      <PaymentModal
+        open={!!payModal}
+        onClose={() => setPayModal(null)}
+        mode="activate-order"
+        orderId={payModal?.orderId}
+        amount={payModal?.amount ?? 0}
+        onSuccess={() => {
+          setPayModal(null)
+          queryClient.invalidateQueries({ queryKey: ['all-orders'] })
+        }}
+      />
     </div>
   );
 }
