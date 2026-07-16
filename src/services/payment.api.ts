@@ -1,4 +1,4 @@
-import { Invoice, UploadActivateOrderPaymentReceiptDto, UploadActivateOrderPaymentReceiptResponse, UploadInvoicePaymentReceiptDto, UploadInvoicePaymentReceiptResponse } from "@/types/payment.type";
+import { GetAllActiveBankAccountCursorPaginationResponse, Invoice, UploadActivateOrderPaymentReceiptDto, UploadActivateOrderPaymentReceiptResponse, UploadInvoicePaymentReceiptDto, UploadInvoicePaymentReceiptResponse } from "@/types/payment.type";
 import {
   BaseCursorPaginationInterface,
   BaseDataInterface,
@@ -22,6 +22,7 @@ export class PaymentApi {
   private endpoint = "/v1/invoice/customer";
   private paystackEndpoint = "/v1/payment/customer";
   private receiptEndpoint = "/v1/receipt/user";
+  private bankAccountEndpoint = "/v1/bank-account/customer";
   constructor(private axios: AxiosInstance) {}
 
   // get next payment date and amount invoice.
@@ -102,6 +103,17 @@ export class PaymentApi {
       return response.data;
     } catch (error) {
       console.error("Error uploading activate order payment receipt:", error);
+      throw error;
+    }
+  }
+
+  // get active bank account for manual payment.
+  async getActiveBankAccount():Promise<GetAllActiveBankAccountCursorPaginationResponse>{
+    try {
+      const response = await this.axios.get(`${this.bankAccountEndpoint}/active-bank-account`);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching active bank account:", error);
       throw error;
     }
   }

@@ -1,5 +1,9 @@
 import { InvoiceStatusEnum } from "@/enum/payment.enum";
-import { BaseMessageInterface } from "./shared";
+import {
+  BaseCursorPaginationInterface,
+  BaseDataInterface,
+  BaseMessageInterface,
+} from "./shared";
 
 export interface Invoice {
   // let this be an embedded document, so that the admin can quickly see the user information in a single query without having to populate the user information.
@@ -24,6 +28,13 @@ export interface Invoice {
   isCurrent: boolean;
 }
 
+export interface BankAccount {
+  _id: string;
+  accountNumber: string;
+  bankName: string;
+  accountHolderName: string;
+}
+
 export interface InvoiceUserInfoSubSchema {
   _id: string;
   first_name: string;
@@ -32,19 +43,22 @@ export interface InvoiceUserInfoSubSchema {
   phone_number: string;
 }
 
-
 // manual payment receipt upload request
 export interface UploadActivateOrderPaymentReceiptDto {
   orderId: string;
   amountPaid: number;
   receiptUrl: string;
+  bankId: string;
 }
 export interface UploadInvoicePaymentReceiptDto {
   invoiceId: string;
   amountPaid: number;
   receiptUrl: string;
+  bankId: string;
 }
 // manual payment receipt upload response
 
-export interface UploadActivateOrderPaymentReceiptResponse extends BaseMessageInterface{}
-export interface UploadInvoicePaymentReceiptResponse extends BaseMessageInterface{}
+export interface UploadActivateOrderPaymentReceiptResponse extends BaseMessageInterface {}
+export interface UploadInvoicePaymentReceiptResponse extends BaseMessageInterface {}
+export interface GetAllActiveBankAccountCursorPaginationResponse
+  extends BaseCursorPaginationInterface, BaseDataInterface<BankAccount[]> {}
