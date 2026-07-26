@@ -17,10 +17,8 @@ import {
   useUploadInvoicePaymentReceipt,
 } from '@/hooks/usePayment'
 import { BankAccount } from '@/types/payment.type'
-import PresignedUpload from '@/components/smart_components/PresignUpload'
 import { api } from '@/services/api'
 import { PublicApiConst } from '@/const/upload.const'
-import { set } from 'date-fns'
 import ImageUpload from '../smart_components/SingleImageUpload'
 
 // =============================================================================

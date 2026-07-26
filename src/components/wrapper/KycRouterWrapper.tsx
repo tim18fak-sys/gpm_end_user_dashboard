@@ -9,13 +9,24 @@ interface KycRouterWrapperProps extends PropsWithChildren {}
 function KycRouterWrapper({ children }: KycRouterWrapperProps) {
   const { user } = useAuthStore();
 
-  //   the user has not started their verification process, so we should redirect them to the kyc page
+  console.log("KycRouterWrapper user", user.verification_status);
+
   if (
-    user.verification_status === UserVerificationStatusEnum.PENDING &&
-    user.paymentTimeline !== DevicePaymentTimelineEnum.OUTRIGHT && user.onboardingStatus === DeviceUserOnboardingStatusEnum.ACCEPTED
+    user.verification_status === UserVerificationStatusEnum.NONE &&
+    user.paymentTimeline !== DevicePaymentTimelineEnum.OUTRIGHT &&
+    user.onboardingStatus === DeviceUserOnboardingStatusEnum.ACCEPTED
   )
     return <Navigate to={"/kyc"} />;
 
+  //   the user has not started their verification process, so we should redirect them to the kyc page
+  if (
+    user.verification_status === UserVerificationStatusEnum.PENDING &&
+    user.paymentTimeline !== DevicePaymentTimelineEnum.OUTRIGHT &&
+    user.onboardingStatus === DeviceUserOnboardingStatusEnum.ACCEPTED
+  )
+    return <Navigate to={"/kyc/pending"} />;
+
+  
   // if the user has been rejected, we should redirect them to the kyc page
   if (
     user.verification_status === UserVerificationStatusEnum.REJECTED &&

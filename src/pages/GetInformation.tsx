@@ -2,7 +2,7 @@
 import { useEffect } from 'react'
 import { useLocation, useNavigate } from "react-router-dom";
 import { ProfileManagementAPI } from '../services/api'
-import { useAuthStore, LeadStatusEnum, User } from "../store/authStore";
+import { useAuthStore, } from "../store/authStore";
 import toast from 'react-hot-toast'
 import { motion } from 'framer-motion'
 import { onboardingApi } from "@/services/onboarding.api";
@@ -115,11 +115,18 @@ export default function GetInformation() {
           // only users who want installment payment timeline need to go through the kyc flow
           if (
             userInfoResponse.verification_status ===
-              UserVerificationStatusEnum.PENDING &&
+              UserVerificationStatusEnum.NONE &&
             userInfoResponse.paymentTimeline !==
               DevicePaymentTimelineEnum.OUTRIGHT
           ) {
             navigate("/kyc");
+          } else if (
+            userInfoResponse.verification_status ===
+              UserVerificationStatusEnum.PENDING &&
+            userInfoResponse.paymentTimeline !==
+              DevicePaymentTimelineEnum.OUTRIGHT
+          ) {
+            navigate("/kyc/pending");
           } else if (
             userInfoResponse.verification_status ===
               UserVerificationStatusEnum.REJECTED &&

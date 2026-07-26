@@ -18,3 +18,8 @@ export interface ProcessKycResponse {
   success: boolean
   message: string
 }
+
+export interface ManualKycVerificationDto {
+  nin: string;
+  documentUrl: string;
+}

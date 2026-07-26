@@ -81,27 +81,27 @@ const intendedUseLabels: Record<IntendedUseEnum, string> = {
   [IntendedUseEnum.OTHER]: 'Other',
 }
 
-const paymentTimelineLabels: Record<DevicePaymentTimelineEnum, string> = {
-  [DevicePaymentTimelineEnum.OUTRIGHT]: 'Outright (Pay in full)',
-  [DevicePaymentTimelineEnum.ONE_MONTH]: '1 Month', [DevicePaymentTimelineEnum.TWO_MONTH]: '2 Months',
-  [DevicePaymentTimelineEnum.THREE_MONTH]: '3 Months', [DevicePaymentTimelineEnum.FOUR_MONTH]: '4 Months',
-  [DevicePaymentTimelineEnum.FIVE_MONTH]: '5 Months', [DevicePaymentTimelineEnum.SIX_MONTH]: '6 Months',
-  [DevicePaymentTimelineEnum.SEVEN_MONTH]: '7 Months', [DevicePaymentTimelineEnum.EIGHT_MONTH]: '8 Months',
-  [DevicePaymentTimelineEnum.NINE_MONTH]: '9 Months', [DevicePaymentTimelineEnum.TEN_MONTH]: '10 Months',
-  [DevicePaymentTimelineEnum.ELEVEN_MONTH]: '11 Months', [DevicePaymentTimelineEnum.TWELVE_MONTH]: '12 Months',
-  [DevicePaymentTimelineEnum.THIRTEEN_MONTH]: '13 Months', [DevicePaymentTimelineEnum.FOURTEEN_MONTH]: '14 Months',
-  [DevicePaymentTimelineEnum.FIFTEEN_MONTH]: '15 Months', [DevicePaymentTimelineEnum.SIXTEEN_MONTH]: '16 Months',
-  [DevicePaymentTimelineEnum.SEVENTEEN_MONTH]: '17 Months', [DevicePaymentTimelineEnum.EIGHTEEN_MONTH]: '18 Months',
-  [DevicePaymentTimelineEnum.NINETEEN_MONTH]: '19 Months', [DevicePaymentTimelineEnum.TWENTY_MONTH]: '20 Months',
-  [DevicePaymentTimelineEnum.TWENTY_ONE_MONTH]: '21 Months', [DevicePaymentTimelineEnum.TWENTY_TWO_MONTH]: '22 Months',
-  [DevicePaymentTimelineEnum.TWENTY_THREE_MONTH]: '23 Months', [DevicePaymentTimelineEnum.TWENTY_FOUR_MONTH]: '24 Months',
-  [DevicePaymentTimelineEnum.TWENTY_FIVE_MONTH]: '25 Months', [DevicePaymentTimelineEnum.TWENTY_SIX_MONTH]: '26 Months',
-  [DevicePaymentTimelineEnum.TWENTY_SEVEN_MONTH]: '27 Months', [DevicePaymentTimelineEnum.TWENTY_EIGHT_MONTH]: '28 Months',
-  [DevicePaymentTimelineEnum.TWENTY_NINE_MONTH]: '29 Months', [DevicePaymentTimelineEnum.THIRTY_MONTH]: '30 Months',
-  [DevicePaymentTimelineEnum.THIRTY_ONE_MONTH]: '31 Months', [DevicePaymentTimelineEnum.THIRTY_TWO_MONTH]: '32 Months',
-  [DevicePaymentTimelineEnum.THIRTY_THREE_MONTH]: '33 Months', [DevicePaymentTimelineEnum.THIRTY_FOUR_MONTH]: '34 Months',
-  [DevicePaymentTimelineEnum.THIRTY_FIVE_MONTH]: '35 Months', [DevicePaymentTimelineEnum.THIRTY_SIX_MONTH]: '36 Months',
-}
+// const paymentTimelineLabels: Record<DevicePaymentTimelineEnum, string> = {
+//   [DevicePaymentTimelineEnum.OUTRIGHT]: 'Outright (Pay in full)',
+//   [DevicePaymentTimelineEnum.ONE_MONTH]: '1 Month', [DevicePaymentTimelineEnum.TWO_MONTH]: '2 Months',
+//   [DevicePaymentTimelineEnum.THREE_MONTH]: '3 Months', [DevicePaymentTimelineEnum.FOUR_MONTH]: '4 Months',
+//   [DevicePaymentTimelineEnum.FIVE_MONTH]: '5 Months', [DevicePaymentTimelineEnum.SIX_MONTH]: '6 Months',
+//   [DevicePaymentTimelineEnum.SEVEN_MONTH]: '7 Months', [DevicePaymentTimelineEnum.EIGHT_MONTH]: '8 Months',
+//   [DevicePaymentTimelineEnum.NINE_MONTH]: '9 Months', [DevicePaymentTimelineEnum.TEN_MONTH]: '10 Months',
+//   [DevicePaymentTimelineEnum.ELEVEN_MONTH]: '11 Months', [DevicePaymentTimelineEnum.TWELVE_MONTH]: '12 Months',
+//   [DevicePaymentTimelineEnum.THIRTEEN_MONTH]: '13 Months', [DevicePaymentTimelineEnum.FOURTEEN_MONTH]: '14 Months',
+//   [DevicePaymentTimelineEnum.FIFTEEN_MONTH]: '15 Months', [DevicePaymentTimelineEnum.SIXTEEN_MONTH]: '16 Months',
+//   [DevicePaymentTimelineEnum.SEVENTEEN_MONTH]: '17 Months', [DevicePaymentTimelineEnum.EIGHTEEN_MONTH]: '18 Months',
+//   [DevicePaymentTimelineEnum.NINETEEN_MONTH]: '19 Months', [DevicePaymentTimelineEnum.TWENTY_MONTH]: '20 Months',
+//   [DevicePaymentTimelineEnum.TWENTY_ONE_MONTH]: '21 Months', [DevicePaymentTimelineEnum.TWENTY_TWO_MONTH]: '22 Months',
+//   [DevicePaymentTimelineEnum.TWENTY_THREE_MONTH]: '23 Months', [DevicePaymentTimelineEnum.TWENTY_FOUR_MONTH]: '24 Months',
+//   [DevicePaymentTimelineEnum.TWENTY_FIVE_MONTH]: '25 Months', [DevicePaymentTimelineEnum.TWENTY_SIX_MONTH]: '26 Months',
+//   [DevicePaymentTimelineEnum.TWENTY_SEVEN_MONTH]: '27 Months', [DevicePaymentTimelineEnum.TWENTY_EIGHT_MONTH]: '28 Months',
+//   [DevicePaymentTimelineEnum.TWENTY_NINE_MONTH]: '29 Months', [DevicePaymentTimelineEnum.THIRTY_MONTH]: '30 Months',
+//   [DevicePaymentTimelineEnum.THIRTY_ONE_MONTH]: '31 Months', [DevicePaymentTimelineEnum.THIRTY_TWO_MONTH]: '32 Months',
+//   [DevicePaymentTimelineEnum.THIRTY_THREE_MONTH]: '33 Months', [DevicePaymentTimelineEnum.THIRTY_FOUR_MONTH]: '34 Months',
+//   [DevicePaymentTimelineEnum.THIRTY_FIVE_MONTH]: '35 Months', [DevicePaymentTimelineEnum.THIRTY_SIX_MONTH]: '36 Months',
+// }
 
 const powerProblemLabels: Record<PowerProblemEnum, string> = {
   [PowerProblemEnum.HIGH_FUEL_EXPENSES]: 'High fuel expenses',

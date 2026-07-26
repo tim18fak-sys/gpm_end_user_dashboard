@@ -1,4 +1,6 @@
 export enum UserVerificationStatusEnum {
+  // this is the default status for a user who has not started their verification process
+  NONE = "NONE",
   PENDING = "PENDING",
   COMPLETED = "COMPLETED",
   REJECTED = "REJECTED",
