@@ -23,6 +23,7 @@ import {
   DeviceCategoryPaymentDurationOptionEnum,
 } from '@/types/deviceCategory'
 import { useDebounce } from "@/hooks/useDebounce";
+import { getTrueAmountFromDeviceCategory } from "@/utils/device.category";
 
 // ─── Public contract ─────────────────────────────────────────────────────────
 
@@ -308,13 +309,13 @@ export default function DevicePickerModal({ open, onClose, onSelect, currentId }
         initial={{ y: 80, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: 80, opacity: 0 }}
-        transition={{ type: 'spring', damping: 28, stiffness: 320 }}
+        transition={{ type: "spring", damping: 28, stiffness: 320 }}
         className="relative z-10 w-full max-w-md bg-white dark:bg-secondary-800 rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col"
-        style={{ height: '80vh', maxHeight: '80vh' }}
+        style={{ height: "80vh", maxHeight: "80vh" }}
       >
         {/* ── Header ─────────────────────────────────────────────────────── */}
         <div className="flex items-center gap-3 px-4 py-3.5 border-b border-secondary-100 dark:border-secondary-700 flex-shrink-0">
-          {stage !== 'class' && (
+          {stage !== "class" && (
             <button
               onClick={goBack}
               className="p-1.5 rounded-lg hover:bg-secondary-100 dark:hover:bg-secondary-700 transition-colors"
@@ -341,16 +342,17 @@ export default function DevicePickerModal({ open, onClose, onSelect, currentId }
         {/* ── Breadcrumbs (browse stages only) ───────────────────────────── */}
         {isBrowseStage && (
           <div className="flex items-center gap-1.5 px-4 pt-3 pb-0 flex-shrink-0">
-            {(['class', 'group', 'category'] as Stage[]).map((s, i) => {
-              const active = s === stage
+            {(["class", "group", "category"] as Stage[]).map((s, i) => {
+              const active = s === stage;
               const done =
-                (s === 'class' && (stage === 'group' || stage === 'category')) ||
-                (s === 'group' && stage === 'category')
+                (s === "class" &&
+                  (stage === "group" || stage === "category")) ||
+                (s === "group" && stage === "category");
               const labels: Record<string, string> = {
-                class: selectedClassName || 'Class',
-                group: selectedGroupName || 'Group',
-                category: 'Model',
-              }
+                class: selectedClassName || "Class",
+                group: selectedGroupName || "Group",
+                category: "Model",
+              };
               return (
                 <div key={s} className="flex items-center gap-1.5">
                   {i > 0 && (
@@ -359,16 +361,16 @@ export default function DevicePickerModal({ open, onClose, onSelect, currentId }
                   <span
                     className={`text-[11px] font-semibold px-2 py-0.5 rounded-full transition-colors ${
                       active
-                        ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400'
+                        ? "bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400"
                         : done
-                        ? 'text-secondary-500 dark:text-secondary-400'
-                        : 'text-secondary-300 dark:text-secondary-600'
+                          ? "text-secondary-500 dark:text-secondary-400"
+                          : "text-secondary-300 dark:text-secondary-600"
                     }`}
                   >
                     {labels[s]}
                   </span>
                 </div>
-              )
+              );
             })}
           </div>
         )}
@@ -392,9 +394,8 @@ export default function DevicePickerModal({ open, onClose, onSelect, currentId }
         {/* ── Content area ────────────────────────────────────────────────── */}
         <div className="flex-1 overflow-hidden relative min-h-0">
           <AnimatePresence initial={false} custom={dir} mode="wait">
-
             {/* ── CLASS ───────────────────────────────────────────────────── */}
-            {stage === 'class' && (
+            {stage === "class" && (
               <motion.div
                 key="class"
                 custom={dir}
@@ -406,10 +407,14 @@ export default function DevicePickerModal({ open, onClose, onSelect, currentId }
                 className="absolute inset-0 overflow-y-auto px-4 pb-4 pt-1"
               >
                 {classQuery.isLoading && <Spinner />}
-                {classQuery.isError && <ErrorState onRetry={() => classQuery.refetch()} />}
-                {!classQuery.isLoading && !classQuery.isError && filteredClasses.length === 0 && (
-                  <EmptyState label="No device classes found" />
+                {classQuery.isError && (
+                  <ErrorState onRetry={() => classQuery.refetch()} />
                 )}
+                {!classQuery.isLoading &&
+                  !classQuery.isError &&
+                  filteredClasses.length === 0 && (
+                    <EmptyState label="No device classes found" />
+                  )}
                 <div className="space-y-2 mt-1">
                   {filteredClasses.map((cls) => (
                     <button
@@ -422,9 +427,13 @@ export default function DevicePickerModal({ open, onClose, onSelect, currentId }
                         <CubeIcon className="w-5 h-5 text-primary-600 dark:text-primary-400" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-secondary-900 dark:text-white truncate">{cls.name}</p>
+                        <p className="text-sm font-semibold text-secondary-900 dark:text-white truncate">
+                          {cls.name}
+                        </p>
                         {cls.description && (
-                          <p className="text-xs text-secondary-400 truncate mt-0.5">{cls.description}</p>
+                          <p className="text-xs text-secondary-400 truncate mt-0.5">
+                            {cls.description}
+                          </p>
                         )}
                       </div>
                       <ChevronRightIcon className="w-4 h-4 text-secondary-300 group-hover:text-primary-500 transition-colors flex-shrink-0" />
@@ -435,7 +444,7 @@ export default function DevicePickerModal({ open, onClose, onSelect, currentId }
             )}
 
             {/* ── GROUP ───────────────────────────────────────────────────── */}
-            {stage === 'group' && (
+            {stage === "group" && (
               <motion.div
                 key="group"
                 custom={dir}
@@ -447,10 +456,14 @@ export default function DevicePickerModal({ open, onClose, onSelect, currentId }
                 className="absolute inset-0 overflow-y-auto px-4 pb-4 pt-1"
               >
                 {groupQuery.isLoading && <Spinner />}
-                {groupQuery.isError && <ErrorState onRetry={() => groupQuery.refetch()} />}
-                {!groupQuery.isLoading && !groupQuery.isError && filteredGroups.length === 0 && (
-                  <EmptyState label="No groups found under this class" />
+                {groupQuery.isError && (
+                  <ErrorState onRetry={() => groupQuery.refetch()} />
                 )}
+                {!groupQuery.isLoading &&
+                  !groupQuery.isError &&
+                  filteredGroups.length === 0 && (
+                    <EmptyState label="No groups found under this class" />
+                  )}
                 <div className="space-y-2 mt-1">
                   {filteredGroups.map((grp) => (
                     <button
@@ -463,9 +476,13 @@ export default function DevicePickerModal({ open, onClose, onSelect, currentId }
                         <CubeIcon className="w-5 h-5 text-secondary-500 dark:text-secondary-300" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-secondary-900 dark:text-white truncate">{grp.name}</p>
+                        <p className="text-sm font-semibold text-secondary-900 dark:text-white truncate">
+                          {grp.name}
+                        </p>
                         {grp.description && (
-                          <p className="text-xs text-secondary-400 truncate mt-0.5">{grp.description}</p>
+                          <p className="text-xs text-secondary-400 truncate mt-0.5">
+                            {grp.description}
+                          </p>
                         )}
                       </div>
                       <ChevronRightIcon className="w-4 h-4 text-secondary-300 group-hover:text-primary-500 transition-colors flex-shrink-0" />
@@ -476,7 +493,7 @@ export default function DevicePickerModal({ open, onClose, onSelect, currentId }
             )}
 
             {/* ── CATEGORY ────────────────────────────────────────────────── */}
-            {stage === 'category' && (
+            {stage === "category" && (
               <motion.div
                 key="category"
                 custom={dir}
@@ -488,13 +505,17 @@ export default function DevicePickerModal({ open, onClose, onSelect, currentId }
                 className="absolute inset-0 overflow-y-auto px-4 pb-4 pt-1"
               >
                 {categoryQuery.isLoading && <Spinner />}
-                {categoryQuery.isError && <ErrorState onRetry={() => categoryQuery.refetch()} />}
-                {!categoryQuery.isLoading && !categoryQuery.isError && filteredCategories.length === 0 && (
-                  <EmptyState label="No models found in this group" />
+                {categoryQuery.isError && (
+                  <ErrorState onRetry={() => categoryQuery.refetch()} />
                 )}
+                {!categoryQuery.isLoading &&
+                  !categoryQuery.isError &&
+                  filteredCategories.length === 0 && (
+                    <EmptyState label="No models found in this group" />
+                  )}
                 <div className="space-y-2 mt-1">
                   {filteredCategories.map((cat) => {
-                    const isActive = cat._id === currentId
+                    const isActive = cat._id === currentId;
                     return (
                       <button
                         key={cat._id}
@@ -502,36 +523,44 @@ export default function DevicePickerModal({ open, onClose, onSelect, currentId }
                         onClick={() => pickCategory(cat)}
                         className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left group ${
                           isActive
-                            ? 'border-primary-400 bg-primary-50 dark:bg-primary-900/20'
-                            : 'border-secondary-200 dark:border-secondary-600 bg-white dark:bg-secondary-700 hover:border-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/10'
+                            ? "border-primary-400 bg-primary-50 dark:bg-primary-900/20"
+                            : "border-secondary-200 dark:border-secondary-600 bg-white dark:bg-secondary-700 hover:border-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/10"
                         }`}
                       >
-                        <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${isActive ? 'bg-primary-500' : 'bg-secondary-100 dark:bg-secondary-600'}`}>
-                          {isActive
-                            ? <CheckCircleIcon className="w-5 h-5 text-white" />
-                            : <CubeIcon className="w-5 h-5 text-secondary-400 dark:text-secondary-300" />}
+                        <div
+                          className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${isActive ? "bg-primary-500" : "bg-secondary-100 dark:bg-secondary-600"}`}
+                        >
+                          {isActive ? (
+                            <CheckCircleIcon className="w-5 h-5 text-white" />
+                          ) : (
+                            <CubeIcon className="w-5 h-5 text-secondary-400 dark:text-secondary-300" />
+                          )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className={`text-sm font-semibold truncate ${isActive ? 'text-primary-700 dark:text-primary-300' : 'text-secondary-900 dark:text-white'}`}>
+                          <p
+                            className={`text-sm font-semibold truncate ${isActive ? "text-primary-700 dark:text-primary-300" : "text-secondary-900 dark:text-white"}`}
+                          >
                             {cat.model}
                           </p>
                           {cat.description && (
-                            <p className="text-xs text-secondary-400 truncate mt-0.5">{cat.description}</p>
+                            <p className="text-xs text-secondary-400 truncate mt-0.5">
+                              {cat.description}
+                            </p>
                           )}
                           <p className="text-xs font-semibold text-primary-600 dark:text-primary-400 mt-0.5">
-                            ₦{cat.amount.toLocaleString()}
+                            ₦{getTrueAmountFromDeviceCategory(cat)}
                           </p>
                         </div>
                         <ChevronRightIcon className="w-4 h-4 text-secondary-300 group-hover:text-primary-500 transition-colors flex-shrink-0" />
                       </button>
-                    )
+                    );
                   })}
                 </div>
               </motion.div>
             )}
 
             {/* ── DETAILS ─────────────────────────────────────────────────── */}
-            {stage === 'details' && selectedCategory && (
+            {stage === "details" && selectedCategory && (
               <motion.div
                 key="details"
                 custom={dir}
@@ -563,13 +592,19 @@ export default function DevicePickerModal({ open, onClose, onSelect, currentId }
                   <div className="mt-4 space-y-0 rounded-xl overflow-hidden bg-white dark:bg-secondary-800 border border-secondary-100 dark:border-secondary-700 px-3">
                     <InfoRow
                       label="Price"
-                      value={`₦${selectedCategory.amount.toLocaleString()} ${selectedCategory.currency}`}
+                      value={`₦${getTrueAmountFromDeviceCategory(selectedCategory)} 
+                     `}
                     />
-                    <InfoRow label="Device type" value={selectedCategory.device_type} />
-                    {selectedCategory.payment_option.includes(DeviceCategoryPaymentOptionEnum.INSTALLMENT) && (
+                    <InfoRow
+                      label="Device type"
+                      value={selectedCategory.device_type}
+                    />
+                    {selectedCategory.payment_option.includes(
+                      DeviceCategoryPaymentOptionEnum.INSTALLMENT,
+                    ) && (
                       <InfoRow
                         label="Installment duration"
-                        value={`${selectedCategory.installment_duration_available} month${selectedCategory.installment_duration_available !== 1 ? 's' : ''}`}
+                        value={`${selectedCategory.installment_duration_available} month${selectedCategory.installment_duration_available !== 1 ? "s" : ""}`}
                       />
                     )}
                   </div>
@@ -582,7 +617,9 @@ export default function DevicePickerModal({ open, onClose, onSelect, currentId }
 
                 <div className="space-y-3">
                   {/* OUTRIGHT */}
-                  {selectedCategory.payment_option.includes(DeviceCategoryPaymentOptionEnum.OUTRIGHT) && (
+                  {selectedCategory.payment_option.includes(
+                    DeviceCategoryPaymentOptionEnum.OUTRIGHT,
+                  ) && (
                     <button
                       type="button"
                       onClick={pickOutright}
@@ -592,10 +629,14 @@ export default function DevicePickerModal({ open, onClose, onSelect, currentId }
                         <BanknotesIcon className="w-5 h-5 text-white" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-success-700 dark:text-success-400">Pay Outright</p>
+                        <p className="text-sm font-bold text-success-700 dark:text-success-400">
+                          Pay Outright
+                        </p>
                         <p className="text-xs text-success-600 dark:text-success-500 mt-0.5">
-                          Full payment of{' '}
-                          <span className="font-semibold">₦{selectedCategory.amount.toLocaleString()}</span>
+                          Full payment of{" "}
+                          <span className="font-semibold">
+                            ₦{selectedCategory.amount.toLocaleString()}
+                          </span>
                         </p>
                       </div>
                       <CheckCircleOutline className="w-5 h-5 text-success-500 flex-shrink-0" />
@@ -603,7 +644,9 @@ export default function DevicePickerModal({ open, onClose, onSelect, currentId }
                   )}
 
                   {/* INSTALLMENT */}
-                  {selectedCategory.payment_option.includes(DeviceCategoryPaymentOptionEnum.INSTALLMENT) && (
+                  {selectedCategory.payment_option.includes(
+                    DeviceCategoryPaymentOptionEnum.INSTALLMENT,
+                  ) && (
                     <button
                       type="button"
                       onClick={goToInstallment}
@@ -613,9 +656,12 @@ export default function DevicePickerModal({ open, onClose, onSelect, currentId }
                         <CalendarDaysIcon className="w-5 h-5 text-white" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-primary-700 dark:text-primary-400">Installment Plan</p>
+                        <p className="text-sm font-bold text-primary-700 dark:text-primary-400">
+                          Installment Plan
+                        </p>
                         <p className="text-xs text-primary-600 dark:text-primary-500 mt-0.5">
-                          {selectedCategory.installment_duration_available}-month plan · choose weekly or monthly
+                          {selectedCategory.installment_duration_available}
+                          -month plan · choose weekly or monthly
                         </p>
                       </div>
                       <ChevronRightIcon className="w-4 h-4 text-primary-400 flex-shrink-0" />
@@ -626,120 +672,170 @@ export default function DevicePickerModal({ open, onClose, onSelect, currentId }
             )}
 
             {/* ── INSTALLMENT ──────────────────────────────────────────────── */}
-            {stage === 'installment' && selectedCategory && (() => {
-              const initAmt = calcInitAmount(selectedCategory)
-              const options = selectedCategory.installment_payment_durations_option
+            {stage === "installment" &&
+              selectedCategory &&
+              (() => {
+                const initAmt = calcInitAmount(selectedCategory);
+                const options =
+                  selectedCategory.installment_payment_durations_option;
 
-              return (
-                <motion.div
-                  key="installment"
-                  custom={dir}
-                  variants={slideVariants}
-                  initial="enter"
-                  animate="center"
-                  exit="exit"
-                  transition={{ duration: 0.18 }}
-                  className="absolute inset-0 overflow-y-auto px-4 pb-6 pt-4"
-                >
-                  {/* Down payment banner */}
-                  <div className="rounded-2xl bg-warning-50 dark:bg-warning-900/20 border border-warning-200 dark:border-warning-700 p-4 mb-5">
-                    <p className="text-[10px] font-bold text-warning-600 dark:text-warning-400 uppercase tracking-wider mb-1">
-                      Down Payment Required
+                return (
+                  <motion.div
+                    key="installment"
+                    custom={dir}
+                    variants={slideVariants}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    transition={{ duration: 0.18 }}
+                    className="absolute inset-0 overflow-y-auto px-4 pb-6 pt-4"
+                  >
+                    {/* Down payment banner */}
+                    <div className="rounded-2xl bg-warning-50 dark:bg-warning-900/20 border border-warning-200 dark:border-warning-700 p-4 mb-5">
+                      <p className="text-[10px] font-bold text-warning-600 dark:text-warning-400 uppercase tracking-wider mb-1">
+                        Down Payment Required
+                      </p>
+                      <p className="text-2xl font-black text-warning-700 dark:text-warning-300">
+                        ₦
+                        {initAmt.toLocaleString(undefined, {
+                          minimumFractionDigits: 0,
+                          maximumFractionDigits: 0,
+                        })}
+                      </p>
+                      {/* hide from customer */}
+                      {/* <p className="text-xs text-warning-600 dark:text-warning-400 mt-1">
+                        {selectedCategory.installment_initialization_percentage}
+                        % of ₦{selectedCategory.amount.toLocaleString()} upfront
+                      </p> */}
+                    </div>
+
+                    {/* Device total & interest summary */}
+                    <div className="rounded-xl border border-secondary-100 dark:border-secondary-700 bg-white dark:bg-secondary-800 px-3 mb-5 space-y-0">
+                      {(() => {
+                        // const remaining = selectedCategory.amount - initAmt;
+                        // const interest =
+                        //   remaining *
+                        //   (selectedCategory.installment_interest_rate / 100);
+                        // const total = remaining + interest;
+                        return (
+                          <>
+                            {/* <InfoRow
+                              label="Device price"
+                              value={`₦${selectedCategory.amount.toLocaleString()}`}
+                            />
+                            <InfoRow
+                              label="After down payment"
+                              value={`₦${remaining.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
+                            />
+                            <InfoRow
+                              label={`Interest (${selectedCategory.installment_interest_rate}%)`}
+                              value={`₦${interest.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
+                            />
+                            <InfoRow
+                              label="Total to finance"
+                              value={`₦${total.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
+                            /> */}
+                          </>
+                        );
+                      })()}
+                    </div>
+
+                    {/* Duration options */}
+                    <p className="text-[10px] font-bold text-secondary-400 dark:text-secondary-500 uppercase tracking-wider mb-3">
+                      Payment Frequency —{" "}
+                      {selectedCategory.installment_duration_available} months
                     </p>
-                    <p className="text-2xl font-black text-warning-700 dark:text-warning-300">
-                      ₦{initAmt.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-                    </p>
-                    <p className="text-xs text-warning-600 dark:text-warning-400 mt-1">
-                      {selectedCategory.installment_initialization_percentage}% of ₦{selectedCategory.amount.toLocaleString()} upfront
-                    </p>
-                  </div>
 
-                  {/* Device total & interest summary */}
-                  <div className="rounded-xl border border-secondary-100 dark:border-secondary-700 bg-white dark:bg-secondary-800 px-3 mb-5 space-y-0">
-                    {(() => {
-                      const remaining = selectedCategory.amount - initAmt
-                      const interest = remaining * (selectedCategory.installment_interest_rate / 100)
-                      const total = remaining + interest
-                      return (
-                        <>
-                          <InfoRow label="Device price" value={`₦${selectedCategory.amount.toLocaleString()}`} />
-                          <InfoRow label="After down payment" value={`₦${remaining.toLocaleString(undefined, { maximumFractionDigits: 0 })}`} />
-                          <InfoRow label={`Interest (${selectedCategory.installment_interest_rate}%)`} value={`₦${interest.toLocaleString(undefined, { maximumFractionDigits: 0 })}`} />
-                          <InfoRow label="Total to finance" value={`₦${total.toLocaleString(undefined, { maximumFractionDigits: 0 })}`} />
-                        </>
-                      )
-                    })()}
-                  </div>
+                    <div className="space-y-3">
+                      {options.map((opt) => {
+                        const perPeriod = calcInstallmentAmount(
+                          selectedCategory,
+                          opt.duration_option,
+                        );
+                        const isWeekly =
+                          opt.duration_option ===
+                          DeviceCategoryPaymentDurationOptionEnum.WEEKLY;
+                        const isSelected =
+                          selectedDuration === opt.duration_option;
+                        const periodLabel = isWeekly ? "week" : "month";
+                        const periodsTotal = isWeekly
+                          ? selectedCategory.installment_duration_available * 4
+                          : selectedCategory.installment_duration_available;
 
-                  {/* Duration options */}
-                  <p className="text-[10px] font-bold text-secondary-400 dark:text-secondary-500 uppercase tracking-wider mb-3">
-                    Payment Frequency — {selectedCategory.installment_duration_available} months
-                  </p>
+                        return (
+                          <button
+                            key={opt.duration_option}
+                            type="button"
+                            onClick={() =>
+                              setSelectedDuration(opt.duration_option)
+                            }
+                            className={`w-full flex items-center gap-3 p-4 rounded-xl border-2 transition-all text-left ${
+                              isSelected
+                                ? "border-primary-500 bg-primary-50 dark:bg-primary-900/20"
+                                : "border-secondary-200 dark:border-secondary-600 bg-white dark:bg-secondary-700 hover:border-primary-300 dark:hover:border-primary-700"
+                            }`}
+                          >
+                            <div
+                              className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${isSelected ? "bg-primary-500" : "bg-secondary-100 dark:bg-secondary-600"}`}
+                            >
+                              {isSelected ? (
+                                <CheckCircleIcon className="w-5 h-5 text-white" />
+                              ) : (
+                                <TagIcon className="w-5 h-5 text-secondary-400 dark:text-secondary-300" />
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p
+                                className={`text-sm font-bold ${isSelected ? "text-primary-700 dark:text-primary-300" : "text-secondary-900 dark:text-white"}`}
+                              >
+                                {isWeekly ? "Weekly" : "Monthly"}
+                              </p>
+                              <p
+                                className={`text-xs mt-0.5 ${isSelected ? "text-primary-600 dark:text-primary-400" : "text-secondary-500 dark:text-secondary-400"}`}
+                              >
+                                ₦
+                                {perPeriod.toLocaleString(undefined, {
+                                  minimumFractionDigits: 0,
+                                  maximumFractionDigits: 0,
+                                })}{" "}
+                                / {periodLabel}
+                                {" · "}
+                                {periodsTotal} {periodLabel}s total
+                              </p>
+                            </div>
+                            {isSelected && (
+                              <span className="text-[10px] font-bold text-primary-600 dark:text-primary-400 bg-primary-100 dark:bg-primary-900/40 px-2 py-0.5 rounded-full flex-shrink-0">
+                                Selected
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
 
-                  <div className="space-y-3">
-                    {options.map((opt) => {
-                      const perPeriod = calcInstallmentAmount(selectedCategory, opt.duration_option)
-                      const isWeekly = opt.duration_option === DeviceCategoryPaymentDurationOptionEnum.WEEKLY
-                      const isSelected = selectedDuration === opt.duration_option
-                      const periodLabel = isWeekly ? 'week' : 'month'
-                      const periodsTotal = isWeekly
-                        ? selectedCategory.installment_duration_available * 4
-                        : selectedCategory.installment_duration_available
-
-                      return (
-                        <button
-                          key={opt.duration_option}
-                          type="button"
-                          onClick={() => setSelectedDuration(opt.duration_option)}
-                          className={`w-full flex items-center gap-3 p-4 rounded-xl border-2 transition-all text-left ${
-                            isSelected
-                              ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-                              : 'border-secondary-200 dark:border-secondary-600 bg-white dark:bg-secondary-700 hover:border-primary-300 dark:hover:border-primary-700'
-                          }`}
-                        >
-                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${isSelected ? 'bg-primary-500' : 'bg-secondary-100 dark:bg-secondary-600'}`}>
-                            {isSelected
-                              ? <CheckCircleIcon className="w-5 h-5 text-white" />
-                              : <TagIcon className="w-5 h-5 text-secondary-400 dark:text-secondary-300" />}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className={`text-sm font-bold ${isSelected ? 'text-primary-700 dark:text-primary-300' : 'text-secondary-900 dark:text-white'}`}>
-                              {isWeekly ? 'Weekly' : 'Monthly'}
-                            </p>
-                            <p className={`text-xs mt-0.5 ${isSelected ? 'text-primary-600 dark:text-primary-400' : 'text-secondary-500 dark:text-secondary-400'}`}>
-                              ₦{perPeriod.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })} / {periodLabel}
-                              {' · '}{periodsTotal} {periodLabel}s total
-                            </p>
-                          </div>
-                          {isSelected && (
-                            <span className="text-[10px] font-bold text-primary-600 dark:text-primary-400 bg-primary-100 dark:bg-primary-900/40 px-2 py-0.5 rounded-full flex-shrink-0">
-                              Selected
-                            </span>
-                          )}
-                        </button>
-                      )
-                    })}
-                  </div>
-
-                  {/* Confirm button */}
-                  {selectedDuration && (
-                    <motion.button
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      type="button"
-                      onClick={() => confirmInstallment(selectedDuration)}
-                      className="mt-5 w-full py-3 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold transition-colors shadow-sm"
-                    >
-                      Confirm — {selectedDuration === DeviceCategoryPaymentDurationOptionEnum.WEEKLY ? 'Weekly' : 'Monthly'} Plan
-                    </motion.button>
-                  )}
-                </motion.div>
-              )
-            })()}
-
+                    {/* Confirm button */}
+                    {selectedDuration && (
+                      <motion.button
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        type="button"
+                        onClick={() => confirmInstallment(selectedDuration)}
+                        className="mt-5 w-full py-3 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold transition-colors shadow-sm"
+                      >
+                        Confirm —{" "}
+                        {selectedDuration ===
+                        DeviceCategoryPaymentDurationOptionEnum.WEEKLY
+                          ? "Weekly"
+                          : "Monthly"}{" "}
+                        Plan
+                      </motion.button>
+                    )}
+                  </motion.div>
+                );
+              })()}
           </AnimatePresence>
         </div>
       </motion.div>
     </div>
-  )
+  );
 }

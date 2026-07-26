@@ -148,7 +148,7 @@ export class DeviceCategoryApi {
   ): Promise<GetCurrentDeviceCodeResponse> {
     try {
       const response = await this.axios.get(
-        `${this.deviceEndpoint}/${deviceId}/current-code`,
+        `${this.deviceEndpoint}/${deviceId}/active-code`,
       );
       return response.data;
     } catch (error) {

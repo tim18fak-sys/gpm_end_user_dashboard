@@ -48,13 +48,17 @@ export interface UploadActivateOrderPaymentReceiptDto {
   orderId: string;
   amountPaid: number;
   receiptUrl: string;
-  bankId: string;
+  bankDetails:{
+    bankId: string;
+  }
 }
 export interface UploadInvoicePaymentReceiptDto {
   invoiceId: string;
   amountPaid: number;
   receiptUrl: string;
-  bankId: string;
+  bankDetails:{
+    bankId: string;
+  }
 }
 // manual payment receipt upload response
 

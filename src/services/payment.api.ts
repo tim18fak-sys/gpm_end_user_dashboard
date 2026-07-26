@@ -21,7 +21,7 @@ export interface InitializePaymentResponse extends BaseDataInterface<{
 export class PaymentApi {
   private endpoint = "/v1/invoice/customer";
   private paystackEndpoint = "/v1/payment/customer";
-  private receiptEndpoint = "/v1/receipt/user";
+  private receiptEndpoint = "/v1/receipts/user";
   private bankAccountEndpoint = "/v1/bank-account/customer";
   constructor(private axios: AxiosInstance) {}
 
@@ -86,9 +86,12 @@ export class PaymentApi {
   // for manual payment, uploading receipt.
   async uploadInvoicePaymentReceipt(
     dto: UploadInvoicePaymentReceiptDto,
-  ): Promise<UploadInvoicePaymentReceiptResponse>{
+  ): Promise<UploadInvoicePaymentReceiptResponse> {
     try {
-      const response = await this.axios.post(`${this.receiptEndpoint}/upload-invoice-payment-receipt`, dto);
+      const response = await this.axios.post(
+        `${this.receiptEndpoint}/upload-invoice-payment-receipt`,
+        dto,
+      );
       return response.data;
     } catch (error) {
       console.error("Error uploading invoice payment receipt:", error);
@@ -99,7 +102,10 @@ export class PaymentApi {
     dto: UploadActivateOrderPaymentReceiptDto,
   ): Promise<UploadActivateOrderPaymentReceiptResponse> {
     try {
-      const response = await this.axios.post(`${this.receiptEndpoint}/upload-activate-order-payment-receipt`, dto);
+      const response = await this.axios.post(
+        `${this.receiptEndpoint}/upload-order-payment-receipt`,
+        dto,
+      );
       return response.data;
     } catch (error) {
       console.error("Error uploading activate order payment receipt:", error);
@@ -108,9 +114,11 @@ export class PaymentApi {
   }
 
   // get active bank account for manual payment.
-  async getActiveBankAccount():Promise<GetAllActiveBankAccountCursorPaginationResponse>{
+  async getActiveBankAccount(): Promise<GetAllActiveBankAccountCursorPaginationResponse> {
     try {
-      const response = await this.axios.get(`${this.bankAccountEndpoint}/active-bank-account`);
+      const response = await this.axios.get(
+        `${this.bankAccountEndpoint}/active-bank-account`,
+      );
       return response.data;
     } catch (error) {
       console.error("Error fetching active bank account:", error);

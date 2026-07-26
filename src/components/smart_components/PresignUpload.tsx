@@ -133,9 +133,9 @@ const getFileIcon = (resourceType: ResourceType) => {
 const PresignedUpload: React.FC<PresignedUploadProps> = ({
   axiosInstance,
   // this the url to get the presigned-url
-  presignedUrlEndpoint = "/v1/super-admin/upload/presigned-url",
+  presignedUrlEndpoint = "/v1/customer/upload/presigned-url",
   // this is the url to save the metadata after upload
-  metadataEndpoint = "/v1/super-admin/upload/metadata",
+  metadataEndpoint = "/v1/customer/upload/metadata",
   resourceType,
   onUploadSuccess,
   onUploadError,

@@ -19,6 +19,9 @@ import {
 import { BankAccount } from '@/types/payment.type'
 import PresignedUpload from '@/components/smart_components/PresignUpload'
 import { api } from '@/services/api'
+import { PublicApiConst } from '@/const/upload.const'
+import { set } from 'date-fns'
+import ImageUpload from '../smart_components/SingleImageUpload'
 
 // =============================================================================
 // Types
@@ -374,7 +377,9 @@ function ManualReceiptSlide({
     if (mode === 'activate-order') {
       if (!orderId) { toast.error('Order ID is missing'); return }
       uploadOrderReceipt(
-        { orderId, amountPaid: amt, receiptUrl, bankId: selectedBank!._id },
+        { orderId, amountPaid: amt, receiptUrl, bankDetails:{
+          bankId: selectedBank!._id
+        } },
         {
           onSuccess: () => { onNavigate('success', 1); onSuccess() },
           onError: (err: any) => toast.error(err?.response?.data?.message || 'Failed to submit receipt'),
@@ -383,12 +388,25 @@ function ManualReceiptSlide({
     } else {
       if (!invoiceId) { toast.error('Invoice ID is missing'); return }
       uploadInvoiceReceipt(
-        { invoiceId, amountPaid: amt, receiptUrl, bankId: selectedBank!._id },
         {
-          onSuccess: () => { onNavigate('success', 1); onSuccess() },
-          onError: (err: any) => toast.error(err?.response?.data?.message || 'Failed to submit receipt'),
+          invoiceId,
+          amountPaid: amt,
+          receiptUrl,
+          bankDetails: {
+            bankId: selectedBank!._id,
+          },
         },
-      )
+        {
+          onSuccess: () => {
+            onNavigate("success", 1);
+            onSuccess();
+          },
+          onError: (err: any) =>
+            toast.error(
+              err?.response?.data?.message || "Failed to submit receipt",
+            ),
+        },
+      );
     }
   }
 
@@ -440,16 +458,31 @@ function ManualReceiptSlide({
         <div
           className={`rounded-xl overflow-hidden border-2 transition-colors ${
             receiptUrl
-              ? 'border-success-400 dark:border-success-600'
-              : 'border-secondary-200 dark:border-secondary-600'
+              ? "border-success-400 dark:border-success-600"
+              : "border-secondary-200 dark:border-secondary-600"
           }`}
         >
-          <PresignedUpload
+          {/* <PresignedUpload
             axiosInstance={api}
             resourceType="image"
             label="Upload your payment receipt (screenshot or photo)"
-            acceptedFormats={['image/jpeg', 'image/png', 'image/webp', 'application/pdf']}
+            acceptedFormats={[
+              "image/jpeg",
+              "image/png",
+              "image/webp",
+              "application/pdf",
+            ]}
             onUploadSuccess={({ url }) => onReceiptUploaded(url)}
+          /> */}
+          <ImageUpload
+            axiosInstance={api}
+            uploadUrl={PublicApiConst.RESOURCE_SINGLE_UPLOAD_URL}
+            resourceType="image"
+            onUploadSuccess={({ url }) => {
+               onReceiptUploaded(url);
+            }}
+            maxSizeMB={10}
+            acceptedFormats={["image/jpeg", "image/png", "image/webp"]}
           />
         </div>
         {receiptUrl && (
@@ -471,17 +504,17 @@ function ManualReceiptSlide({
           <>
             <motion.div
               animate={{ rotate: 360 }}
-              transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
               className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full"
             />
             Submitting...
           </>
         ) : (
-          'Submit Payment'
+          "Submit Payment"
         )}
       </button>
     </div>
-  )
+  );
 }
 
 // =============================================================================
@@ -651,7 +684,7 @@ export default function PaymentModal({
         </div>
 
         {/* ── Slide content ─────────────────────────────────────────────────── */}
-        <div className="flex-1 overflow-hidden relative">
+        <div className="flex-1 overflow-scroll relative mb-10">
           <AnimatePresence initial={false} custom={dir} mode="wait">
             <motion.div
               key={slide}

@@ -54,9 +54,9 @@ function App() {
         <Route
           path='/waiting-for-approval'
           element={
-            <MobileLayout>
+            // <MobileLayout>
               <WaitingForApproval />
-            </MobileLayout>
+            // </MobileLayout>
           }
         
         />
@@ -64,9 +64,9 @@ function App() {
         <Route
           path='/rejected-application'
           element={
-            <MobileLayout>
+            // <MobileLayout>
               <RejectedApplication />
-            </MobileLayout>
+            // </MobileLayout>
           }
         
         />
@@ -75,25 +75,25 @@ function App() {
           <Route
             index
             element={
-              <MobileLayout>
+              // <MobileLayout>
                 <Kyc />
-              </MobileLayout>
+              // </MobileLayout>
             }
           />
           <Route
             path="pending"
             element={
-              <MobileLayout>
+              // <MobileLayout>
                 <PendingKycReview />
-              </MobileLayout>
+              // </MobileLayout>
             }
           />
           <Route
             path="rejected"
             element={
-              <MobileLayout>
+              // <MobileLayout>
                 <RejectedKyc />
-              </MobileLayout>
+              // </MobileLayout>
             }
           />
         </Route>
