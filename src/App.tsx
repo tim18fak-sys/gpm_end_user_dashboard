@@ -19,6 +19,7 @@ import WaitingForApproval from './pages/approval.flow/WaitingForApproval'
 import PaymentHistory from './pages/PaymentHistory'
 import OrderList from "./pages/OrderList";
 import RejectedApplication from './pages/approval.flow/RejectedApplication'
+import LogoutPage from './pages/Logout'
 
 function App() {
   const location = useLocation()
@@ -123,6 +124,12 @@ function App() {
             <MobileLayout>
               <OrderList />
             </MobileLayout>
+          }
+        />
+        <Route
+          path='/logout'
+          element={
+            <LogoutPage/>
           }
         />
         {/* Default redirect */}

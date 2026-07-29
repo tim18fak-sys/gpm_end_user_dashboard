@@ -2,14 +2,14 @@ import { Navigate, NavLink, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   HomeIcon,
-  BellIcon,
+  // BellIcon,
   ChartBarIcon,
   UserIcon,
   ExclamationCircleIcon,
 } from '@heroicons/react/24/outline'
 import {
   HomeIcon as HomeSolid,
-  BellIcon as BellSolid,
+  // BellIcon as BellSolid,
   ChartBarIcon as ChartSolid,
   UserIcon as UserSolid,
   ExclamationCircleIcon as AlertSolid,
@@ -38,15 +38,15 @@ const TAB_ITEMS = [
     Icon: ChartBarIcon,
     ActiveIcon: ChartSolid,
   },
+  // {
+  //   label: 'Notifications',
+  //   to: '/notifications',
+  //   Icon: BellIcon,
+  //   ActiveIcon: BellSolid,
+  // },
   {
-    label: 'Notifications',
-    to: '/notifications',
-    Icon: BellIcon,
-    ActiveIcon: BellSolid,
-  },
-  {
-    label: 'Settings',
-    to: '/settings',
+    label: 'Logout',
+    to: '/logout',
     Icon: UserIcon,
     ActiveIcon: UserSolid,
   },
