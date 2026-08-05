@@ -94,13 +94,13 @@ function ActiveInvoiceBanner({
   invoice,
   onPayNow,
 }: {
-  invoice: Invoice
-  onPayNow: (id: string, amount: number) => void
+  invoice: Invoice;
+  onPayNow: (id: string, amount: number, deviceCategoryId: string) => void;
 }) {
-  const cfg = statusConfig[invoice.status]
-  const Icon = cfg.icon
-  const isOverdue = invoice.status === InvoiceStatusEnum.OVERDUE
-  const invoiceId = getInvoiceId(invoice)
+  const cfg = statusConfig[invoice.status];
+  const Icon = cfg.icon;
+  const isOverdue = invoice.status === InvoiceStatusEnum.OVERDUE;
+  const invoiceId = getInvoiceId(invoice);
 
   return (
     <motion.div
@@ -109,15 +109,15 @@ function ActiveInvoiceBanner({
       transition={{ duration: 0.4 }}
       className={`mx-4 mt-4 rounded-2xl p-5 ${
         isOverdue
-          ? 'bg-danger-600 dark:bg-danger-700'
-          : 'bg-gradient-to-br from-primary-600 to-primary-800 dark:from-primary-700 dark:to-primary-950'
+          ? "bg-danger-600 dark:bg-danger-700"
+          : "bg-gradient-to-br from-primary-600 to-primary-800 dark:from-primary-700 dark:to-primary-950"
       } text-white shadow-lg`}
     >
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <CreditCardIcon className="w-4 h-4 text-white/80" />
           <p className="text-xs font-semibold text-white/80 uppercase tracking-wider">
-            {isOverdue ? 'Overdue Payment' : 'Current Invoice'}
+            {isOverdue ? "Overdue Payment" : "Current Invoice"}
           </p>
         </div>
         <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/20 text-white uppercase tracking-wide">
@@ -126,7 +126,9 @@ function ActiveInvoiceBanner({
         </span>
       </div>
 
-      <p className="text-3xl font-bold mb-1">{formatCurrency(invoice.amount)}</p>
+      <p className="text-3xl font-bold mb-1">
+        {formatCurrency(invoice.amount)}
+      </p>
       <p className="text-xs text-white/70 flex items-center gap-1">
         <CalendarDaysIcon className="w-3.5 h-3.5" />
         Due {formatDate(invoice.nextPaymentDate)}
@@ -135,7 +137,9 @@ function ActiveInvoiceBanner({
       {canPay(invoice.status) && (
         <motion.button
           whileTap={{ scale: 0.97 }}
-          onClick={() => onPayNow(invoiceId, invoice.amount)}
+          onClick={() =>
+            onPayNow(invoiceId, invoice.amount, invoice.deviceCategoryId)
+          }
           className="mt-4 w-full py-2.5 rounded-xl bg-white text-primary-700 text-sm font-bold hover:bg-white/90 transition-colors flex items-center justify-center gap-2"
         >
           <CreditCardIcon className="w-4 h-4 text-primary-600" />
@@ -143,7 +147,7 @@ function ActiveInvoiceBanner({
         </motion.button>
       )}
     </motion.div>
-  )
+  );
 }
 
 // ─── Invoice Row ──────────────────────────────────────────────────────────────
@@ -153,15 +157,15 @@ function InvoiceRow({
   index,
   onPayNow,
 }: {
-  invoice: Invoice
-  index: number
-  onPayNow: (id: string, amount: number) => void
+  invoice: Invoice;
+  index: number;
+  onPayNow: (id: string, amount: number, deviceCategoryId: string) => void;
 }) {
-  const [expanded, setExpanded] = useState(false)
-  const cfg = statusConfig[invoice.status]
-  const Icon = cfg.icon
-  const invoiceId = getInvoiceId(invoice)
-  const showPayButton = canPay(invoice.status)
+  const [expanded, setExpanded] = useState(false);
+  const cfg = statusConfig[invoice.status];
+  const Icon = cfg.icon;
+  const invoiceId = getInvoiceId(invoice);
+  const showPayButton = canPay(invoice.status);
 
   return (
     <motion.div
@@ -169,7 +173,7 @@ function InvoiceRow({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05, duration: 0.3 }}
       className={`rounded-2xl border border-secondary-200 dark:border-secondary-700 overflow-hidden ${
-        cfg.rowBg || 'bg-white dark:bg-secondary-800'
+        cfg.rowBg || "bg-white dark:bg-secondary-800"
       }`}
     >
       <button
@@ -178,7 +182,9 @@ function InvoiceRow({
       >
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
-            <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${cfg.pillBg}`}>
+            <div
+              className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${cfg.pillBg}`}
+            >
               <Icon className={`w-4 h-4 ${cfg.pillText}`} />
             </div>
             <div className="min-w-0">
@@ -193,7 +199,9 @@ function InvoiceRow({
           </div>
 
           <div className="flex items-center gap-2 flex-shrink-0">
-            <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border ${cfg.pillBg} ${cfg.pillText} ${cfg.pillBorder}`}>
+            <span
+              className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border ${cfg.pillBg} ${cfg.pillText} ${cfg.pillBorder}`}
+            >
               {invoice.status === InvoiceStatusEnum.PAID ? (
                 <CheckCircleSolid className="w-3 h-3" />
               ) : (
@@ -202,7 +210,10 @@ function InvoiceRow({
               {cfg.label}
             </span>
             {invoice.history.length > 0 && (
-              <motion.div animate={{ rotate: expanded ? 180 : 0 }} transition={{ duration: 0.2 }}>
+              <motion.div
+                animate={{ rotate: expanded ? 180 : 0 }}
+                transition={{ duration: 0.2 }}
+              >
                 <ChevronDownIcon className="w-4 h-4 text-secondary-400 dark:text-secondary-500" />
               </motion.div>
             )}
@@ -215,11 +226,13 @@ function InvoiceRow({
         <div className="px-4 pb-3 -mt-1">
           <motion.button
             whileTap={{ scale: 0.97 }}
-            onClick={() => onPayNow(invoiceId, invoice.amount)}
+            onClick={() =>
+              onPayNow(invoiceId, invoice.amount, invoice.deviceCategoryId)
+            }
             className={`w-full flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold transition-colors ${
               invoice.status === InvoiceStatusEnum.OVERDUE
-                ? 'bg-danger-600 hover:bg-danger-700 text-white'
-                : 'bg-primary-600 hover:bg-primary-700 text-white'
+                ? "bg-danger-600 hover:bg-danger-700 text-white"
+                : "bg-primary-600 hover:bg-primary-700 text-white"
             }`}
           >
             <CreditCardIcon className="w-3.5 h-3.5" />
@@ -233,9 +246,9 @@ function InvoiceRow({
         {expanded && invoice.history.length > 0 && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
+            animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25, ease: 'easeInOut' }}
+            transition={{ duration: 0.25, ease: "easeInOut" }}
             className="overflow-hidden"
           >
             <div className="px-4 pb-4 pt-1 border-t border-secondary-100 dark:border-secondary-700">
@@ -245,26 +258,37 @@ function InvoiceRow({
               </p>
               <div className="space-y-2">
                 {invoice.history.map((h, hi) => {
-                  const hCfg = statusConfig[h.status as InvoiceStatusEnum] ?? statusConfig[InvoiceStatusEnum.PAID]
+                  const hCfg =
+                    statusConfig[h.status as InvoiceStatusEnum] ??
+                    statusConfig[InvoiceStatusEnum.PAID];
                   return (
-                    <div key={hi} className="flex items-center justify-between text-xs">
+                    <div
+                      key={hi}
+                      className="flex items-center justify-between text-xs"
+                    >
                       <div className="flex items-center gap-2 text-secondary-500 dark:text-secondary-400">
-                        <span className={`w-1.5 h-1.5 rounded-full ${hCfg.pillBg}`} />
+                        <span
+                          className={`w-1.5 h-1.5 rounded-full ${hCfg.pillBg}`}
+                        />
                         <span>{formatDate(h.dueDate)}</span>
                         {h.paymentDate && (
-                          <span className="text-secondary-400">→ paid {formatDate(h.paymentDate)}</span>
+                          <span className="text-secondary-400">
+                            → paid {formatDate(h.paymentDate)}
+                          </span>
                         )}
                       </div>
                       <div className="flex items-center gap-1.5">
                         <span className="font-semibold text-secondary-700 dark:text-secondary-300">
                           {formatCurrency(h.amount)}
                         </span>
-                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${hCfg.pillBg} ${hCfg.pillText}`}>
+                        <span
+                          className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${hCfg.pillBg} ${hCfg.pillText}`}
+                        >
                           {h.status}
                         </span>
                       </div>
                     </div>
-                  )
+                  );
                 })}
               </div>
             </div>
@@ -272,7 +296,7 @@ function InvoiceRow({
         )}
       </AnimatePresence>
     </motion.div>
-  )
+  );
 }
 
 // ─── Empty State ──────────────────────────────────────────────────────────────
@@ -303,7 +327,11 @@ function PaymentHistory() {
     limit: 10,
   })
 
-  const [payModal, setPayModal] = useState<{ invoiceId: string; amount: number } | null>(null)
+  const [payModal, setPayModal] = useState<{
+    invoiceId: string;
+    amount: number;
+    deviceCategoryId: string;
+  } | null>(null);
 
   const { data: activeData, isLoading: activeLoading } = useGetActiveInvoice()
   const { data: allData, isLoading: allLoading, isFetching } = useGetAllInvoices(params)
@@ -314,13 +342,17 @@ function PaymentHistory() {
   const pastInvoices = invoices.filter((inv) => !inv.isCurrent)
 
   // ── Open PaymentModal for the selected invoice ──
-  const handlePayNow = (invoiceId: string, amount: number) => {
+  const handlePayNow = (
+    invoiceId: string,
+    amount: number,
+    deviceCategoryId: string,
+  ) => {
     if (!invoiceId) {
-      toast.error('Invoice ID not available. Please refresh and try again.')
-      return
+      toast.error("Invoice ID not available. Please refresh and try again.");
+      return;
     }
-    setPayModal({ invoiceId, amount })
-  }
+    setPayModal({ invoiceId, amount, deviceCategoryId });
+  };
 
   const handleLoadMore = () => {
     if (nextCursor) setParams((p) => ({ ...p, nextCursor }))
@@ -338,8 +370,12 @@ function PaymentHistory() {
             <ArrowLeftIcon className="w-4 h-4 text-secondary-600 dark:text-secondary-300" />
           </button>
           <div>
-            <h1 className="text-base font-bold text-secondary-900 dark:text-white">Payment History</h1>
-            <p className="text-xs text-secondary-400 dark:text-secondary-500">Your invoices & payments</p>
+            <h1 className="text-base font-bold text-secondary-900 dark:text-white">
+              Payment History
+            </h1>
+            <p className="text-xs text-secondary-400 dark:text-secondary-500">
+              Your invoices & payments
+            </p>
           </div>
         </div>
       </div>
@@ -350,10 +386,7 @@ function PaymentHistory() {
           <Pulse className="h-36 w-full" />
         </div>
       ) : activeInvoice ? (
-        <ActiveInvoiceBanner
-          invoice={activeInvoice}
-          onPayNow={handlePayNow}
-        />
+        <ActiveInvoiceBanner invoice={activeInvoice} onPayNow={handlePayNow} />
       ) : null}
 
       {/* Past invoices section */}
@@ -411,9 +444,10 @@ function PaymentHistory() {
         invoiceId={payModal?.invoiceId}
         amount={payModal?.amount ?? 0}
         onSuccess={() => setPayModal(null)}
+        deviceCategoryId={payModal?.deviceCategoryId ?? ""}
       />
     </div>
-  )
+  );
 }
 
 export default PaymentHistory

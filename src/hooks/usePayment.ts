@@ -23,10 +23,10 @@ export const useGetAllInvoices = (params: BaseCursorPaginationInterface) => {
 };
 
 // to get active bank account for manual payment.
-export const useGetActiveBankAccount = () => {
+export const useGetActiveBankAccount = (deviceCategoryId: string) => {
   return useQuery({
     queryKey: ["active-bank-account"],
-    queryFn: () => paymentApi.getActiveBankAccount(),
+    queryFn: () => paymentApi.getActiveBankAccount(deviceCategoryId),
     staleTime: 5 * 60 * 1000,
   });
 };

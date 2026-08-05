@@ -114,10 +114,12 @@ export class PaymentApi {
   }
 
   // get active bank account for manual payment.
-  async getActiveBankAccount(): Promise<GetAllActiveBankAccountCursorPaginationResponse> {
+  async getActiveBankAccount(
+    deviceCategoryId: string,
+  ): Promise<GetAllActiveBankAccountCursorPaginationResponse> {
     try {
       const response = await this.axios.get(
-        `${this.bankAccountEndpoint}/active-bank-account`,
+        `${this.bankAccountEndpoint}/active-bank-account/${deviceCategoryId}`,
       );
       return response.data;
     } catch (error) {

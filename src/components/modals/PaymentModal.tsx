@@ -88,6 +88,7 @@ interface SlideProps {
   onNavigate: (slide: SlideId, dir?: number) => void
   onSuccess: () => void
   onClose: () => void
+  deviceCategoryId:string
 }
 
 // =============================================================================
@@ -280,8 +281,8 @@ function PaystackSlide({ mode, orderId, invoiceId, amount, onClose, onSuccess }:
 // Slide: Manual — Bank Selection
 // =============================================================================
 
-function ManualBankSelectSlide({ onSelectBank, onNavigate }: SlideProps) {
-  const { data, isLoading, isError, refetch } = useGetActiveBankAccount()
+function ManualBankSelectSlide({ onSelectBank, onNavigate, deviceCategoryId }: SlideProps) {
+  const { data, isLoading, isError, refetch } = useGetActiveBankAccount(deviceCategoryId)
   const banks: BankAccount[] = (data as any)?.data ?? []
 
   if (isLoading) {
@@ -559,6 +560,7 @@ export interface PaymentModalProps {
   invoiceId?: string
   amount: number
   onSuccess?: () => void
+  deviceCategoryId:string
 }
 
 export default function PaymentModal({
@@ -569,6 +571,7 @@ export default function PaymentModal({
   invoiceId,
   amount,
   onSuccess,
+  deviceCategoryId
 }: PaymentModalProps) {
   const [slide, setSlide] = useState<SlideId>('selection')
   const [dir, setDir] = useState(1)
@@ -616,6 +619,7 @@ export default function PaymentModal({
     onNavigate: navigate,
     onSuccess: () => onSuccess?.(),
     onClose: handleClose,
+    deviceCategoryId
   }
 
   // ── Slide registry ──────────────────────────────────────────────────────────

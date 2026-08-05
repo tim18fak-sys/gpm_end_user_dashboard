@@ -294,15 +294,16 @@ function OrderCard({
   onCancel,
   onActivate,
 }: {
-  order: StandardOrder & { _id?: string }
-  index: number
-  onCancel: (id: string) => void
-  onActivate: (id: string, amount: number) => void
+  order: StandardOrder & { _id?: string };
+  index: number;
+  onCancel: (id: string) => void;
+  onActivate: (id: string, amount: number, deviceCategoryId: string) => void;
 }) {
-  const cfg = statusConfig[order.status] ?? statusConfig[OrderStatusEnum.PENDING]
-  const Icon = cfg.icon
-  const isOutright = order.metadata.plan === DevicePaymentPlan.NONE
-  const orderId = (order as any)._id ?? order.deviceCategoryId
+  const cfg =
+    statusConfig[order.status] ?? statusConfig[OrderStatusEnum.PENDING];
+  const Icon = cfg.icon;
+  const isOutright = order.metadata.plan === DevicePaymentPlan.NONE;
+  const orderId = (order as any)._id ?? order.deviceCategoryId;
 
   return (
     <motion.div
@@ -314,7 +315,9 @@ function OrderCard({
       <div className="p-4">
         <div className="flex items-start gap-3">
           {/* Status icon */}
-          <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${cfg.iconBg}`}>
+          <div
+            className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${cfg.iconBg}`}
+          >
             <Icon className={`w-5 h-5 ${cfg.iconColor}`} />
           </div>
 
@@ -323,7 +326,7 @@ function OrderCard({
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
                 <p className="text-sm font-bold text-secondary-900 dark:text-white truncate">
-                  {order.metadata.customerProfile?.firstName}{' '}
+                  {order.metadata.customerProfile?.firstName}{" "}
                   {order.metadata.customerProfile?.lastName}
                 </p>
                 <p className="text-[10px] font-mono text-secondary-400 dark:text-secondary-500 mt-0.5">
@@ -355,7 +358,7 @@ function OrderCard({
         <div className="flex items-center gap-3 mt-3 pt-3 border-t border-secondary-100 dark:border-secondary-700">
           <div className="flex-1">
             <p className="text-[10px] text-secondary-400 dark:text-secondary-500">
-              {isOutright ? 'Total amount' : 'Activation fee'}
+              {isOutright ? "Total amount" : "Activation fee"}
             </p>
             <p className="text-sm font-bold text-secondary-900 dark:text-white">
               {formatCurrency(order.metadata.initializationAmount)}
@@ -372,7 +375,9 @@ function OrderCard({
             </div>
           )}
           <div className="flex-1">
-            <p className="text-[10px] text-secondary-400 dark:text-secondary-500">Device total</p>
+            <p className="text-[10px] text-secondary-400 dark:text-secondary-500">
+              Device total
+            </p>
             <p className="text-sm font-bold text-secondary-900 dark:text-white">
               {formatCurrency(order.metadata.deviceAmount)}
             </p>
@@ -389,7 +394,13 @@ function OrderCard({
           <div className="flex items-center gap-2">
             <motion.button
               whileTap={{ scale: 0.97 }}
-              onClick={() => onActivate(orderId, order.metadata.initializationAmount)}
+              onClick={() =>
+                onActivate(
+                  orderId,
+                  order.metadata.initializationAmount,
+                  order.deviceCategoryId,
+                )
+              }
               className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-xs font-bold transition-colors"
             >
               <CreditCardIcon className="w-3.5 h-3.5" />
@@ -418,7 +429,7 @@ function OrderCard({
         </div>
       )}
     </motion.div>
-  )
+  );
 }
 
 // ─── Empty State ──────────────────────────────────────────────────────────────
@@ -459,7 +470,11 @@ function OrderList() {
   const queryClient = useQueryClient()
 
   const [cancelTarget, setCancelTarget] = useState<string | null>(null)
-  const [payModal, setPayModal] = useState<{ orderId: string; amount: number } | null>(null)
+  const [payModal, setPayModal] = useState<{
+    orderId: string;
+    amount: number;
+    deviceCategoryId: string;
+  } | null>(null);
 
   const [params] = useState<GetAllOrderCursorPaginationDTO>({
     prevCursor: null,
@@ -474,9 +489,13 @@ function OrderList() {
   const orders = ordersData?.data ?? []
 
   // ── Activate an order: open PaymentModal ──
-  const handleActivate = (orderId: string, amount: number) => {
-    setPayModal({ orderId, amount })
-  }
+  const handleActivate = (
+    orderId: string,
+    amount: number,
+    deviceCategoryId: string,
+  ) => {
+    setPayModal({ orderId, amount, deviceCategoryId });
+  };
 
   const handleCancelConfirm = () => {
     if (!cancelTarget) return
@@ -550,7 +569,6 @@ function OrderList() {
         </div>
       )}
 
-
       {/* New Order Modal */}
       {/* ORDER IS AUTO CREATED WHEN ADMIN APPROVES OF THE CUSTOMER */}
       {/* <AnimatePresence>
@@ -582,9 +600,10 @@ function OrderList() {
         orderId={payModal?.orderId}
         amount={payModal?.amount ?? 0}
         onSuccess={() => {
-          setPayModal(null)
-          queryClient.invalidateQueries({ queryKey: ['all-orders'] })
+          setPayModal(null);
+          queryClient.invalidateQueries({ queryKey: ["all-orders"] });
         }}
+        deviceCategoryId={payModal?.deviceCategoryId  ?? ""}
       />
     </div>
   );

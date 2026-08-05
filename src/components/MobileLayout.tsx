@@ -82,7 +82,7 @@ function DesktopGuard() {
 
         <div className="mt-8 flex items-center gap-2 justify-center text-xs text-secondary-400 dark:text-secondary-500">
           <div className="h-px flex-1 bg-secondary-200 dark:bg-secondary-700" />
-          <span>CompusPal</span>
+          <span>Greenpower</span>
           <div className="h-px flex-1 bg-secondary-200 dark:bg-secondary-700" />
         </div>
       </motion.div>

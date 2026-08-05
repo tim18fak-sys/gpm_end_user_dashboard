@@ -26,6 +26,7 @@ export interface Invoice {
   //   this is a flag to know the current invoice of that user, so we can easily query the current invoice of the user.
 
   isCurrent: boolean;
+  deviceCategoryId: string;
 }
 
 export interface BankAccount {
