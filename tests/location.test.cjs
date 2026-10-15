@@ -49,6 +49,52 @@ test('confirmation requires address, coordinates and an explicit source', () => 
   assert.equal(types.isCompleteLocation(point), false);
 });
 
+test('onboarding maps address, longitude and latitude from the same confirmed location', () => {
+  const source = ts.createSourceFile(
+    'OnboardingPage.tsx', fs.readFileSync('src/pages/OnboardingPage.tsx', 'utf8'),
+    ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX,
+  );
+  const calls = [];
+  function visit(node) {
+    if (ts.isCallExpression(node) && node.expression.getText(source) === 'onboard') calls.push(node);
+    ts.forEachChild(node, visit);
+  }
+  visit(source);
+  assert.equal(calls.length, 1);
+  const payload = calls[0].arguments[0];
+  assert.ok(ts.isObjectLiteralExpression(payload));
+  for (const field of ['address', 'longitude', 'latitude']) {
+    const property = payload.properties.find((node) =>
+      ts.isPropertyAssignment(node) && node.name.getText(source) === field);
+    assert.ok(property, `Onboarding must send ${field}`);
+    assert.equal(property.initializer.getText(source), `values.home_location.${field}`);
+  }
+});
+
+test('onboarding API forwards the address and numeric coordinates in the POST body', async () => {
+  let request;
+  const { onboardingApi } = load('src/services/onboarding.api.ts', {
+    './api': { api: { post: async (url, data) => {
+      request = { url, data };
+      return { data: { onboarding_id: 'test-onboarding' } };
+    } } },
+  });
+  for (const coordinates of [
+    { longitude: 3.35776, latitude: 6.6143785 },
+    { longitude: 0, latitude: 0 },
+  ]) {
+    const payload = { address: point.address, ...coordinates };
+    await onboardingApi.onboardUser(payload);
+    assert.equal(request.url, '/v1/customer-onboarding');
+    assert.equal(request.data, payload);
+    assert.equal(request.data.address, point.address);
+    assert.equal(request.data.longitude, coordinates.longitude);
+    assert.equal(request.data.latitude, coordinates.latitude);
+    assert.equal(typeof request.data.longitude, 'number');
+    assert.equal(typeof request.data.latitude, 'number');
+  }
+});
+
 test('manual search uses the documented GreenPower geocode envelope and request', async () => {
   let request;
   const { locationApi } = service(async (config) => {

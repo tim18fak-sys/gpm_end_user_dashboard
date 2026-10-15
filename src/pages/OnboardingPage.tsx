@@ -598,9 +598,9 @@ function OnboardingPage() {
         alternative_number: values.alternative_number || undefined,
         gender: values.gender as UserGenderEnum,
         dob: values.dob,
-        // Only address is part of the supplied onboarding DTO. Do not silently
-        // invent coordinate fields: location persistence needs the backend contract.
         address: values.home_location.address,
+        longitude: values.home_location.longitude,
+        latitude: values.home_location.latitude,
         business_address: values.business_address || undefined,
         occupation: values.occupation,
 

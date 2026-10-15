@@ -35,6 +35,8 @@ export interface DeviceUserOnboardingDto {
   gender: UserGenderEnum;
   dob: string;
   address: string; // home address
+  longitude: number;
+  latitude: number;
   business_address?: string;
   occupation: string;
   id_type: IdTypeEnum;

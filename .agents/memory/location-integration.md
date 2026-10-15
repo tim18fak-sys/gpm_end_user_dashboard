@@ -19,4 +19,4 @@ Do not assume onboarding persists location metadata merely because geocoding wor
 
 **Why:** The handoff states that the backend uses DTO whitelisting, which can discard unknown fields, and requires confirmation of the save contract.
 
-**How to apply:** Confirm the onboarding DTO/schema and persistence behavior with the backend owner before introducing coordinate payload fields or claiming end-to-end location storage.
+**How to apply:** The user explicitly directed the frontend to send the address and longitude/latitude during onboarding. Send the confirmed selection's three values together. Do not block frontend submission on obtaining another DTO; backend persistence still needs separate verification before claiming end-to-end storage.
