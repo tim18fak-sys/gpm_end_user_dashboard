@@ -1,0 +1,1 @@
+- [Location integration rules](location-integration.md) — provider proxy, GPS provenance, and the onboarding persistence boundary.

@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Formik, Form, Field, ErrorMessage, FormikHelpers } from 'formik'
 import * as Yup from 'yup'
+import { LocationPickerField } from '@/components/reusable'
+import { isCompleteLocation, SelectedLocation } from '@/types/location.types'
 import toast from 'react-hot-toast'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -156,6 +158,9 @@ const stepSchemas: Yup.AnyObjectSchema[] = [
     gender: Yup.mixed<UserGenderEnum>().oneOf(Object.values(UserGenderEnum)).required('Gender is required'),
     dob: dobSchema,
     address: Yup.string().trim().min(5, 'Enter a full address').required('Home address is required'),
+    home_location: Yup.mixed<SelectedLocation>()
+      .nullable()
+      .test('confirmed-location', 'Please add and confirm your home location', isCompleteLocation),
     occupation: Yup.string().trim().required('Occupation / business type is required'),
   }),
   // Step 1: ID + Product
@@ -240,6 +245,7 @@ interface FormValues {
   gender: UserGenderEnum | "";
   dob: string;
   address: string;
+  home_location: SelectedLocation | null;
   business_address: string;
   occupation: string;
   // Step 1
@@ -416,6 +422,7 @@ function OnboardingPage() {
     gender: "",
     dob: "",
     address: "",
+    home_location: null,
     business_address: "",
     occupation: "",
     id_type:IdTypeEnum.NA,
@@ -488,7 +495,7 @@ function OnboardingPage() {
 
     // Step field map — step 1 skips ID fields for outright buyers
     const stepFields: Record<StepIndex, (keyof FormValues)[]> = {
-      0: ['first_name', 'last_name', 'email', 'phone_number', 'gender', 'dob', 'address', 'occupation'],
+      0: ['first_name', 'last_name', 'email', 'phone_number', 'gender', 'dob', 'address', 'home_location', 'occupation'],
       1: isOutright
         ? ['interested_device_category_id', 'paymentTimeline', 'intended_use']
         : ['id_type', 'id_number', 'interested_device_category_id', 'paymentTimeline', 'intended_use'],
@@ -575,6 +582,11 @@ function OnboardingPage() {
   }
 
   const handleSubmit = (values: FormValues) => {
+    if (!isCompleteLocation(values.home_location) || values.home_location.address !== values.address) {
+      setStep(0)
+      toast.error('Please add and confirm your home location before submitting.')
+      return
+    }
     setIsPending(true)
     onboard(
       {
@@ -586,7 +598,9 @@ function OnboardingPage() {
         alternative_number: values.alternative_number || undefined,
         gender: values.gender as UserGenderEnum,
         dob: values.dob,
-        address: values.address,
+        // Only address is part of the supplied onboarding DTO. Do not silently
+        // invent coordinate fields: location persistence needs the backend contract.
+        address: values.home_location.address,
         business_address: values.business_address || undefined,
         occupation: values.occupation,
 
@@ -822,7 +836,7 @@ function OnboardingPage() {
             validateOnBlur
             validateOnChange={false}
           >
-            {({ values, validateForm, setTouched, setFieldValue }) => (
+            {({ values, errors, touched, validateForm, setTouched, setFieldValue, setValues }) => (
               <>
               <DevicePickerModal
                 open={devicePickerOpen}
@@ -914,14 +928,17 @@ function OnboardingPage() {
                             <ErrorMessage name="occupation" component="div" className={errorClass} />
                           </div>
 
-                          <div>
-                            <label htmlFor="address" className={labelClass}>Home Address</label>
-                            <div className="relative mt-1">
-                              <MapPinIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400" />
-                              <Field id="address" name="address" type="text" placeholder="3A, 2nd Avenue, Gwarinpa, Abuja" className={`${inputClass} !mt-0 pl-9`} />
-                            </div>
-                            <ErrorMessage name="address" component="div" className={errorClass} />
-                          </div>
+                          <LocationPickerField
+                            value={values.home_location}
+                            error={touched.home_location && errors.home_location
+                              ? String(errors.home_location) : undefined}
+                            onChange={(home_location) => {
+                              // One update keeps the confirmed address and its coordinates paired.
+                              void setValues((current) => ({
+                                ...current, home_location, address: home_location.address,
+                              }))
+                            }}
+                          />
 
                           <div>
                             <label htmlFor="business_address" className={labelClass}>

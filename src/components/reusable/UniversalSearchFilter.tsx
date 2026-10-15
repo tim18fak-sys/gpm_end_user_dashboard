@@ -1,0 +1,238 @@
+
+/**
+ * Example usage of the UniversalSearchFilter component:
+ * interface CustomerSearch {
+  search: string;
+  status?: string;
+  gender?: string;
+}
+
+<UniversalSearchFilter<CustomerSearch>
+  onSearch={(filters) => fetchCustomers(filters)}
+  enableDropdownSearch
+  dropdownSearch={[
+    {
+      key: "gender",
+      value: "Gender",
+      options: [
+        { key: "male", value: "Male" },
+        { key: "female", value: "Female" },
+      ],
+    },
+    {
+      key: "page",
+      value: "Page",
+      options: [
+        { key: "10", value: '10' },
+        { key: "20", value: "20" },
+      ],
+    },
+  ]}
+  enableListSearch
+  list={[
+    {
+      key: "status",
+      value: "Status",
+      option: ["active", "deleted"],
+    },
+  ]}
+/>
+ */
+
+import { useEffect, useRef, useState } from "react";
+import {
+  MagnifyingGlassIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/outline";
+
+type SearchFilterKey<T extends Record<"search", unknown>> =
+  | "search"
+  | Extract<Exclude<keyof T, "search">, string>;
+
+export interface UniversalSearchDropdown<T extends Record<"search", unknown>> {
+  key: SearchFilterKey<T>;
+  value: string;
+  options: {
+    key: string;
+    value: string;
+  }[];
+}
+
+export interface UniversalSearchList<T extends Record<"search", unknown>> {
+  key: SearchFilterKey<T>;
+  option: string[];
+  value: string;
+}
+
+export interface UniversalSearchFilterProps<
+  T extends Record<"search", unknown>,
+> {
+  onSearch: (item: T) => void;
+  /** Immediate input notification, including clearing, for stale-result protection. */
+  onSearchInputChange?: (value: string) => void;
+  enableDropdownSearch?: boolean;
+  dropdownSearch?: UniversalSearchDropdown<T>[];
+  list?: UniversalSearchList<T>[];
+  enableListSearch?: boolean;
+  debounceMs?: number;
+  searchPlaceholder?: string;
+}
+
+type SearchValues<T extends Record<"search", unknown>> = Partial<
+  Record<SearchFilterKey<T>, string>
+>;
+
+export default function UniversalSearchFilter<
+  T extends Record<"search", unknown>,
+>({
+  onSearch,
+  onSearchInputChange,
+  enableDropdownSearch = false,
+  dropdownSearch = [],
+  list = [],
+  enableListSearch = false,
+  debounceMs = 400,
+  searchPlaceholder = "Search...",
+}: UniversalSearchFilterProps<T>) {
+  const [values, setValues] = useState<SearchValues<T>>(() => {
+    const initialValues: Record<string, string> = { search: "" };
+
+    dropdownSearch.forEach((dropdown) => {
+      initialValues[dropdown.key] = "";
+    });
+
+    list.forEach((listItem) => {
+      initialValues[listItem.key] = "";
+    });
+
+    return initialValues as SearchValues<T>;
+  });
+  const onSearchRef = useRef(onSearch);
+  const isFirstRender = useRef(true);
+
+  useEffect(() => {
+    onSearchRef.current = onSearch;
+  }, [onSearch]);
+
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      onSearchRef.current(values as T);
+    }, debounceMs);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [debounceMs, values]);
+
+  const updateValue = (key: SearchFilterKey<T>, value: string) => {
+    if (key === "search") onSearchInputChange?.(value);
+    setValues((currentValues) => ({
+      ...currentValues,
+      [key]: value,
+    }));
+  };
+
+  const searchValue = values.search ?? "";
+
+  return (
+    <div className="space-y-4 rounded-2xl border border-secondary-200 bg-white p-4 shadow-sm dark:border-secondary-700 dark:bg-secondary-800">
+      <div className="relative">
+        <MagnifyingGlassIcon
+          aria-hidden="true"
+          className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-secondary-400"
+        />
+        <input
+          type="search"
+          value={searchValue}
+          onChange={(event) => updateValue("search", event.target.value)}
+          placeholder={searchPlaceholder}
+          aria-label="Search"
+          className="w-full rounded-xl border border-secondary-300 bg-white py-2.5 pl-10 pr-10 text-sm text-secondary-900 outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 dark:border-secondary-600 dark:bg-secondary-900 dark:text-white"
+        />
+        {searchValue && (
+          <button
+            type="button"
+            onClick={() => updateValue("search", "")}
+            aria-label="Clear search"
+            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-secondary-400 transition-colors hover:bg-secondary-100 hover:text-secondary-600 dark:hover:bg-secondary-700 dark:hover:text-secondary-200"
+          >
+            <XMarkIcon className="h-4 w-4" />
+          </button>
+        )}
+      </div>
+
+      {enableDropdownSearch && dropdownSearch.length > 0 && (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {dropdownSearch.map((dropdown) => (
+            <label key={dropdown.key} className="space-y-1.5">
+              <span className="text-xs font-semibold uppercase tracking-wide text-secondary-500 dark:text-secondary-400">
+                {dropdown.value}
+              </span>
+              <select
+                value={values[dropdown.key] ?? ""}
+                onChange={(event) =>
+                  updateValue(dropdown.key, event.target.value)
+                }
+                className="w-full rounded-xl border border-secondary-300 bg-white px-3 py-2.5 text-sm text-secondary-900 outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 dark:border-secondary-600 dark:bg-secondary-900 dark:text-white"
+              >
+                <option value="">All</option>
+                {dropdown.options.map((option) => (
+                  <option key={option.key} value={option.key}>
+                    {option.value}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ))}
+        </div>
+      )}
+
+      {enableListSearch && list.length > 0 && (
+        <div className="space-y-3">
+          {list.map((listItem) => (
+            <fieldset key={listItem.key}>
+              <legend className="mb-2 text-xs font-semibold uppercase tracking-wide text-secondary-500 dark:text-secondary-400">
+                {listItem.value}
+              </legend>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => updateValue(listItem.key, "")}
+                  className={`rounded-full border px-3 py-1.5 text-sm font-medium transition-colors ${
+                    !values[listItem.key]
+                      ? "border-primary-600 bg-primary-600 text-white"
+                      : "border-secondary-300 bg-white text-secondary-600 hover:bg-secondary-50 dark:border-secondary-600 dark:bg-secondary-900 dark:text-secondary-300 dark:hover:bg-secondary-700"
+                  }`}
+                >
+                  All
+                </button>
+                {listItem.option.map((option) => {
+                  const isSelected = values[listItem.key] === option;
+
+                  return (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => updateValue(listItem.key, option)}
+                      aria-pressed={isSelected}
+                      className={`rounded-full border px-3 py-1.5 text-sm font-medium transition-colors ${
+                        isSelected
+                          ? "border-primary-600 bg-primary-600 text-white"
+                          : "border-secondary-300 bg-white text-secondary-600 hover:bg-secondary-50 dark:border-secondary-600 dark:bg-secondary-900 dark:text-secondary-300 dark:hover:bg-secondary-700"
+                      }`}
+                    >
+                      {option}
+                    </button>
+                  );
+                })}
+              </div>
+            </fieldset>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

@@ -1,0 +1,608 @@
+# GreenPower Location API — React implementation guide
+
+## 1. Scope and security
+
+Implement location components and hooks in the consuming React application using
+the GreenPower backend endpoints below. **Do not call StratopEdge or Geoapify from
+the browser. Never ship an `x-api-key` header or a location-provider key in frontend
+code, build variables, network requests, analytics, or logs.**
+
+The backend implements every operation in the developer handoff:
+health, forward geocoding, reverse geocoding, autocomplete, and GPS normalization.
+The authoritative customer-onboarding rules in section 16 of the handoff take
+precedence over its earlier generic browser examples.
+
+This repository is a NestJS backend, not the React app. Inspect the React app's
+existing folders, router, API client, form library, components, and query hooks
+before implementing. Reuse its separation of concerns and existing packages;
+the suggested file responsibilities below are not an instruction to replace its
+folder structure.
+
+### What this backend integration does and does not do
+
+- Proxies requests with a server-side client key.
+- Validates browser input and keeps captured GPS coordinates authoritative.
+- Returns provider data without adding a `{ data: ... }` wrapper.
+- Applies rate limiting to public location endpoints and disables response caching.
+- Does **not** capture GPS itself: the browser must request permission.
+- Does **not** create or update an onboarding record or change existing onboarding
+  DTOs/schemas. These endpoints are stateless. Persistence must be integrated with
+  the specific customer/agent onboarding endpoint before claiming the entire
+  onboarding flow stores GPS metadata.
+
+## 2. Backend architecture and setup
+
+The integration follows this repository's existing layering:
+
+```text
+src/shared/library/location/
+  interface/location.interface.ts       # reusable request/response contracts
+  location.module.ts                   # exports LocationApiService
+  location.service.ts                  # all five upstream API methods
+
+src/shared/config/env/location.env.ts   # server configuration
+
+src/modules/miscellaneous/
+  application/location/
+    location.module.ts                 # imported by MiscellaneousModule
+    location.service.ts                # application service
+  presentation/
+    controllers/location/location.controller.ts
+    dto/location/location.dto.ts
+    filters/location/location.exception.filter.ts
+    guards/location/location.rate.limit.guard.ts
+```
+
+There is no fabricated database repository for a stateless external HTTP service.
+Other NestJS modules can import `LocationApiModule` and inject `LocationApiService`,
+or import `LocationModule` and inject its exported application `LocationService`.
+The methods are `health()`, `geocode(dto)`, `reverse(dto)`, `autocomplete(dto)`,
+and `normalize(dto)`.
+
+### Server environment variables
+
+| Name | Required | Behavior |
+|---|---|---|
+| `LOCATION_API_KEY` | For the four functional methods | Configure through server secrets only. The supplied GreenPower client key is not the Geoapify account key. |
+| `LOCATION_API_BASE_URL` | No | Defaults to `https://stratopedge-location-api.onrender.com`. Must be an HTTPS origin without credentials, query, fragment, or path. |
+| `LOCATION_API_TIMEOUT_MS` | No | Defaults to `60000` milliseconds to accommodate a sleeping Render instance. Positive finite values override it. |
+
+Do not use the planned `https://gps.greenpower.ng` upstream origin until its
+activation is confirmed. No key is needed for upstream health. A missing key
+returns a clear `503` on functional calls without preventing the rest of the API
+from starting. Outbound redirects are disabled so the key cannot be forwarded to
+a redirect target.
+
+Use the React app's existing backend base URL configuration. URI versioning gives
+these routes the `/v1` prefix; there is no additional `/api` prefix in this backend.
+For a same-origin app, use the relative paths shown below. For a separately hosted
+React app, use the existing configured GreenPower API origin, not localhost and
+not the upstream provider origin.
+
+The endpoints are intentionally accessible without a signed-in user for public
+onboarding. All five share an IP-based limiter using the project's existing Redis
+token-bucket strategy, with its in-memory fallback. The current shared defaults
+are a capacity of 500 tokens, one token per request, and refill over 10 minutes.
+If both limiters fail, location requests return `503` rather than allowing
+unlimited provider usage. `X-RateLimit-Limit`, `X-RateLimit-Remaining`, and
+`X-RateLimit-Reset` are returned when available; local `429` responses include
+`Retry-After`.
+
+Deployment must configure a trusted reverse proxy correctly for `request.ip`;
+do not trust arbitrary client IP headers. Otherwise clients behind the same
+proxy may share a bucket. Multiple application instances need working shared
+Redis for consistent quotas. An edge/provider quota is still recommended:
+the reused limiter is not a replacement for perimeter abuse protection.
+
+Configure the exact React origin in the backend's existing production CORS
+allowlist. Browser CORS is between React and GreenPower, not React and StratopEdge.
+Never weaken the allowlist just to connect the frontend.
+For cross-origin clients that read rate-limit headers, also expose
+`Retry-After`, `X-RateLimit-Limit`, `X-RateLimit-Remaining`, and `X-RateLimit-Reset`
+in that deployment's CORS configuration; browsers otherwise hide those headers
+from JavaScript.
+
+Swagger UI: `/api/v1`, under the `location` tag.
+
+## 3. Routes and request DTOs
+
+All successful local operations return HTTP **200**, including both POST routes.
+Send JSON for POSTs. Do not send a client API key, user ID, hub ID, or provider
+configuration to these endpoints.
+
+| Method | GreenPower route | Request |
+|---|---|---|
+| GET | `/v1/location/health` | None |
+| POST | `/v1/location/geocode` | `{ address, limit? }` |
+| GET | `/v1/location/reverse` | Query: `latitude`, `longitude` |
+| GET | `/v1/location/autocomplete` | Query: `text`, `limit?` |
+| POST | `/v1/location/normalize` | `{ latitude, longitude, accuracy_m, captured_at }` |
+
+### Forward geocoding
+
+```ts
+interface GeocodeLocationPayload {
+  address: string;
+  limit?: number;
+}
+```
+
+- `address`: required string, trimmed, 1–500 characters.
+- `limit`: optional integer, 1–10. Omit to use the provider's default.
+- Bounds on length and limit are local proxy safety policies, not claims about
+  the upstream service's undocumented maximums.
+
+Example:
+
+```http
+POST /v1/location/geocode
+Content-Type: application/json
+
+{"address":"Ikeja City Mall, Lagos, Nigeria","limit":5}
+```
+
+### Reverse geocoding
+
+```ts
+interface ReverseLocationQuery {
+  latitude: number;  // -90 to 90 inclusive
+  longitude: number; // -180 to 180 inclusive
+}
+```
+
+Example: `/v1/location/reverse?latitude=6.6143785&longitude=3.35776`.
+Encode query parameters with `URLSearchParams` or the existing HTTP client.
+Zero coordinates are valid; do not use truthiness checks to validate them.
+Empty strings, missing values, repeated coordinate arrays, NaN, infinity, and
+out-of-range coordinates are rejected.
+
+### Autocomplete
+
+```ts
+interface AutocompleteLocationQuery {
+  text: string;
+  limit?: number;
+}
+```
+
+- `text`: required string, trimmed, 3–500 characters.
+- `limit`: optional integer, 1–10.
+- Do not request suggestions until at least 3 trimmed characters are entered.
+- Debounce by about 350 ms and cancel/ignore stale responses.
+
+Example: `/v1/location/autocomplete?text=Ikeja%20City%20Mall&limit=5`.
+
+### GPS normalization
+
+```ts
+interface NormalizeLocationPayload {
+  latitude: number;
+  longitude: number;
+  accuracy_m: number;
+  captured_at: string;
+}
+```
+
+All four fields are required by this proxy for the authoritative onboarding flow:
+
+| Field | Validation |
+|---|---|
+| `latitude` | JSON number, finite, -90 to 90 inclusive |
+| `longitude` | JSON number, finite, -180 to 180 inclusive |
+| `accuracy_m` | JSON number, finite, >= 0 |
+| `captured_at` | Valid ISO 8601 UTC timestamp ending in `Z`; use `new Date(position.timestamp).toISOString()` |
+
+Do not send numeric strings for GPS JSON fields. Send the capture time, not the
+time a later retry happens. A manual capture retry obtains a new position and
+timestamp.
+
+```json
+{
+  "latitude": 6.6143785,
+  "longitude": 3.35776,
+  "accuracy_m": 12.4,
+  "captured_at": "2026-10-02T19:00:00Z"
+}
+```
+
+`source` is set by the backend to `"device_geolocation"` and is not a request
+field. The backend preserves the submitted latitude, longitude, accuracy, and
+timestamp even if the geocoding provider returns a different point.
+
+## 4. Successful API responses
+
+The handoff fully describes health and the main GPS-normalization envelope.
+It describes geocode results and a reverse result in prose, but does not provide
+complete JSON schemas for every provider field. It provides **no autocomplete
+response schema**. The proxy preserves those provider response bodies.
+
+Do not infer extra envelopes such as `response.data.data`, `features`, or
+`suggestions`. Before connecting the autocomplete list UI, obtain an authenticated
+sample and confirm its envelope with the API owner. Keep the adapter separate
+from components so any correction is confined to one file.
+
+### Shared types
+
+```ts
+interface LocationResult {
+  address?: string;
+  latitude: number;
+  longitude: number;
+  country?: string;
+  country_code?: string;
+  state?: string;
+  city?: string;
+  confidence?: number | Record<string, unknown>;
+  provider?: string;
+  [field: string]: unknown; // provider metadata is not fully specified
+}
+
+interface LocationHealthResponse {
+  ok: boolean;
+  service: string;
+  version: string;
+  providerConfigured: boolean;
+}
+
+interface GeocodeLocationResponse {
+  results: LocationResult[];
+  [field: string]: unknown;
+}
+
+type ReverseLocationResponse = LocationResult;
+type AutocompleteLocationResponse = {
+  results:LocationResult[]
+  status:boolean
+}; // envelope unconfirmed
+
+interface CapturedLocation extends LocationResult {
+  accuracy_m: number;
+  captured_at: string;
+  source: "device_geolocation";
+}
+
+interface NormalizeLocationResponse {
+  success: true;
+  location: CapturedLocation;
+  [field: string]: unknown;
+}
+```
+
+Additional geocode/reverse metadata and confidence values should be treated as
+optional. The TypeScript declarations describe the handoff; the proxy does not
+validate every upstream metadata field at runtime.
+
+### Health response
+
+```json
+{
+  "ok": true,
+  "service": "stratopedge-location-api",
+  "version": "1.0.0",
+  "providerConfigured": true
+}
+```
+
+HTTP 200 alone does not mean the provider is ready: also check
+`ok` and `providerConfigured`. Do not poll health aggressively from every form.
+
+### Geocode response
+
+The documented envelope is `{ "results": [...] }`. An empty results array means
+no address matches. Each result has normalized location data; do not assume a
+stable ID or undocumented label field.
+
+### Reverse response
+
+The handoff describes a normalized location object; use the `LocationResult`
+contract above. A no-match result is documented as HTTP 404.
+
+### Autocomplete response
+
+Pass-through JSON object; exact envelope is not defined in the handoff. Do not
+treat an unexpected envelope as an empty list: show an integration error so a
+contract mismatch is visible. Confirm the actual envelope before production.
+
+### Normalization response example
+
+The following is illustrative, based on the handoff, not an authenticated live
+response captured during implementation:
+
+```json
+{
+  "success": true,
+  "location": {
+    "address": "174/194 Obafemi Awolowo Way, Ikeja, Lagos, Nigeria",
+    "latitude": 6.6143785,
+    "longitude": 3.35776,
+    "accuracy_m": 12.4,
+    "country": "Nigeria",
+    "country_code": "ng",
+    "state": "Lagos",
+    "city": "Ikeja",
+    "provider": "geoapify",
+    "source": "device_geolocation",
+    "captured_at": "2026-10-02T19:00:00Z"
+  }
+}
+```
+
+## 5. Errors, privacy, and retry behavior
+
+The location controller uses the backend's standard error shape:
+
+```ts
+interface LocationApiError {
+  success: false;
+  statusCode: number;
+  message: string | string[]; // DTO validation may return multiple messages
+}
+```
+
+```json
+{
+  "success": false,
+  "statusCode": 503,
+  "message": "Location service is not configured."
+}
+```
+
+| HTTP status | Meaning | Frontend behavior |
+|---|---|---|
+| 400 | Invalid fields or upstream input rejection | Show field-level validation or readable error messages. |
+| 401 | Server-to-provider client-key authentication failed | Show service unavailable/contact administrator. **Do not log the user out** or ask them for a key. |
+| 404 | No reverse-geocoding address | Retain the captured device coordinates and offer Retry/manual address correction if the workflow allows it. Never replace GPS with geocoded coordinates. |
+| 429 | Local or provider rate limit | Stop automatic requests, respect `Retry-After` when present, then retry with backoff. |
+| 502 | Provider/network failure or malformed normalization response | Show a temporary error and Retry. |
+| 503 | Missing config, unavailable provider/limiter, or timeout | Show a temporary/configuration error. Do not retry in a tight loop. |
+
+Provider error details are replaced with safe messages; no Axios configuration,
+credential, or raw error body is returned to the browser.
+
+The new endpoints return `Cache-Control: no-store`. Their exception filter avoids
+the global negative error cache, and location routes bypass cursor-pagination
+query logging. Do not add precise coordinates/addresses to browser analytics,
+localStorage, session replay, or client error reporting. Keep capture data in
+form memory until submitted. If request auditing is enabled later, redact both
+location URLs/query data and payloads. Review reverse-proxy access-log retention
+too: GET reverse queries contain sensitive coordinates.
+
+## 6. React API layer
+
+Use the existing project API client/interceptors if available; do not install a
+second client. This standalone fetch example shows the contract for a same-origin
+deployment. Adapt it into the existing service folder.
+
+```ts
+export class LocationRequestError extends Error {
+  constructor(
+    public status: number,
+    message: string,
+    public retryAfter: string | null = null,
+  ) {
+    super(message);
+    this.name = "LocationRequestError";
+  }
+}
+
+async function locationRequest<T>(
+  path: string,
+  init: RequestInit = {},
+): Promise<T> {
+  const response = await fetch(`/v1/location${path}`, {
+    ...init,
+    cache: "no-store",
+    headers: { "Content-Type": "application/json", ...init.headers },
+  });
+  const body = await response.json();
+  if (!response.ok) {
+    const message = Array.isArray(body.message)
+      ? body.message.join(" ")
+      : body.message || "Location request failed.";
+    throw new LocationRequestError(
+      response.status, message, response.headers.get("Retry-After"),
+    );
+  }
+  return body as T;
+}
+
+export const locationApi = {
+  health: (signal?: AbortSignal) =>
+    locationRequest<LocationHealthResponse>("/health", { signal }),
+  geocode: (payload: GeocodeLocationPayload, signal?: AbortSignal) =>
+    locationRequest<GeocodeLocationResponse>("/geocode", {
+      method: "POST", body: JSON.stringify(payload), signal,
+    }),
+  reverse: (latitude: number, longitude: number, signal?: AbortSignal) => {
+    const params = new URLSearchParams({
+      latitude: String(latitude), longitude: String(longitude),
+    });
+    return locationRequest<ReverseLocationResponse>(`/reverse?${params}`, { signal });
+  },
+  autocomplete: (text: string, limit = 5, signal?: AbortSignal) => {
+    const params = new URLSearchParams({ text: text.trim(), limit: String(limit) });
+    return locationRequest<AutocompleteLocationResponse>(`/autocomplete?${params}`, { signal });
+  },
+  normalize: (payload: NormalizeLocationPayload, signal?: AbortSignal) =>
+    locationRequest<NormalizeLocationResponse>("/normalize", {
+      method: "POST", body: JSON.stringify(payload), signal,
+    }),
+};
+```
+
+If the existing auth interceptor treats every 401 as a login-expiry event, exempt
+location provider-authentication errors. These public routes do not signal
+expired user sessions.
+
+### TanStack Query integration
+
+If TanStack Query is already used, use it rather than an unrelated data layer:
+
+- `useNormalizeLocation`: mutation triggered only after a user-initiated capture.
+  Disable automatic retries by default; show Retry explicitly.
+- `useGeocodeLocation`: mutation for deliberate address searches.
+- `useReverseLocation`: explicit mutation/query for user-requested lookup; avoid
+  putting precise GPS data in persisted query keys.
+- `useAddressAutocomplete`: debounced query, enabled only for >= 3 trimmed
+  characters, pass its abort signal, disable focus-based refetch, and do not retry
+  400/401/404/429 automatically. Use `gcTime: 0` if suggestions should not remain in
+  cache when unmounted. Exclude all location state from query persistence.
+- Clear sensitive cached results on form reset/unmount as appropriate.
+- Normalization does not change a backend record, so no list cache invalidation
+  is needed. Invalidate onboarding/customer data only after the actual record
+  save succeeds.
+- A Render cold start can take longer than a standard quick request. Use a
+  suitable request timeout and pending message, not an unbounded retry loop.
+
+## 7. User-initiated GPS capture
+
+Add a **Capture My Location** or **Capture GPS Location** button beside the
+existing onboarding address field. Never capture automatically on mount, and
+never use background tracking.
+
+Separate browser capture from normalization, so coordinates can be retained
+when reverse-geocoding fails:
+
+```ts
+function captureDevicePosition(): Promise<NormalizeLocationPayload> {
+  return new Promise((resolve, reject) => {
+    if (!window.isSecureContext || !navigator.geolocation) {
+      reject(new Error("Location capture requires HTTPS and a supported browser."));
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      position => resolve({
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+        accuracy_m: position.coords.accuracy,
+        captured_at: new Date(position.timestamp).toISOString(),
+      }),
+      error => reject(new Error({
+        1: "Location permission was denied. Enable it in your browser settings, then retry.",
+        2: "Your current location could not be determined. Please retry.",
+        3: "Location request timed out. Please retry.",
+      }[error.code] || "Location capture failed.")),
+      { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 },
+    );
+  });
+}
+```
+
+In the capture click handler:
+
+1. Disable Capture while requesting permission/capturing/normalizing.
+2. Clear any obsolete success message, but retain the previous complete captured
+   record until a new capture succeeds. Keep a failed capture attempt distinct
+   from a previously successful record.
+3. Capture into a temporary object with `captureDevicePosition()`.
+4. Call `locationApi.normalize(captured)`.
+5. Validate `success === true` and the location object before accepting it.
+6. Replace the form's entire location record in one state update:
+   address, latitude, longitude, accuracy, timestamp, source.
+7. Show the readable address, latitude, longitude, and accuracy in read-only
+   fields, plus an accessible status message (`role="status"` / `aria-live`).
+8. Re-enable the button in `finally`. Show Retry when capture/normalization fails.
+
+Do not pair a new address with an old coordinate set. Ignore stale async results
+after unmount, form reset, or a superseding capture. A request sequence identifier
+and AbortController can prevent stale normalization writes; browser
+`getCurrentPosition` itself is not cancellable.
+
+If normalization returns 404, retain the new raw capture separately and clearly
+mark its address as unresolved. Do not mark an incomplete record as fully
+normalized. Allow correction/retry according to the onboarding rules.
+
+For mandatory GPS capture, block final onboarding submission until a complete
+valid capture is available. If a readable address is also mandatory, block
+submission until it is resolved or explicitly corrected under the approved
+workflow. Do not impose an invented accuracy cutoff: show the actual accuracy
+and ask the product owner if a threshold is required. Zero accuracy is valid,
+not a missing value.
+
+Optional address autocomplete/manual geocoding must remain separate from
+authoritative device capture. Selecting a typed address must not silently
+overwrite captured latitude/longitude.
+
+## 8. Onboarding persistence boundary
+
+The frontend's normalized location record should contain:
+
+```ts
+interface OnboardingLocation {
+  address: string;
+  latitude: number;
+  longitude: number;
+  accuracy_m: number;
+  captured_at: string;
+  source: "device_geolocation";
+}
+```
+
+Before submitting that record, verify the target onboarding endpoint actually
+accepts and persists all fields. This backend uses DTO whitelisting; unknown
+properties can be removed rather than stored.
+
+If that endpoint uses GeoJSON, map coordinates as **[longitude, latitude]**, not
+the display order:
+
+```ts
+const point = {
+  type: "Point" as const,
+  coordinates: [location.longitude, location.latitude],
+};
+```
+
+Do not invent an onboarding route or assume that adding `location` to a request
+will persist it. The backend owner must extend the target DTO/schema and save
+the fields together, mapping names such as `location_accuracy_m`,
+`location_captured_at`, and `location_source` where appropriate. Do not replace
+existing onboarding screens/routes with a separate demo form.
+
+## 9. Frontend responsibilities and acceptance checks
+
+Keep these responsibilities in their existing React equivalents:
+
+- Types: API DTOs, success/error responses, and the captured location record.
+- API services: HTTP only, no JSX or browser geolocation calls.
+- Hooks: capture lifecycle, normalization mutation, debounce/cancellation.
+- Components: capture button, read-only preview, status/error messages, optional
+  address search; no embedded HTTP clients.
+- Onboarding page: composes components, stores the complete location atomically,
+  and integrates it with the existing form submission.
+
+Acceptance checks:
+
+- Permission is requested only after clicking Capture.
+- Allow, deny, unavailable, timeout, unsupported-device, and insecure-context
+  states have clear messages and Retry behavior.
+- Latitude/longitude, accuracy, timestamp, address, and source are displayed or
+  retained correctly; [longitude, latitude] mapping is correct where applicable.
+- Retrying replaces the complete GPS set without stale or partial writes.
+- Manual search does not replace GPS coordinates.
+- All five API operations are accessible through GreenPower, never directly
+  through the provider; there is no key in browser source or network headers.
+- Empty geocode results and the confirmed autocomplete empty-state format are
+  handled without hiding schema mismatches.
+- Upstream/local rate limiting and 400/401/404/502/503 errors are handled.
+- The actual onboarding save endpoint is verified to persist every required
+  location field before declaring end-to-end onboarding complete.
+- Capture flow is verified on the consuming HTTPS production origin/device;
+  browser permission cannot be accepted through a backend unit test.
+
+## 10. Verification and contract limitations
+
+Automated backend tests cover request construction for all five methods,
+server-only authentication, device-coordinate preservation, validation,
+sanitized provider failures, local HTTP routing, and rate limiting.
+
+The public upstream health endpoint was reached successfully during
+implementation. Authenticated live calls require `LOCATION_API_KEY` in server
+secrets. Until configured and tested, do not label authenticated provider
+responses as live-verified; in particular, obtain the missing autocomplete
+response sample before completing its result-list adapter.
+
+Verification at delivery: the NestJS build and 63 focused unit/HTTP tests passed.
+Full-application startup and Swagger preview were blocked because the existing
+environment was missing `REDIS_HOST`, `REDIS_PORT`, and `MONGO_URL`; these are
+pre-existing application requirements, separate from the optional location key.
+The full running API therefore has not been smoke-tested in this environment.
