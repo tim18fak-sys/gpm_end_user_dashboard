@@ -2,7 +2,7 @@ import { DevicePaymentTimelineEnum } from "@/enum/device.enum";
 import { DeviceUserOnboardingStatusEnum, UserVerificationStatusEnum } from "@/enum/user.enum";
 import { useAuthStore } from "@/store/authStore";
 import { PropsWithChildren } from "react";
-import { Navigate, useLocation, useSearchParams } from "react-router-dom";
+import { Navigate, useSearchParams } from "react-router-dom";
 
 interface KycRouterWrapperProps extends PropsWithChildren {}
 

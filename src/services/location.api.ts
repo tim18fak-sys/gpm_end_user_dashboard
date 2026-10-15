@@ -24,10 +24,11 @@ async function request(path: string, config: AxiosRequestConfig = {}): Promise<u
     });
     return response.data;
   } catch (error) {
+    const extendedError = error as Error & { response: { status?: number; headers: Record<string, string> } };
     if (!axios.isAxiosError(error) || axios.isCancel(error)) throw error;
-    const status = error.response?.status ?? 0;
+    const status = extendedError.response?.status ?? 0;
     if (status === 429) {
-      const header = error.response?.headers['retry-after'];
+      const header = extendedError.response?.headers['retry-after'];
       const seconds = Number(header);
       const delay = header && Number.isFinite(seconds)
         ? Math.max(0, seconds * 1000)
