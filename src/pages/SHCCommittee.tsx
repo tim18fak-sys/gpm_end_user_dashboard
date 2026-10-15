@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
-import { motion } from 'framer-motion';
+import { motion, Variants } from 'framer-motion';
 import { debounce } from 'lodash';
 import { useShcCommittees, useCreateCommittee } from '../hooks/useShcCommittees';
 import { SHCCommitteesParams } from '../services/shc.api';
@@ -9,25 +9,25 @@ import EmptyState from '../components/shc/EmptyState';
 import Pagination from '../components/ui/Pagination';
 import OnboardModal, { OnboardCommitteeValues } from '../components/shc/OnboardModal';
 
-const containerVariants = {
+const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.1
-    }
-  }
+      staggerChildren: 0.1,
+    },
+  },
 };
 
-const itemVariants = {
+const itemVariants: Variants = {
   hidden: { opacity: 0, y: 20 },
   visible: {
     opacity: 1,
     y: 0,
     transition: {
-      duration: 0.5
-    }
-  }
+      duration: 0.5,
+    },
+  },
 };
 
 export default function SHCCommittee() {

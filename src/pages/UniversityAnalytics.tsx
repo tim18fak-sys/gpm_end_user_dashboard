@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react'
 import {  useNavigate, useLocation } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, Variants } from 'framer-motion'
 import { 
   ArrowLeftIcon,
   BuildingOfficeIcon,
@@ -31,7 +31,7 @@ import OnboardingActivityChart from '../components/analytics/OnboardingActivityC
 import DistributionPieChart from '../components/analytics/DistributionPieChart'
 
 // Animation variants
-const containerVariants = {
+const containerVariants:Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
@@ -41,17 +41,17 @@ const containerVariants = {
   }
 }
 
-const itemVariants = {
+const itemVariants: Variants = {
   hidden: { opacity: 0, y: 20 },
   visible: {
     opacity: 1,
     y: 0,
     transition: {
       duration: 0.5,
-      ease: "easeOut"
-    }
-  }
-}
+      ease: "easeOut",
+    },
+  },
+};
 
 // const statsVariants = {
 //   hidden: { opacity: 0, scale: 0.8 },

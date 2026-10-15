@@ -4,7 +4,7 @@ import { Dialog, Transition } from '@headlessui/react'
 import { XMarkIcon, ArrowLeftIcon, ArrowRightIcon, CheckIcon } from '@heroicons/react/24/outline'
 import { Formik, Form, Field, ErrorMessage } from 'formik'
 import * as Yup from 'yup'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, Variants } from 'framer-motion'
 import toast from 'react-hot-toast'
 import { universityAPI } from '../../services/university'
 import type { CompleteUniversitySetupDto } from '../../types/universitySetup'
@@ -77,20 +77,20 @@ export default function CompleteSetupModal({ isOpen, onClose, university, onSucc
     }
   }
 
-  const slideVariants = {
-    enter: (direction: 'left' | 'right') => ({
-      x: direction === 'right' ? 300 : -300,
+  const slideVariants: Variants = {
+    enter: (direction: "left" | "right") => ({
+      x: direction === "right" ? 300 : -300,
       opacity: 0,
     }),
     center: {
       x: 0,
       opacity: 1,
     },
-    exit: (direction: 'left' | 'right') => ({
-      x: direction === 'right' ? -300 : 300,
+    exit: (direction: "left" | "right") => ({
+      x: direction === "right" ? -300 : 300,
       opacity: 0,
     }),
-  }
+  };
 
   return (
     <Transition appear show={isOpen} as={Fragment}>

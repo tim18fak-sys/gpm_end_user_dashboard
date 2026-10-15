@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { ProfileManagementAPI } from '../services/api'
 import { useAuthStore, } from "../store/authStore";
 import toast from 'react-hot-toast'
-import { motion } from 'framer-motion'
+import { motion, Variants } from 'framer-motion'
 import { onboardingApi } from "@/services/onboarding.api";
 import { DevicePaymentTimelineEnum } from "@/enum/device.enum";
 import {
@@ -12,30 +12,30 @@ import {
   UserVerificationStatusEnum,
 } from "@/enum/user.enum";
 
-const containerVariants = {
+const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
     transition: {
       duration: 0.6,
-      staggerChildren: 0.2
-    }
-  }
-}
+      staggerChildren: 0.2,
+    },
+  },
+};
 
-const itemVariants = {
+const itemVariants: Variants = {
   hidden: { opacity: 0, y: 30 },
   visible: {
     opacity: 1,
     y: 0,
     transition: {
       duration: 0.8,
-      ease: "easeOut"
-    }
-  }
-}
+      ease: "easeOut",
+    },
+  },
+};
 
-const spinnerVariants = {
+const spinnerVariants :Variants= {
   hidden: { scale: 0, rotate: 0 },
   visible: {
     scale: 1,
@@ -47,7 +47,7 @@ const spinnerVariants = {
   }
 }
 
-const dotsVariants = {
+const dotsVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
@@ -55,22 +55,22 @@ const dotsVariants = {
       staggerChildren: 0.2,
       repeat: Infinity,
       repeatType: "reverse" as const,
-      duration: 1.5
-    }
-  }
-}
+      duration: 1.5,
+    },
+  },
+};
 
-const dotVariants = {
+const dotVariants: Variants = {
   hidden: { opacity: 0.3, scale: 0.8 },
   visible: {
     opacity: 1,
     scale: 1.2,
     transition: {
       duration: 0.5,
-      ease: "easeInOut"
-    }
-  }
-}
+      ease: "easeInOut",
+    },
+  },
+};
 
 export default function GetInformation() {
   const navigate = useNavigate();

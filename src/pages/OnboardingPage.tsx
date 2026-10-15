@@ -5,7 +5,7 @@ import * as Yup from 'yup'
 import { LocationPickerField } from '@/components/reusable'
 import { isCompleteLocation, SelectedLocation } from '@/types/location.types'
 import toast from 'react-hot-toast'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, Variants } from 'framer-motion'
 import {
   EyeIcon,
   EyeSlashIcon,
@@ -729,7 +729,7 @@ function OnboardingPage() {
     );
   }
 
-  const slideVariants = {
+  const slideVariants :Variants= {
     enter: (d: number) => ({ x: d > 0 ? '60%' : '-60%', opacity: 0 }),
     center: { x: 0, opacity: 1 },
     exit: (d: number) => ({ x: d < 0 ? '60%' : '-60%', opacity: 0 }),

@@ -1,8 +1,8 @@
 
-import { motion } from 'framer-motion'
+import { motion,  Variants } from 'framer-motion'
 import { ClockIcon, BellIcon, StarIcon } from '@heroicons/react/24/outline'
 
-const containerVariants = {
+const containerVariants:Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
@@ -13,7 +13,7 @@ const containerVariants = {
   }
 }
 
-const itemVariants = {
+const itemVariants:Variants = {
   hidden: { opacity: 0, y: 30 },
   visible: {
     opacity: 1,
@@ -25,7 +25,7 @@ const itemVariants = {
   }
 }
 
-const floatingVariants = {
+const floatingVariants:Variants = {
   floating: {
     y: [-10, 10, -10],
     transition: {
@@ -36,7 +36,7 @@ const floatingVariants = {
   }
 }
 
-const pulseVariants = {
+const pulseVariants:Variants = {
   pulse: {
     scale: [1, 1.05, 1],
     transition: {
@@ -47,7 +47,7 @@ const pulseVariants = {
   }
 }
 
-const sparkleVariants = {
+const sparkleVariants:Variants = {
   sparkle: {
     opacity: [0, 1, 0],
     scale: [0.5, 1, 0.5],

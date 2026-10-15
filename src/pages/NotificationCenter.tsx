@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { motion, Variants } from 'framer-motion'
 import { BellIcon } from '@heroicons/react/24/outline'
 import { useNotifications, useUnreadNotifications } from '../hooks/useNotifications'
 import { SuperAdminNotification } from '../types/notification'
@@ -89,17 +89,17 @@ export default function NotificationCenter() {
     unreadNotificationsQuery.refetch()
   }
 
-  const containerVariants = {
+  const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1
-      }
-    }
-  }
+        staggerChildren: 0.1,
+      },
+    },
+  };
 
-  const itemVariants = {
+  const itemVariants :Variants= {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0 }
   }

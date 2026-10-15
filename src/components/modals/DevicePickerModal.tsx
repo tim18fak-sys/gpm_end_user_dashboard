@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, Variants } from 'framer-motion'
 import {
   XMarkIcon,
   ChevronRightIcon,
@@ -55,7 +55,7 @@ const BROWSE_STAGES: Stage[] = ['class', 'group', 'category']
 
 // ─── Animations ───────────────────────────────────────────────────────────────
 
-const slideVariants = {
+const slideVariants:Variants = {
   enter: (dir: number) => ({ x: dir > 0 ? 64 : -64, opacity: 0 }),
   center: { x: 0, opacity: 1 },
   exit: (dir: number) => ({ x: dir > 0 ? -64 : 64, opacity: 0 }),

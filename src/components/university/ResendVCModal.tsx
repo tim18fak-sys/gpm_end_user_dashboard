@@ -2,7 +2,7 @@
 import { useState, Fragment } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
 import { XMarkIcon, ArrowLeftIcon, CheckIcon } from '@heroicons/react/24/outline'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, Variants } from 'framer-motion'
 import toast from 'react-hot-toast'
 import { universityAPI } from '../../services/university'
 import type { University } from '../../types/university'
@@ -53,7 +53,7 @@ export default function ResendVCModal({ isOpen, onClose, university, onSuccess }
     }
   }
 
-  const slideVariants = {
+  const slideVariants: Variants = {
     enter: {
       x: 300,
       opacity: 0,
@@ -66,7 +66,7 @@ export default function ResendVCModal({ isOpen, onClose, university, onSuccess }
       x: -300,
       opacity: 0,
     },
-  }
+  };
 
   const getTypeLabel = (type: VCType) => {
     return type === 'university_admin' ? 'Institution VC' : 'Institution Sexual Harassment Probition VC'

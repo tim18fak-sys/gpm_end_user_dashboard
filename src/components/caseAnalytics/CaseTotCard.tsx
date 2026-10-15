@@ -1,5 +1,5 @@
 
-import { motion } from 'framer-motion'
+import { motion, Variants } from 'framer-motion'
 import { ArrowUpIcon, ArrowDownIcon } from '@heroicons/react/24/outline'
 import type { BaseTotalCase } from '../../types/caseAnalytics'
 
@@ -18,7 +18,7 @@ export default function CaseTotCard({
   colorClass, 
   index 
 }: CaseTotCardProps) {
-  const cardVariants = {
+  const cardVariants:Variants = {
     hidden: { opacity: 0, y: 10 },
     visible: { 
       opacity: 1, 
