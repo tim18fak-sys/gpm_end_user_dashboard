@@ -13,6 +13,8 @@ import ImageUpload from "@/components/smart_components/SingleImageUpload";
 import { api } from "@/services/api";
 import { PublicApiConst } from "@/const/upload.const";
 import { useVerifyNinManually } from "@/hooks/useKyc";
+import { useAuthStore } from "@/store/authStore";
+import { UserVerificationStatusEnum } from "@/enum/user.enum";
 // import { Transition, Dialog } from '@headlessui/react'
 
 const steps = [
@@ -34,6 +36,7 @@ const steps = [
 ];
 
 const Kyc = () => {
+  const { user, setUser } = useAuthStore();
   const navigate = useNavigate();
   const [started, setStarted] = useState(false);
   // const [slide, setSlide] = useState(0)
@@ -52,6 +55,19 @@ const Kyc = () => {
 
   const { mutate: verifyNin, isPending: isSubmitting } = useVerifyNinManually();
 
+
+  const handleActionAfterSubmission = () => {
+    // close the celebration modal
+    setShowCelebration(false);
+    // navigate to the pending page after successful submission
+    // the fromKyc state is used to indicate that the user came from the kyc page, and should not be navigated back.
+    // there is another way to do this, that is updating the verification status in the auth store, but i am using it so as to explore other ways of doing this. i will update the auth store in the future.
+    // navigate("/kyc/pending-review", {  state: { fromKyc: "1" } });
+    setUser({
+      ...user,
+      verification_status: UserVerificationStatusEnum.PENDING,
+    });
+  };
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -78,7 +94,11 @@ const Kyc = () => {
 
     verifyNin(
       { nin: nin.trim(), documentUrl },
-      { onSuccess: () => setShowCelebration(true) },
+      {
+        onSuccess: () => {
+          handleActionAfterSubmission();
+        },
+      },
     );
   };
   return (

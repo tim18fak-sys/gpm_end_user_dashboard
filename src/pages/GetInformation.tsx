@@ -89,7 +89,7 @@ export default function GetInformation() {
         if (loginState.stage === "customer") {
           const userInfo = await ProfileManagementAPI.getUserInfo();
           const userInfoResponse = userInfo.data;
-          console.log(userInfo.data, "");
+          console.log(userInfo.data, "customer details");
           setUser({
             _id: userInfoResponse._id,
             email: userInfoResponse.email,
@@ -113,6 +113,7 @@ export default function GetInformation() {
           });
 
           // only users who want installment payment timeline need to go through the kyc flow
+         
           if (
             userInfoResponse.verification_status ===
               UserVerificationStatusEnum.NONE &&
