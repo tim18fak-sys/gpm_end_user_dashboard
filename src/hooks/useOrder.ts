@@ -10,6 +10,8 @@ export const useGetAllOrders = (params: GetAllOrderCursorPaginationDTO) => {
   return useQuery({
     queryKey: ["all-orders"],
     queryFn: () => orderApi.getAllOrders(params),
+    refetchOnWindowFocus: true,
+    staleTime: 1000 * 60 * 1, // 1 minutes
   });
 };
 
@@ -19,6 +21,7 @@ export const useGetOrderDetails = (orderId: string) => {
     queryKey: ["order-details", orderId],
     queryFn: () => orderApi.getOrderDetails({ orderId }),
     enabled: !!orderId,
+    
   });
 };
 

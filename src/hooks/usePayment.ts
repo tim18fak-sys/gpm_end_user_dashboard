@@ -10,7 +10,8 @@ export const useGetActiveInvoice = () => {
   return useQuery({
     queryKey: ["next-payment-invoice"],
     queryFn: () => paymentApi.getActiveInvoice(),
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 1 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: true,
   });
 };
 
@@ -18,7 +19,8 @@ export const useGetAllInvoices = (params: BaseCursorPaginationInterface) => {
   return useQuery({
     queryKey: ["all-invoices"],
     queryFn: () => paymentApi.getAllInvoices(params),
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 1 * 60 * 1000, // 1 minutes
+    refetchOnWindowFocus: true,
   });
 };
 

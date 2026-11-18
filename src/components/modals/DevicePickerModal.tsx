@@ -122,8 +122,10 @@ function calcInstallmentAmount(
   const interest = remaining * (cat.installment_interest_rate / 100)
   const total = remaining + interest
   if (duration === DeviceCategoryPaymentDurationOptionEnum.MONTHLY) {
+    // this is in months, so we just divide by the number of months
     return total / cat.installment_duration_available
   }
+  // we multiple to get the values for each week
   return total / (cat.installment_duration_available * 4)
 }
 
