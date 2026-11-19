@@ -1,6 +1,6 @@
 import { api } from './api'
 
-const endpoint = '/v1/upload/public'
+const endpoint = '/v1/public/upload'
 
 export const fileApi = {
   getAccessUrl: async (url: string): Promise<{ accessUrl: string }> => {
