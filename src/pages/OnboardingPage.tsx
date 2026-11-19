@@ -31,6 +31,8 @@ import {
 import { useCheckAgentExist, useCheckHubExist, useOnboarding } from '@/hooks/useOnboarding'
 import { DeviceTypeEnum, DevicePaymentTimelineEnum } from '@/enum/device.enum'
 import DevicePickerModal, { SelectedDevice } from '@/components/modals/DevicePickerModal'
+import PreselectedDeviceField from '@/components/reusable/PreselectedDeviceField'
+import { deviceSelectionFields } from '@/lib/onboardingDevice'
 import { DeviceCategoryPaymentOptionEnum, DeviceCategoryPaymentDurationOptionEnum } from '@/types/deviceCategory'
 import { UserGenderEnum } from '@/types/user.types'
 import {
@@ -391,6 +393,13 @@ function OnboardingPage() {
   const { mutateAsync: checkAgent } = useCheckAgentExist()
   const agentId = searchParams.get('agentId') ?? ''
   const hubId = searchParams.get('hubId') ?? ''
+  // An empty linked ID is invalid, not permission to browse a different device.
+  const productModelId = searchParams.get('productModelId')?.trim() ?? null
+
+  useEffect(() => {
+    setDevicePickerOpen(false)
+    setStep(0)
+  }, [productModelId])
 
   useEffect(() => {
     if (!agentId || !hubId) {
@@ -582,6 +591,11 @@ function OnboardingPage() {
   }
 
   const handleSubmit = (values: FormValues) => {
+    if (productModelId !== null && values.interested_device_category_id !== productModelId) {
+      setStep(1)
+      toast.error('Please choose a payment plan for the device attached to this link.')
+      return
+    }
     if (!isCompleteLocation(values.home_location) || values.home_location.address !== values.address) {
       setStep(0)
       toast.error('Please add and confirm your home location before submitting.')
@@ -830,6 +844,7 @@ function OnboardingPage() {
           </div>
 
           <Formik
+            key={`${agentId}:${hubId}:${productModelId ?? 'browse'}`}
             initialValues={initialValues}
             validationSchema={stepSchemas[step]}
             onSubmit={handleSubmit}
@@ -838,28 +853,15 @@ function OnboardingPage() {
           >
             {({ values, errors, touched, validateForm, setTouched, setFieldValue, setValues }) => (
               <>
-              <DevicePickerModal
+              {productModelId === null && <DevicePickerModal
                 open={devicePickerOpen}
                 onClose={() => setDevicePickerOpen(false)}
                 currentId={values.interested_device_category_id}
                 onSelect={(device: SelectedDevice) => {
-                  setFieldValue('interested_device_category_id', device.id)
-                  setFieldValue('interested_device_category_name', device.name)
-                  setFieldValue('interested_device_type', device.deviceType)
-                  setFieldValue('device_payment_option', device.paymentOption)
-                  setFieldValue('device_payment_duration', device.paymentDuration ?? '')
-                  setFieldValue('device_initialization_amount', device.initializationAmount)
-                  setFieldValue('device_installment_amount', device.installmentAmount ?? null)
-                  setFieldValue('device_installment_duration_months', device.installmentDurationMonths ?? null)
-                  // Auto-set paymentTimeline from modal choice
-                  if (device.paymentOption === DeviceCategoryPaymentOptionEnum.OUTRIGHT) {
-                    setFieldValue('paymentTimeline', DevicePaymentTimelineEnum.OUTRIGHT)
-                  } else if (device.installmentDurationMonths) {
-                    setFieldValue('paymentTimeline', `${device.installmentDurationMonths}_month` as DevicePaymentTimelineEnum)
-                  }
+                  void setValues((current) => ({ ...current, ...deviceSelectionFields(device) }))
                   setDevicePickerOpen(false)
                 }}
-              />
+              />}
               <Form>
                 {/* Scrollable step content */}
                 <div className="px-6 pt-5 pb-2 overflow-y-auto max-h-[60vh]">
@@ -1000,7 +1002,25 @@ function OnboardingPage() {
                           <p className={sectionTitle}>Section 2 — Product Information</p>
 
                           {/* Device picker */}
-                          <div>
+                          {productModelId !== null ? (
+                            <div>
+                              <PreselectedDeviceField
+                                key={productModelId}
+                                productModelId={productModelId}
+                                paymentPlan={values.device_payment_option ? {
+                                  option: values.device_payment_option as DeviceCategoryPaymentOptionEnum,
+                                  duration: values.device_payment_duration as DeviceCategoryPaymentDurationOptionEnum | '',
+                                  initializationAmount: values.device_initialization_amount,
+                                  installmentAmount: values.device_installment_amount,
+                                  months: values.device_installment_duration_months,
+                                } : null}
+                                onSelect={(device) => {
+                                  void setValues((current) => ({ ...current, ...deviceSelectionFields(device) }))
+                                }}
+                              />
+                              <ErrorMessage name="interested_device_category_id" component="div" className={errorClass} />
+                            </div>
+                          ) : <div>
                             <label className={labelClass}>Interested Device</label>
                             {values.interested_device_category_id ? (
                               <div className="mt-2 rounded-xl border border-primary-300 dark:border-primary-700 bg-primary-50 dark:bg-primary-900/20 overflow-hidden">
@@ -1076,7 +1096,7 @@ function OnboardingPage() {
                               </button>
                             )}
                             <ErrorMessage name="interested_device_category_id" component="div" className={errorClass} />
-                          </div>
+                          </div>}
 
                           <div>
                             <label className={labelClass}>Intended Use</label>
