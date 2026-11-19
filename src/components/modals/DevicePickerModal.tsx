@@ -45,6 +45,7 @@ interface Props {
   onClose: () => void
   onSelect: (device: SelectedDevice) => void
   currentId?: string
+  preselectedCategory?: DeviceCategory
 }
 
 // ─── Stage type ───────────────────────────────────────────────────────────────
@@ -122,15 +123,26 @@ function calcInstallmentAmount(
   const interest = remaining * (cat.installment_interest_rate / 100)
   const total = remaining + interest
   if (duration === DeviceCategoryPaymentDurationOptionEnum.MONTHLY) {
+    // this is in months, so we just divide by the number of months
     return total / cat.installment_duration_available
   }
+  // we multiple to get the values for each week
   return total / (cat.installment_duration_available * 4)
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export default function DevicePickerModal({ open, onClose, onSelect, currentId }: Props) {
-  const [stage, setStage] = useState<Stage>('class')
+export default function DevicePickerModal({
+  open,
+  onClose,
+  onSelect,
+  currentId,
+  preselectedCategory,
+}: Props) {
+  const isPreselectedMode = !!preselectedCategory
+  const [stage, setStage] = useState<Stage>(
+    isPreselectedMode ? 'details' : 'class',
+  )
   const [dir, setDir] = useState(1)
   const [search, setSearch] = useState('')
 
@@ -138,7 +150,9 @@ export default function DevicePickerModal({ open, onClose, onSelect, currentId }
   const [selectedClassName, setSelectedClassName] = useState('')
   const [selectedGroupId, setSelectedGroupId] = useState('')
   const [selectedGroupName, setSelectedGroupName] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState<DeviceCategory | null>(null)
+  const [selectedCategory, setSelectedCategory] = useState<DeviceCategory | null>(
+    preselectedCategory ?? null,
+  )
   const [selectedDuration, setSelectedDuration] = useState<DeviceCategoryPaymentDurationOptionEnum | null>(null)
 
   const searchedClassDebounce = useDebounce(search, 300);
@@ -146,19 +160,21 @@ export default function DevicePickerModal({ open, onClose, onSelect, currentId }
   const searchedCategoryDebounce = useDebounce(search, 300);
   const classQuery = useDeviceClass({
     limit: 50,
-    enabled: open,
+    enabled: open && !isPreselectedMode,
     search: searchedClassDebounce,
   });
   const groupQuery = useDeviceCategoryGroup({
     limit: 50,
     deviceClassId: selectedClassId,
-    enabled: !!selectedClassId && stage !== "class",
+    enabled: open && !isPreselectedMode && !!selectedClassId && stage !== "class",
     search: searchedGroupDebounce,
   });
   const categoryQuery = useDeviceCategoryByGroupId({
     limit: 50,
     deviceGroupId: selectedGroupId,
     enabled:
+      open &&
+      !isPreselectedMode &&
       !!selectedGroupId &&
       (stage === "category" || stage === "details" || stage === "installment"),
     search: searchedCategoryDebounce,
@@ -172,17 +188,22 @@ export default function DevicePickerModal({ open, onClose, onSelect, currentId }
 
   const handleClose = () => {
     onClose()
-    setTimeout(() => {
-      setStage('class')
+    const reset = () => {
+      setStage(isPreselectedMode ? 'details' : 'class')
       setDir(1)
       setSearch('')
       setSelectedClassId('')
       setSelectedClassName('')
       setSelectedGroupId('')
       setSelectedGroupName('')
-      setSelectedCategory(null)
+      setSelectedCategory(preselectedCategory ?? null)
       setSelectedDuration(null)
-    }, 300)
+    }
+    if (isPreselectedMode) {
+      reset()
+    } else {
+      setTimeout(reset, 300)
+    }
   }
 
   // ── Browse navigation ─────────────────────────────────────────────────────
@@ -254,6 +275,10 @@ export default function DevicePickerModal({ open, onClose, onSelect, currentId }
   const goBack = () => {
     setDir(-1)
     setSearch('')
+    if (isPreselectedMode) {
+      if (stage === 'installment') setStage('details')
+      return
+    }
     if (stage === 'installment') {
       setStage('details')
     } else if (stage === 'details') {
@@ -277,7 +302,7 @@ export default function DevicePickerModal({ open, onClose, onSelect, currentId }
     (c) => c.model.toLowerCase().includes(q) || c.description.toLowerCase().includes(q),
   )
 
-  const isBrowseStage = BROWSE_STAGES.includes(stage)
+  const isBrowseStage = !isPreselectedMode && BROWSE_STAGES.includes(stage)
 
   // ── Header labels ─────────────────────────────────────────────────────────
 
@@ -315,7 +340,8 @@ export default function DevicePickerModal({ open, onClose, onSelect, currentId }
       >
         {/* ── Header ─────────────────────────────────────────────────────── */}
         <div className="flex items-center gap-3 px-4 py-3.5 border-b border-secondary-100 dark:border-secondary-700 flex-shrink-0">
-          {stage !== "class" && (
+          {stage !== "class" &&
+            !(isPreselectedMode && stage === "details") && (
             <button
               onClick={goBack}
               className="p-1.5 rounded-lg hover:bg-secondary-100 dark:hover:bg-secondary-700 transition-colors"
@@ -395,7 +421,7 @@ export default function DevicePickerModal({ open, onClose, onSelect, currentId }
         <div className="flex-1 overflow-hidden relative min-h-0">
           <AnimatePresence initial={false} custom={dir} mode="wait">
             {/* ── CLASS ───────────────────────────────────────────────────── */}
-            {stage === "class" && (
+            {!isPreselectedMode && stage === "class" && (
               <motion.div
                 key="class"
                 custom={dir}
@@ -444,7 +470,7 @@ export default function DevicePickerModal({ open, onClose, onSelect, currentId }
             )}
 
             {/* ── GROUP ───────────────────────────────────────────────────── */}
-            {stage === "group" && (
+            {!isPreselectedMode && stage === "group" && (
               <motion.div
                 key="group"
                 custom={dir}
@@ -493,7 +519,7 @@ export default function DevicePickerModal({ open, onClose, onSelect, currentId }
             )}
 
             {/* ── CATEGORY ────────────────────────────────────────────────── */}
-            {stage === "category" && (
+            {!isPreselectedMode && stage === "category" && (
               <motion.div
                 key="category"
                 custom={dir}
@@ -668,6 +694,16 @@ export default function DevicePickerModal({ open, onClose, onSelect, currentId }
                     </button>
                   )}
                 </div>
+                {!selectedCategory.payment_option.includes(
+                  DeviceCategoryPaymentOptionEnum.OUTRIGHT,
+                ) &&
+                  !selectedCategory.payment_option.includes(
+                    DeviceCategoryPaymentOptionEnum.INSTALLMENT,
+                  ) && (
+                    <p className="mt-3 rounded-xl border border-secondary-200 dark:border-secondary-600 bg-secondary-50 dark:bg-secondary-700/50 px-4 py-3 text-xs text-secondary-500 dark:text-secondary-400">
+                      No supported payment options are available for this device.
+                    </p>
+                  )}
               </motion.div>
             )}
 
@@ -678,6 +714,19 @@ export default function DevicePickerModal({ open, onClose, onSelect, currentId }
                 const initAmt = calcInitAmount(selectedCategory);
                 const options =
                   selectedCategory.installment_payment_durations_option;
+                const availableOptions = options.filter((opt) => {
+                  if (selectedCategory.allow_manual_calculation_for_installment_payment) {
+                    const configuredOption = options.find(
+                      (candidate) =>
+                        candidate.duration_option === opt.duration_option,
+                    );
+                    return (
+                      configuredOption !== undefined &&
+                      Number.isFinite(configuredOption.amount)
+                    );
+                  }
+                  return selectedCategory.installment_duration_available > 0;
+                });
 
                 return (
                   <motion.div
@@ -747,7 +796,7 @@ export default function DevicePickerModal({ open, onClose, onSelect, currentId }
                     </p>
 
                     <div className="space-y-3">
-                      {options.map((opt) => {
+                      {availableOptions.map((opt) => {
                         const perPeriod = calcInstallmentAmount(
                           selectedCategory,
                           opt.duration_option,
@@ -812,6 +861,11 @@ export default function DevicePickerModal({ open, onClose, onSelect, currentId }
                         );
                       })}
                     </div>
+                    {availableOptions.length === 0 && (
+                      <p className="rounded-xl border border-secondary-200 dark:border-secondary-600 bg-secondary-50 dark:bg-secondary-700/50 px-4 py-3 text-xs text-secondary-500 dark:text-secondary-400">
+                        No installment payment frequencies are available for this device.
+                      </p>
+                    )}
 
                     {/* Confirm button */}
                     {selectedDuration && (

@@ -1,1 +1,2 @@
 - [Location integration rules](location-integration.md) — provider proxy, GPS provenance, and the onboarding persistence boundary.
+- [Linked onboarding products](linked-onboarding-products.md) — productModelId identifies a predefined device category; linked users choose only its payment plan.

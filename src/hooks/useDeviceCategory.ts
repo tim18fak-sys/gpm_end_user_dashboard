@@ -36,7 +36,8 @@ export const useLinkedDeviceInfo = () => {
   return useQuery({
     queryKey: ["linked-device-info"],
     queryFn: () => deviceCategoryApi.getLinkedDeviceInfo(),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 1 * 60 * 1000,
+    refetchOnWindowFocus: true,
   });
 };
 
@@ -45,7 +46,8 @@ export const useCurrentDeviceCode = (deviceId: string) => {
     queryKey: ["current-device-code", deviceId],
     queryFn: () => deviceCategoryApi.getCurrentDeviceCode(deviceId),
     enabled: !!deviceId,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 1 * 60 * 1000,
+    refetchOnWindowFocus: true,
   });
 };
 
@@ -54,7 +56,8 @@ export const useAllDeviceCategories = (enabled: boolean) => {
     queryKey: ["device-categories-all"],
     queryFn: () => deviceCategoryApi.getDeviceCategories({ limit: 30 }),
     enabled,
-    staleTime: 10 * 60 * 1000,
+    staleTime: 1 * 60 * 1000,
+    refetchOnWindowFocus: true,
   });
 };
 
@@ -67,7 +70,8 @@ export const useDeviceClass = (
     queryKey: ["device-category-group", params],
     queryFn: () => deviceCategoryApi.getDeviceClasses(params),
     enabled: params.enabled,
-    staleTime: 10 * 60 * 1000,
+    staleTime: 1 * 60 * 1000,
+    refetchOnWindowFocus: true,
   });
 };
 

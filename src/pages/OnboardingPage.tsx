@@ -1,8 +1,8 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Formik, Form, Field, ErrorMessage, FormikHelpers } from 'formik'
 import * as Yup from 'yup'
-import { LocationPickerField } from '@/components/reusable'
+import { LocationPickerField, SecureImage } from '@/components/reusable'
 import { isCompleteLocation, SelectedLocation } from '@/types/location.types'
 import toast from 'react-hot-toast'
 import { motion, AnimatePresence, Variants } from 'framer-motion'
@@ -10,7 +10,6 @@ import {
   EyeIcon,
   EyeSlashIcon,
   UserIcon,
-  CameraIcon,
   ArrowRightIcon,
   ArrowLeftIcon,
   CheckCircleIcon,
@@ -31,8 +30,13 @@ import {
 import { useCheckAgentExist, useCheckHubExist, useOnboarding } from '@/hooks/useOnboarding'
 import { DeviceTypeEnum, DevicePaymentTimelineEnum } from '@/enum/device.enum'
 import DevicePickerModal, { SelectedDevice } from '@/components/modals/DevicePickerModal'
+import PreselectedDeviceField from '@/components/reusable/PreselectedDeviceField'
+import { deviceSelectionFields } from '@/lib/onboardingDevice'
 import { DeviceCategoryPaymentOptionEnum, DeviceCategoryPaymentDurationOptionEnum } from '@/types/deviceCategory'
 import { UserGenderEnum } from '@/types/user.types'
+import { api } from '@/services/api'
+import { PublicApiConst } from '@/const/upload.const'
+import ImageUpload from '@/components/smart_components/SingleImageUpload'
 import {
   IdTypeEnum,
   IntendedUseEnum,
@@ -380,10 +384,8 @@ function OnboardingPage() {
   const [direction, setDirection] = useState(1)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [devicePickerOpen, setDevicePickerOpen] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null)
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const { mutate: onboard } = useOnboarding()
@@ -391,6 +393,13 @@ function OnboardingPage() {
   const { mutateAsync: checkAgent } = useCheckAgentExist()
   const agentId = searchParams.get('agentId') ?? ''
   const hubId = searchParams.get('hubId') ?? ''
+  // An empty linked ID is invalid, not permission to browse a different device.
+  const productModelId = searchParams.get('productModelId')?.trim() ?? null
+
+  useEffect(() => {
+    setDevicePickerOpen(false)
+    setStep(0)
+  }, [productModelId])
 
   useEffect(() => {
     if (!agentId || !hubId) {
@@ -568,20 +577,12 @@ function OnboardingPage() {
     setStep((s) => Math.max(s - 1, 0) as StepIndex)
   }
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>, set: (f: string, v: string) => void) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    if (file.size > 5 * 1024 * 1024) { toast.error('Image must be under 5MB'); return }
-    const reader = new FileReader()
-    reader.onloadend = () => {
-      const b64 = reader.result as string
-      setAvatarPreview(b64)
-      set('profile_picture', b64)
-    }
-    reader.readAsDataURL(file)
-  }
-
   const handleSubmit = (values: FormValues) => {
+    if (productModelId !== null && values.interested_device_category_id !== productModelId) {
+      setStep(1)
+      toast.error('Please choose a payment plan for the device attached to this link.')
+      return
+    }
     if (!isCompleteLocation(values.home_location) || values.home_location.address !== values.address) {
       setStep(0)
       toast.error('Please add and confirm your home location before submitting.')
@@ -830,6 +831,7 @@ function OnboardingPage() {
           </div>
 
           <Formik
+            key={`${agentId}:${hubId}:${productModelId ?? 'browse'}`}
             initialValues={initialValues}
             validationSchema={stepSchemas[step]}
             onSubmit={handleSubmit}
@@ -838,28 +840,15 @@ function OnboardingPage() {
           >
             {({ values, errors, touched, validateForm, setTouched, setFieldValue, setValues }) => (
               <>
-              <DevicePickerModal
+              {productModelId === null && <DevicePickerModal
                 open={devicePickerOpen}
                 onClose={() => setDevicePickerOpen(false)}
                 currentId={values.interested_device_category_id}
                 onSelect={(device: SelectedDevice) => {
-                  setFieldValue('interested_device_category_id', device.id)
-                  setFieldValue('interested_device_category_name', device.name)
-                  setFieldValue('interested_device_type', device.deviceType)
-                  setFieldValue('device_payment_option', device.paymentOption)
-                  setFieldValue('device_payment_duration', device.paymentDuration ?? '')
-                  setFieldValue('device_initialization_amount', device.initializationAmount)
-                  setFieldValue('device_installment_amount', device.installmentAmount ?? null)
-                  setFieldValue('device_installment_duration_months', device.installmentDurationMonths ?? null)
-                  // Auto-set paymentTimeline from modal choice
-                  if (device.paymentOption === DeviceCategoryPaymentOptionEnum.OUTRIGHT) {
-                    setFieldValue('paymentTimeline', DevicePaymentTimelineEnum.OUTRIGHT)
-                  } else if (device.installmentDurationMonths) {
-                    setFieldValue('paymentTimeline', `${device.installmentDurationMonths}_month` as DevicePaymentTimelineEnum)
-                  }
+                  void setValues((current) => ({ ...current, ...deviceSelectionFields(device) }))
                   setDevicePickerOpen(false)
                 }}
-              />
+              />}
               <Form>
                 {/* Scrollable step content */}
                 <div className="px-6 pt-5 pb-2 overflow-y-auto max-h-[60vh]">
@@ -1000,7 +989,25 @@ function OnboardingPage() {
                           <p className={sectionTitle}>Section 2 — Product Information</p>
 
                           {/* Device picker */}
-                          <div>
+                          {productModelId !== null ? (
+                            <div>
+                              <PreselectedDeviceField
+                                key={productModelId}
+                                productModelId={productModelId}
+                                paymentPlan={values.device_payment_option ? {
+                                  option: values.device_payment_option as DeviceCategoryPaymentOptionEnum,
+                                  duration: values.device_payment_duration as DeviceCategoryPaymentDurationOptionEnum | '',
+                                  initializationAmount: values.device_initialization_amount,
+                                  installmentAmount: values.device_installment_amount,
+                                  months: values.device_installment_duration_months,
+                                } : null}
+                                onSelect={(device) => {
+                                  void setValues((current) => ({ ...current, ...deviceSelectionFields(device) }))
+                                }}
+                              />
+                              <ErrorMessage name="interested_device_category_id" component="div" className={errorClass} />
+                            </div>
+                          ) : <div>
                             <label className={labelClass}>Interested Device</label>
                             {values.interested_device_category_id ? (
                               <div className="mt-2 rounded-xl border border-primary-300 dark:border-primary-700 bg-primary-50 dark:bg-primary-900/20 overflow-hidden">
@@ -1076,7 +1083,7 @@ function OnboardingPage() {
                               </button>
                             )}
                             <ErrorMessage name="interested_device_category_id" component="div" className={errorClass} />
-                          </div>
+                          </div>}
 
                           <div>
                             <label className={labelClass}>Intended Use</label>
@@ -1147,28 +1154,39 @@ function OnboardingPage() {
                                 <label className={labelClass}>
                                   Passport Photograph <span className="normal-case font-normal text-secondary-400">(optional)</span>
                                 </label>
-                                <div className="mt-2 flex items-center gap-4">
-                                  <div
-                                    className="relative w-16 h-16 rounded-xl border-2 border-dashed border-secondary-300 dark:border-secondary-600 overflow-hidden cursor-pointer hover:border-primary-400 transition-colors bg-secondary-50 dark:bg-secondary-700 flex items-center justify-center flex-shrink-0"
-                                    onClick={() => fileInputRef.current?.click()}>
-                                    {avatarPreview
-                                      ? <img src={avatarPreview} alt="Preview" className="w-full h-full object-cover" />
-                                      : <UserIcon className="w-7 h-7 text-secondary-400" />}
-                                    <div className="absolute bottom-0 inset-x-0 bg-black/40 flex items-center justify-center py-1">
-                                      <CameraIcon className="w-3 h-3 text-white" />
+                                {values.profile_picture ? (
+                                  <div className="mt-2 flex items-center gap-3 rounded-xl border border-secondary-200 dark:border-secondary-600 p-3">
+                                    <SecureImage
+                                      src={values.profile_picture}
+                                      alt="Uploaded passport photograph"
+                                      className="h-16 w-16 rounded-lg object-cover"
+                                    />
+                                    <div className="min-w-0 flex-1">
+                                      <p className="text-xs font-medium text-secondary-700 dark:text-secondary-300">Passport photo uploaded</p>
+                                      <button
+                                        type="button"
+                                        onClick={() => setFieldValue('profile_picture', '')}
+                                        className="mt-1 text-xs font-medium text-primary-600 hover:underline dark:text-primary-400"
+                                      >
+                                        Replace photo
+                                      </button>
                                     </div>
                                   </div>
-                                  <div>
-                                    <p className="text-xs font-medium text-secondary-700 dark:text-secondary-300">Passport photo</p>
-                                    <p className="text-[11px] text-secondary-400 mt-0.5">JPG, PNG or WebP · max 5MB</p>
-                                    <button type="button" onClick={() => fileInputRef.current?.click()}
-                                      className="mt-1.5 text-xs text-primary-600 dark:text-primary-400 font-medium hover:underline">
-                                      {avatarPreview ? 'Change photo' : 'Upload photo'}
-                                    </button>
+                                ) : (
+                                  <div className="mt-2">
+                                    <ImageUpload
+                                      axiosInstance={api}
+                                      uploadUrl={PublicApiConst.RESOURCE_SINGLE_UPLOAD_URL}
+                                      resourceType="image"
+                                      maxSizeMB={5}
+                                      acceptedFormats={['image/jpeg', 'image/png', 'image/webp']}
+                                      text="Upload your passport photograph"
+                                      onUploadSuccess={({ url }) => {
+                                        setFieldValue('profile_picture', url)
+                                      }}
+                                    />
                                   </div>
-                                  <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden"
-                                    onChange={(e) => handleImageChange(e, setFieldValue)} />
-                                </div>
+                                )}
                               </div>
                             </>
                           )}
