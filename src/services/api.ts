@@ -5,7 +5,7 @@ import { BaseDataInterface } from "@/types/shared";
 import { User } from "@/types/user.types";
 
 
-const API_BASE_URL = "http://localhost:4000";
+const API_BASE_URL = "https://server.greenpower.ng/";
 export const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
