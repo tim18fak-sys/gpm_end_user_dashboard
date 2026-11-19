@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Formik, Form, Field, ErrorMessage, FormikHelpers } from 'formik'
 import * as Yup from 'yup'
@@ -10,7 +10,6 @@ import {
   EyeIcon,
   EyeSlashIcon,
   UserIcon,
-  CameraIcon,
   ArrowRightIcon,
   ArrowLeftIcon,
   CheckCircleIcon,
@@ -35,6 +34,9 @@ import PreselectedDeviceField from '@/components/reusable/PreselectedDeviceField
 import { deviceSelectionFields } from '@/lib/onboardingDevice'
 import { DeviceCategoryPaymentOptionEnum, DeviceCategoryPaymentDurationOptionEnum } from '@/types/deviceCategory'
 import { UserGenderEnum } from '@/types/user.types'
+import { api } from '@/services/api'
+import { PublicApiConst } from '@/const/upload.const'
+import ImageUpload from '@/components/smart_components/SingleImageUpload'
 import {
   IdTypeEnum,
   IntendedUseEnum,
@@ -382,10 +384,8 @@ function OnboardingPage() {
   const [direction, setDirection] = useState(1)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [devicePickerOpen, setDevicePickerOpen] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null)
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const { mutate: onboard } = useOnboarding()
@@ -575,19 +575,6 @@ function OnboardingPage() {
       return
     }
     setStep((s) => Math.max(s - 1, 0) as StepIndex)
-  }
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>, set: (f: string, v: string) => void) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    if (file.size > 5 * 1024 * 1024) { toast.error('Image must be under 5MB'); return }
-    const reader = new FileReader()
-    reader.onloadend = () => {
-      const b64 = reader.result as string
-      setAvatarPreview(b64)
-      set('profile_picture', b64)
-    }
-    reader.readAsDataURL(file)
   }
 
   const handleSubmit = (values: FormValues) => {
@@ -1167,28 +1154,39 @@ function OnboardingPage() {
                                 <label className={labelClass}>
                                   Passport Photograph <span className="normal-case font-normal text-secondary-400">(optional)</span>
                                 </label>
-                                <div className="mt-2 flex items-center gap-4">
-                                  <div
-                                    className="relative w-16 h-16 rounded-xl border-2 border-dashed border-secondary-300 dark:border-secondary-600 overflow-hidden cursor-pointer hover:border-primary-400 transition-colors bg-secondary-50 dark:bg-secondary-700 flex items-center justify-center flex-shrink-0"
-                                    onClick={() => fileInputRef.current?.click()}>
-                                    {avatarPreview
-                                      ? <img src={avatarPreview} alt="Preview" className="w-full h-full object-cover" />
-                                      : <UserIcon className="w-7 h-7 text-secondary-400" />}
-                                    <div className="absolute bottom-0 inset-x-0 bg-black/40 flex items-center justify-center py-1">
-                                      <CameraIcon className="w-3 h-3 text-white" />
+                                {values.profile_picture ? (
+                                  <div className="mt-2 flex items-center gap-3 rounded-xl border border-secondary-200 dark:border-secondary-600 p-3">
+                                    <img
+                                      src={values.profile_picture}
+                                      alt="Uploaded passport photograph"
+                                      className="h-16 w-16 rounded-lg object-cover"
+                                    />
+                                    <div className="min-w-0 flex-1">
+                                      <p className="text-xs font-medium text-secondary-700 dark:text-secondary-300">Passport photo uploaded</p>
+                                      <button
+                                        type="button"
+                                        onClick={() => setFieldValue('profile_picture', '')}
+                                        className="mt-1 text-xs font-medium text-primary-600 hover:underline dark:text-primary-400"
+                                      >
+                                        Replace photo
+                                      </button>
                                     </div>
                                   </div>
-                                  <div>
-                                    <p className="text-xs font-medium text-secondary-700 dark:text-secondary-300">Passport photo</p>
-                                    <p className="text-[11px] text-secondary-400 mt-0.5">JPG, PNG or WebP · max 5MB</p>
-                                    <button type="button" onClick={() => fileInputRef.current?.click()}
-                                      className="mt-1.5 text-xs text-primary-600 dark:text-primary-400 font-medium hover:underline">
-                                      {avatarPreview ? 'Change photo' : 'Upload photo'}
-                                    </button>
+                                ) : (
+                                  <div className="mt-2">
+                                    <ImageUpload
+                                      axiosInstance={api}
+                                      uploadUrl={PublicApiConst.RESOURCE_SINGLE_UPLOAD_URL}
+                                      resourceType="image"
+                                      maxSizeMB={5}
+                                      acceptedFormats={['image/jpeg', 'image/png', 'image/webp']}
+                                      text="Upload your passport photograph"
+                                      onUploadSuccess={({ url }) => {
+                                        setFieldValue('profile_picture', url)
+                                      }}
+                                    />
                                   </div>
-                                  <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden"
-                                    onChange={(e) => handleImageChange(e, setFieldValue)} />
-                                </div>
+                                )}
                               </div>
                             </>
                           )}
