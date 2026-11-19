@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Formik, Form, Field, ErrorMessage, FormikHelpers } from 'formik'
 import * as Yup from 'yup'
-import { LocationPickerField } from '@/components/reusable'
+import { LocationPickerField, SecureImage } from '@/components/reusable'
 import { isCompleteLocation, SelectedLocation } from '@/types/location.types'
 import toast from 'react-hot-toast'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -1156,7 +1156,7 @@ function OnboardingPage() {
                                 </label>
                                 {values.profile_picture ? (
                                   <div className="mt-2 flex items-center gap-3 rounded-xl border border-secondary-200 dark:border-secondary-600 p-3">
-                                    <img
+                                    <SecureImage
                                       src={values.profile_picture}
                                       alt="Uploaded passport photograph"
                                       className="h-16 w-16 rounded-lg object-cover"
